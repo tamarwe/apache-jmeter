@@ -100,10 +100,12 @@ public abstract class HTTPSamplerBase extends AbstractSampler
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
+    //ODC - On Demand Consulting
     private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<String>(
             Arrays.asList(new String[]{
                     "org.apache.jmeter.config.gui.LoginConfigGui",
                     "org.apache.jmeter.protocol.http.config.gui.HttpDefaultsGui",
+                    "com.ibm.issw.odc.gui.BPMHttpDefaultsGui",
                     "org.apache.jmeter.config.gui.SimpleConfigGui",
                     "org.apache.jmeter.protocol.http.gui.HeaderPanel",
                     "org.apache.jmeter.protocol.http.control.DNSCacheManager",
