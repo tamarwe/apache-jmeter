@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/examples"/>
+	<classpathentry kind="src" path="binn"/>
 	<classpathentry kind="src" path="src/protocol/jms"/>
 	<classpathentry kind="src" path="src/protocol/java"/>
 	<classpathentry kind="src" path="src/protocol/http"/>
@@ -44,9 +45,6 @@
 	<classpathentry kind="lib" path="lib/geronimo-jms_1.1_spec-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/htmllexer-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/htmlparser-2.1.jar"/>
-	<classpathentry kind="lib" path="lib/httpclient-4.2.6.jar"/>
-	<classpathentry kind="lib" path="lib/httpcore-4.2.5.jar"/>
-	<classpathentry kind="lib" path="lib/httpmime-4.2.6.jar"/>
 	<classpathentry kind="lib" path="lib/jcharts-0.7.5.jar"/>
 	<classpathentry kind="lib" path="lib/jdom-1.1.3.jar"/>
 	<classpathentry kind="lib" path="lib/jodd-core-3.6.4.jar"/>
@@ -131,5 +129,11 @@
 	<classpathentry kind="lib" path="lib/plugins/ext/JMeterPlugins-ExtrasLibs-1.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/plugins/ext/JMeterPlugins-Standard-1.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/plugins/ext/JMeterPlugins-WebDriver-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/ext/CMDRunner.jar"/>
+	<classpathentry kind="lib" path="lib/ext/JMeterPlugins-Extras.jar"/>
+	<classpathentry kind="lib" path="lib/ext/JMeterPlugins-ExtrasLibs.jar"/>
+	<classpathentry kind="lib" path="lib/ext/JMeterPlugins-Standard.jar"/>
+	<classpathentry kind="lib" path="lib/ext/JMeterPlugins-WebDriver.jar"/>
+	<classpathentry kind="lib" path="lib/ext/JMeterPlugins.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -38,6 +38,7 @@ import org.apache.jmeter.samplers.SampleResult;
 import javax.net.ssl.SSLSession;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -230,7 +231,23 @@ public class MeasuringConnectionManager extends PoolingClientConnectionManager {
         public int getRemotePort() {
             return handler.getRemotePort();
         }
+        
+        @Override
+        public Socket getSocket() {
+        	return handler.getSocket();
+        }
+        
+        @Override
+        public String getId() {
+        	return handler.getId();
+        }
 
+        @Override
+        public void bind(Socket arg0) throws IOException {
+        	handler.bind(arg0);
+        	
+        }
+        
         @Override
         public void close() throws IOException {
             handler.close();

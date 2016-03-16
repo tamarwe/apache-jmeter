@@ -87,7 +87,13 @@ public final class NewDriver {
         StringBuilder classpath = new StringBuilder();
         File[] libDirs = new File[] { new File(jmDir + File.separator + "lib"),// $NON-NLS-1$ $NON-NLS-2$
                 new File(jmDir + File.separator + "lib" + File.separator + "ext"),// $NON-NLS-1$ $NON-NLS-2$
-                new File(jmDir + File.separator + "lib" + File.separator + "junit")};// $NON-NLS-1$ $NON-NLS-2$
+                new File(jmDir + File.separator + "lib" + File.separator + "junit"),
+                
+                //DSP - Added 2 more directories
+                new File(jmDir + File.separator + "lib" + File.separator + "plugins"),
+                new File(jmDir + File.separator + "lib" + File.separator + "plugins" + File.separator + "ext")
+                
+        		};// $NON-NLS-1$ $NON-NLS-2$
         for (File libDir : libDirs) {
             File[] libJars = libDir.listFiles(new FilenameFilter() {
                 @Override
