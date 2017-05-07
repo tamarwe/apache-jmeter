@@ -24,7 +24,6 @@ import org.apache.jmeter.testelement.property.JMeterProperty;
  * For traversing Test Elements, which contain property that can be other test
  * elements, strings, collections, maps, objects
  *
- * @version $Revision: 1649318 $
  */
 public interface TestElementTraverser {
 

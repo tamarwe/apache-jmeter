@@ -39,15 +39,15 @@ import org.apache.jmeter.gui.util.MenuFactory;
 import org.apache.jmeter.protocol.http.control.HttpMirrorControl;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpMirrorControlGui extends LogicControllerGui
     implements JMeterGUIComponent, ActionListener, UnsharedComponent {
 
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HttpMirrorControlGui.class);
 
     private JTextField portField;
 
@@ -55,7 +55,8 @@ public class HttpMirrorControlGui extends LogicControllerGui
 
     private JTextField maxQueueSizeField;
 
-    private JButton stop, start;
+    private JButton stop;
+    private JButton start;
 
     private static final String ACTION_STOP = "stop"; // $NON-NLS-1$
 
@@ -101,7 +102,7 @@ public class HttpMirrorControlGui extends LogicControllerGui
 
     @Override
     public Collection<String> getMenuCategories() {
-        return Arrays.asList(new String[] { MenuFactory.NON_TEST_ELEMENTS });
+        return Arrays.asList(MenuFactory.NON_TEST_ELEMENTS);
     }
 
     @Override
@@ -132,7 +133,7 @@ public class HttpMirrorControlGui extends LogicControllerGui
         }
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
 

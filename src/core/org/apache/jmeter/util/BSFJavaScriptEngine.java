@@ -18,7 +18,6 @@
 
 package org.apache.jmeter.util;
 
-import java.util.Iterator;
 import java.util.Vector;
 
 import org.apache.bsf.BSFDeclaredBean;
@@ -75,9 +74,10 @@ public class BSFJavaScriptEngine extends BSFEngineImpl {
             Object fun = global.get(method, global);
             // NOTE: Source and line arguments are nonsense in a call().
             //       Any way to make these arguments *sensible?
-            if (fun == Scriptable.NOT_FOUND)
+            if (fun == Scriptable.NOT_FOUND) {
                 throw new EvaluatorException("function " + method +
                                              " not found.", "none", 0);
+            }
 
             cx.setOptimizationLevel(-1);
             cx.setGeneratingDebug(false);
@@ -87,13 +87,11 @@ public class BSFJavaScriptEngine extends BSFEngineImpl {
 
             retval =
                 ((Function) fun).call(cx, global, global, args);
-
-//                ScriptRuntime.call(cx, fun, global, args, global);
-
-            if (retval instanceof Wrapper)
+            if (retval instanceof Wrapper) {
                 retval = ((Wrapper) retval).unwrap();
+            }
         }
-        catch (Throwable t) {
+        catch (Throwable t) { //NOSONAR We handle correctly Error case in function
             handleError(t);
         }
         finally {
@@ -142,11 +140,12 @@ public class BSFJavaScriptEngine extends BSFEngineImpl {
                                        source, lineNo,
                                        null);
 
-            if (retval instanceof NativeJavaObject)
+            if (retval instanceof NativeJavaObject) {
                 retval = ((NativeJavaObject) retval).unwrap();
+            }
 
         }
-        catch (Throwable t) { // includes JavaScriptException, rethrows Errors
+        catch (Throwable t) { // NOSONAR We handle correctly Error case in function, includes JavaScriptException, rethrows Errors
             handleError(t);
         }
         finally {
@@ -155,44 +154,49 @@ public class BSFJavaScriptEngine extends BSFEngineImpl {
         return retval;
     }
 
+    /**
+     * @param t {@link Throwable}
+     * @throws BSFException
+     */
     private void handleError(Throwable t) throws BSFException {
-        if (t instanceof WrappedException)
-            t = ((WrappedException) t).getWrappedException();
+        Throwable target = t;
+        if (t instanceof WrappedException) {
+            target = ((WrappedException) t).getWrappedException();
+        }
 
         String message = null;
-        Throwable target = t;
-
-        if (t instanceof JavaScriptException) {
-            message = t.getLocalizedMessage();
+        if (target instanceof JavaScriptException) {
+            message = target.getLocalizedMessage();
 
             // Is it an exception wrapped in a JavaScriptException?
-            Object value = ((JavaScriptException) t).getValue();
+            Object value = ((JavaScriptException) target).getValue();
             if (value instanceof Throwable) {
                 // likely a wrapped exception from a LiveConnect call.
                 // Display its stack trace as a diagnostic
                 target = (Throwable) value;
             }
         }
-        else if (t instanceof EvaluatorException ||
-                 t instanceof SecurityException) {
-            message = t.getLocalizedMessage();
+        else if (target instanceof EvaluatorException ||
+                target instanceof SecurityException) {
+            message = target.getLocalizedMessage();
         }
-        else if (t instanceof RuntimeException) {
-            message = "Internal Error: " + t.toString();
+        else if (target instanceof RuntimeException) {
+            message = "Internal Error: " + target.toString();
         }
-        else if (t instanceof StackOverflowError) {
+        else if (target instanceof StackOverflowError) {
             message = "Stack Overflow";
         }
 
-        if (message == null)
-            message = t.toString();
+        if (message == null) {
+            message = target.toString();
+        }
 
-        if (t instanceof Error && !(t instanceof StackOverflowError)) {
+        if (target instanceof Error && !(target instanceof StackOverflowError)) {
             // Re-throw Errors because we're supposed to let the JVM see it
             // Don't re-throw StackOverflows, because we know we've
             // corrected the situation by aborting the loop and
             // a long stacktrace would end up on the user's console
-            throw (Error) t;
+            throw (Error) target;
         }
         else {
             throw new BSFException(BSFException.REASON_OTHER_ERROR,
@@ -220,16 +224,14 @@ public class BSFJavaScriptEngine extends BSFEngineImpl {
             global = new ImporterTopLevel(cx);
             Scriptable bsf = Context.toObject(new BSFFunctions(mgr, this), global);
             global.put("bsf", global, bsf);
-
-            for(
-                @SuppressWarnings("unchecked")
-                Iterator<BSFDeclaredBean> it = declaredBeans.iterator();
-                it.hasNext();) {
-                declareBean(it.next());
+            @SuppressWarnings("unchecked") // superclass does not support types
+            final Vector<BSFDeclaredBean> beans = declaredBeans;
+            for (BSFDeclaredBean declaredBean : beans) {
+                declareBean(declaredBean);
             }
         }
-        catch (Throwable t) {
-            handleError(t);
+        catch (Throwable t) { // NOSONAR We handle correctly Error case in function
+            handleError(t); 
         }
         finally {
             Context.exit();

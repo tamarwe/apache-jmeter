@@ -21,7 +21,6 @@ package org.apache.jmeter.testelement.property;
 import org.apache.jmeter.testelement.TestElement;
 
 /**
- * @version $Revision: 1413956 $
  */
 public class DoubleProperty extends NumberProperty {
     private static final long serialVersionUID = 240L;
@@ -89,7 +88,7 @@ public class DoubleProperty extends NumberProperty {
      */
     @Override
     public boolean getBooleanValue() {
-        return value > 0 ? true : false;
+        return value > 0;
     }
 
     /**

@@ -26,8 +26,8 @@ import org.apache.jmeter.engine.util.CompoundVariable;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Function to generate chars from a list of decimal or hex values
@@ -35,9 +35,9 @@ import org.apache.log.Logger;
  */
 public class CharFunction extends AbstractFunction {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(CharFunction.class);
 
-    private static final List<String> desc = new LinkedList<String>();
+    private static final List<String> desc = new LinkedList<>();
 
     private static final String KEY = "__char"; //$NON-NLS-1$
 
@@ -56,14 +56,14 @@ public class CharFunction extends AbstractFunction {
             throws InvalidVariableException {
 
         StringBuilder sb = new StringBuilder(values.length);
-        for (int i=0; i < values.length; i++){
-            String numberString = ((CompoundVariable) values[i]).execute().trim();
+        for (Object val : values) {
+            String numberString = ((CompoundVariable) val).execute().trim();
             try {
-                long value=Long.decode(numberString).longValue();
+                long value = Long.decode(numberString).longValue();
                 char ch = (char) value;
                 sb.append(ch);
-            } catch (NumberFormatException e){
-                log.warn("Could not parse "+numberString+" : "+e);
+            } catch (NumberFormatException e) {
+                log.warn("Could not parse " + numberString + " : " + e);
             }
         }
         return sb.toString();

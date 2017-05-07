@@ -58,8 +58,12 @@ public class SizeAssertionGui extends AbstractAssertionGui implements ActionList
 
     private JTextField size;
 
-    private JRadioButton equalButton, notequalButton, greaterthanButton, lessthanButton, greaterthanequalButton,
-            lessthanequalButton;
+    private JRadioButton equalButton;
+    private JRadioButton notequalButton;
+    private JRadioButton greaterthanButton;
+    private JRadioButton lessthanButton;
+    private JRadioButton greaterthanequalButton;
+    private JRadioButton lessthanequalButton;
 
     private int execState; // store the operator
 
@@ -138,9 +142,9 @@ public class SizeAssertionGui extends AbstractAssertionGui implements ActionList
         size.setText(assertion.getAllowedSize());
         setState(assertion.getCompOper());
         showScopeSettings(assertion, true);
-        
+
         if (assertion.isTestFieldResponseHeaders()) {
-        responseHeadersButton.setSelected(true);
+            responseHeadersButton.setSelected(true);
         } else if (assertion.isTestFieldResponseBody()) {
             responseBodyButton.setSelected(true);
         } else if (assertion.isTestFieldResponseCode()) {
@@ -206,7 +210,7 @@ public class SizeAssertionGui extends AbstractAssertionGui implements ActionList
         return execState;
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new VerticalLayout(5, VerticalLayout.BOTH, VerticalLayout.TOP));
         setBorder(makeBorder());
 

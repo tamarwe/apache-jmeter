@@ -32,6 +32,7 @@ import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
 import org.apache.jorphan.collections.HashTree;
 import org.apache.jorphan.collections.ListedHashTree;
+import org.apache.jorphan.util.JMeterStopTestException;
 
 /**
  * The goal of ModuleController is to add modularity to JMeter. The general idea
@@ -69,7 +70,8 @@ public class ModuleController extends GenericController implements ReplaceableCo
         if (selectedNode == null) {
             this.restoreSelected();
         }
-        clone.selectedNode = selectedNode; // TODO ?? (JMeterTreeNode) selectedNode.clone();
+        // TODO Should we clone instead the selectedNode?
+        clone.selectedNode = selectedNode; 
         return clone;
     }
 
@@ -100,13 +102,12 @@ public class ModuleController extends GenericController implements ReplaceableCo
     }
 
     private void setNodePath() {
-        List<String> nodePath = new ArrayList<String>();
+        List<String> nodePath = new ArrayList<>();
         if (selectedNode != null) {
             TreeNode[] path = selectedNode.getPath();
             for (TreeNode node : path) {
                 nodePath.add(((JMeterTreeNode) node).getName());
             }
-            // nodePath.add(selectedNode.getName());
         }
         setProperty(new CollectionProperty(NODE_PATH, nodePath));
     }
@@ -134,9 +135,27 @@ public class ModuleController extends GenericController implements ReplaceableCo
     public void resolveReplacementSubTree(JMeterTreeNode context) {
         if (selectedNode == null) {
             List<?> nodePathList = getNodePath();
-            if (nodePathList != null && nodePathList.size() > 0) {
+            if (nodePathList != null && !nodePathList.isEmpty()) {
                 traverse(context, nodePathList, 1);
             }
+
+            if(hasReplacementOccured() && selectedNode == null) {
+                throw new JMeterStopTestException("ModuleController:"+getName()+" has no selected Controller (did you rename some element in the path to target controller?), test was shutdown as a consequence");
+            }
+        }
+    }
+
+    /**
+     * In GUI Mode replacement occurs when test start
+     * In Non GUI Mode replacement occurs before test runs
+     * @return true if replacement occurred at the time method is called
+     */
+    private boolean hasReplacementOccured() {
+        if(GuiPackage.getInstance() != null) {
+            // GUI Mode
+            return isRunningVersion();
+        } else {
+            return true;
         }
     }
 

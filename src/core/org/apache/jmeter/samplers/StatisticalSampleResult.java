@@ -39,7 +39,7 @@ public class StatisticalSampleResult extends SampleResult implements
     }
 
     /**
-     * Allow OldSaveService to generate a suitable result when sample/error counts have been saved.
+     * Allow CsvSaveService to generate a suitable result when sample/error counts have been saved.
      *
      * @deprecated Needs to be replaced when multiple sample results are sorted out
      *
@@ -68,23 +68,12 @@ public class StatisticalSampleResult extends SampleResult implements
         elapsed = 0;
     }
 
-    /**
-     * Create a statistical sample result from an ordinary sample result.
-     * 
-     * @param res the sample result 
-     * @param unused no longer used
-     * @deprecated no longer necessary; use {@link #StatisticalSampleResult(SampleResult)} instead
-     */
-    @Deprecated
-    public StatisticalSampleResult(SampleResult res, boolean unused) {
-        this(res);
-    }
-
     public void add(SampleResult res) {
         // Add Sample Counter
         setSampleCount(getSampleCount() + res.getSampleCount());
 
-        setBytes(getBytes() + res.getBytes());
+        setBytes(getBytesAsLong() + res.getBytesAsLong());
+        setSentBytes(getSentBytes() + res.getSentBytes());
 
         // Add Error Counter
         if (!res.isSuccessful()) {

@@ -30,8 +30,8 @@ import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.BeanShellInterpreter;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A function which understands BeanShell
@@ -39,9 +39,9 @@ import org.apache.log.Logger;
  */
 public class BeanShell extends AbstractFunction {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(BeanShell.class);
 
-    private static final List<String> desc = new LinkedList<String>();
+    private static final List<String> desc = new LinkedList<>();
 
     private static final String KEY = "__BeanShell"; //$NON-NLS-1$
 
@@ -79,9 +79,6 @@ public class BeanShell extends AbstractFunction {
         }
 
         String resultStr = ""; //$NON-NLS-1$
-
-        log.debug("Script=" + script);
-
         try {
 
             // Pass in some variables
@@ -111,8 +108,9 @@ public class BeanShell extends AbstractFunction {
         {
             log.warn("Error running BSH script", ex);
         }
-
-        log.debug("Output=" + resultStr);
+        if(log.isDebugEnabled()) {
+            log.debug("__Beanshell("+script+","+varName+")=" + resultStr);
+        }
         return resultStr;
 
     }

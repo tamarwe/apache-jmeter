@@ -18,36 +18,41 @@
 
 package org.apache.jmeter.protocol.http.modifier;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.jmeter.junit.JMeterTestCase;
 import org.apache.jmeter.protocol.http.sampler.HTTPNullSampler;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
 import org.apache.jmeter.protocol.http.util.HTTPConstants;
+import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jorphan.io.TextFile;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TestAnchorModifier extends JMeterTestCase {
         private AnchorModifier parser = new AnchorModifier();
-        public TestAnchorModifier(String name) {
-            super(name);
-        }
 
         private JMeterContext jmctx = null;
 
-        @Override
+        @Before
         public void setUp() {
             jmctx = JMeterContextService.getContext();
             parser.setThreadContext(jmctx);
         }
 
-        public void testProcessingHTMLFile(String HTMLFileName) throws Exception {
+        private void testProcessingHTMLFile(String HTMLFileName) throws Exception {
             File file = new File(System.getProperty("user.dir") + "/testfiles/load_bug_list.jmx");
             HTTPSamplerBase config = (HTTPSamplerBase) SaveService.loadTree(file).getArray()[0];
             config.setRunningVersion(true);
@@ -59,12 +64,12 @@ public class TestAnchorModifier extends JMeterTestCase {
             result.setResponseData(new TextFile(System.getProperty("user.dir") + HTMLFileName).getText(), null);
             result.setSampleLabel(context.toString());
             result.setSamplerData(context.toString());
-            result.setURL(new URL("http://issues.apache.org/fakepage.html"));
+            result.setURL(new URL("http://bz.apache.org/fakepage.html"));
             jmctx.setPreviousResult(result);
             AnchorModifier modifier = new AnchorModifier();
             modifier.setThreadContext(jmctx);
             modifier.process();
-            assertEquals("http://issues.apache.org/bugzilla/buglist.cgi?"
+            assertEquals("http://bz.apache.org/bugzilla/buglist.cgi?"
                     + "bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED"
                     + "&email1=&emailtype1=substring&emailassigned_to1=1"
                     + "&email2=&emailtype2=substring&emailreporter2=1" + "&bugidtype=include&bug_id=&changedin=&votes="
@@ -74,7 +79,7 @@ public class TestAnchorModifier extends JMeterTestCase {
                     + "&keywords_type=anywords" + "&field0-0-0=noop&type0-0-0=noop&value0-0-0="
                     + "&cmdtype=doit&order=Reuse+same+sort+as+last+time", config.toString());
             config.recoverRunningVersion();
-            assertEquals("http://issues.apache.org/bugzilla/buglist.cgi?"
+            assertEquals("http://bz.apache.org/bugzilla/buglist.cgi?"
                     + "bug_status=.*&bug_status=.*&bug_status=.*&email1="
                     + "&emailtype1=substring&emailassigned_to1=1&email2=" + "&emailtype2=substring&emailreporter2=1"
                     + "&bugidtype=include&bug_id=&changedin=&votes=" + "&chfieldfrom=&chfieldto=Now&chfieldvalue="
@@ -84,18 +89,43 @@ public class TestAnchorModifier extends JMeterTestCase {
                     + "&order=Reuse+same+sort+as+last+time", config.toString());
         }
 
+        @Test
         public void testModifySampler() throws Exception {
             testProcessingHTMLFile("/testfiles/jmeter_home_page.html");
         }
 
+        @Test
         public void testModifySamplerWithRelativeLink() throws Exception {
             testProcessingHTMLFile("/testfiles/jmeter_home_page_with_relative_links.html");
         }
 
+        @Test
         public void testModifySamplerWithBaseHRef() throws Exception {
             testProcessingHTMLFile("/testfiles/jmeter_home_page_with_base_href.html");
         }
 
+        @Test
+        public void testNullSampler() {
+            jmctx.setCurrentSampler(null);
+            jmctx.setPreviousResult(new HTTPSampleResult());
+            parser.process(); // should do nothing
+        }
+
+        @Test
+        public void testNullResult() throws Exception {
+            jmctx.setCurrentSampler(makeContext("http://www.apache.org/subdir/previous.html"));
+            jmctx.setPreviousResult(null);
+            parser.process(); // should do nothing
+        }
+
+        @Test
+        public void testWrongResultClass() throws Exception {
+            jmctx.setCurrentSampler(makeContext("http://www.apache.org/subdir/previous.html"));
+            jmctx.setPreviousResult(new SampleResult());
+            parser.process(); // should do nothing
+        }
+
+        @Test
         public void testSimpleParse() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*/index\\.html");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/previous.html");
@@ -114,6 +144,7 @@ public class TestAnchorModifier extends JMeterTestCase {
         }
         
         // Test https works too
+        @Test
         public void testSimpleParse1() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*/index\\.html");
             config.setProtocol(HTTPConstants.PROTOCOL_HTTPS);
@@ -133,6 +164,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals("https://www.apache.org/subdir/index.html", config.getUrl().toString());
         }
 
+        @Test
         public void testSimpleParse2() throws Exception {
             HTTPSamplerBase config = makeUrlConfig("/index\\.html");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/previous.html");
@@ -152,6 +184,7 @@ public class TestAnchorModifier extends JMeterTestCase {
                     || "http://www.apache.org/subdir/lowerdir/index.html".equals(newUrl));
         }
 
+        @Test
         public void testSimpleParse3() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*index.*");
             config.getArguments().addArgument("param1", "value1");
@@ -170,6 +203,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals("http://www.apache.org/home/index.html?param1=value1", newUrl);
         }
 
+        @Test
         public void testSimpleParse4() throws Exception {
             HTTPSamplerBase config = makeUrlConfig("/subdir/index\\..*");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/previous.html");
@@ -187,6 +221,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals("http://www.apache.org/subdir/index.html", newUrl);
         }
 
+        @Test
         public void testSimpleParse5() throws Exception {
             HTTPSamplerBase config = makeUrlConfig("/subdir/index\\.h.*");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/one/previous.html");
@@ -204,6 +239,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals("http://www.apache.org/subdir/index.html", newUrl);
         }
 
+        @Test
         public void testFailSimpleParse1() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*index.*?param2=.+1");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/previous.html");
@@ -221,6 +257,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals(newUrl, config.getUrl().toString());
         }
 
+        @Test
         public void testFailSimpleParse3() throws Exception {
             HTTPSamplerBase config = makeUrlConfig("/home/index.html");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/previous.html");
@@ -238,6 +275,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals(newUrl + "?param1=value1", config.getUrl().toString());
         }
 
+        @Test
         public void testFailSimpleParse2() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*login\\.html");
             HTTPSamplerBase context = makeContext("http://www.apache.org/subdir/previous.html");
@@ -251,10 +289,11 @@ public class TestAnchorModifier extends JMeterTestCase {
             jmctx.setPreviousResult(result);
             parser.process();
             String newUrl = config.getUrl().toString();
-            assertTrue(!"http://www.apache.org/home/index.html?param1=value1".equals(newUrl));
+            assertNotEquals("http://www.apache.org/home/index.html?param1=value1", newUrl);
             assertEquals(config.getUrl().toString(), newUrl);
         }
 
+        @Test
         public void testSimpleFormParse() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*index.html");
             config.addArgument("test", "g.*");
@@ -275,6 +314,7 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals("test=goto", config.getQueryString());
         }
 
+        @Test
         public void testBadCharParse() throws Exception {
             HTTPSamplerBase config = makeUrlConfig(".*index.html");
             config.addArgument("te$st", "g.*");
@@ -295,9 +335,10 @@ public class TestAnchorModifier extends JMeterTestCase {
             assertEquals("te%24st=goto", config.getQueryString());
         }
 
+        @Test
         public void testSpecialCharParse() throws Exception {
         String specialChars = "-_.!~*'()%25";// These are some of the special characters
-        String htmlEncodedFixture = URLEncoder.encode(specialChars, "UTF-8");
+        String htmlEncodedFixture = URLEncoder.encode(specialChars, StandardCharsets.UTF_8.name());
         
         HTTPSamplerBase config = makeUrlConfig(".*index.html");
         config.addArgument("test", ".*");

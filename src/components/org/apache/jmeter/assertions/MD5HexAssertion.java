@@ -34,17 +34,17 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.testelement.property.StringProperty;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MD5HexAssertion extends AbstractTestElement implements Serializable, Assertion {
 
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(MD5HexAssertion.class);
 
-    /** Key for storing assertion-informations in the jmx-file. */
+    /** Key for storing assertion-information in the jmx-file. */
     private static final String MD5HEX_KEY = "MD5HexAssertion.size";
 
     /*
@@ -65,7 +65,7 @@ public class MD5HexAssertion extends AbstractTestElement implements Serializable
         }
 
         // no point in checking if we don't have anything to compare against
-        if (getAllowedMD5Hex().equals("")) {
+        if (getAllowedMD5Hex().isEmpty()) {
             result.setError(false);
             result.setFailure(true);
             result.setFailureMessage("MD5Hex to test against is empty");
@@ -73,8 +73,6 @@ public class MD5HexAssertion extends AbstractTestElement implements Serializable
         }
 
         String md5Result = baMD5Hex(resultData);
-
-        // String md5Result = DigestUtils.md5Hex(resultData);
 
         if (!md5Result.equalsIgnoreCase(getAllowedMD5Hex())) {
             result.setFailure(true);
@@ -97,15 +95,14 @@ public class MD5HexAssertion extends AbstractTestElement implements Serializable
     }
 
     // package protected so can be accessed by test class
-    static String baMD5Hex(byte ba[]) {
+    static String baMD5Hex(byte[] ba) {
         byte[] md5Result = {};
 
         try {
-            MessageDigest md;
-            md = MessageDigest.getInstance("MD5");
+            MessageDigest md = MessageDigest.getInstance("MD5");
             md5Result = md.digest(ba);
         } catch (NoSuchAlgorithmException e) {
-            log.error("", e);
+            log.error("Message digestion failed.", e);
         }
         return JOrphanUtils.baToHexString(md5Result);
     }

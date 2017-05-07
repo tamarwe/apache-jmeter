@@ -18,8 +18,6 @@
 
 package org.apache.jmeter.functions;
 
-// @see PackageTest for unit tests
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,8 +27,8 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Function to evaluate a string which may contain variable or function references.
@@ -42,9 +40,9 @@ import org.apache.log.Logger;
  */
 public class EvalVarFunction extends AbstractFunction {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(EvalVarFunction.class);
 
-    private static final List<String> desc = new LinkedList<String>();
+    private static final List<String> desc = new LinkedList<>();
 
     private static final String KEY = "__evalVar"; //$NON-NLS-1$
 

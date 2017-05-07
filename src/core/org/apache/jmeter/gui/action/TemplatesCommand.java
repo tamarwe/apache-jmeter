@@ -26,9 +26,9 @@ import java.util.Set;
  * Open Templates 
  * @since 2.10
  */
-public class TemplatesCommand extends AbstractAction {
+public class TemplatesCommand extends AbstractActionWithNoRunningTest {
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     // Ensure the dialog is only created when it is first needed
     // In turn this avoids scanning the templates until first needed
@@ -41,10 +41,10 @@ public class TemplatesCommand extends AbstractAction {
     }
 
     /**
-     * @see Command#doAction(ActionEvent)
+     * @see org.apache.jmeter.gui.action.AbstractActionWithNoRunningTest#doActionAfterCheck(ActionEvent)
      */
     @Override
-    public void doAction(ActionEvent e) {
+    public void doActionAfterCheck(ActionEvent e) {
         IODH.dialog.setVisible(true);
     }
 

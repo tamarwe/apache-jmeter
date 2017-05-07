@@ -34,8 +34,8 @@ import javax.naming.NamingException;
 
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.jms.sampler.JMSProperties;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility methods for JMS protocol.
@@ -50,7 +50,7 @@ public final class Utils {
     // http://docs.oracle.com/javaee/6/tutorial/doc/bncfu.html
     public static final String DEFAULT_NO_EXPIRY = "0"; // $NON-NLS-1$
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
     public static void close(MessageConsumer closeable, Logger log){
         if (closeable != null){
@@ -82,6 +82,10 @@ public final class Utils {
         }
     }
 
+    /**
+     * @param closeable {@link MessageProducer}
+     * @param log {@link Logger}
+     */
     public static void close(MessageProducer closeable, Logger log) {
         if (closeable != null){
             try {
@@ -160,7 +164,7 @@ public final class Utils {
      * @throws NamingException
      *             if a naming problem occurs while getting the environment
      */
-    public static final String getFromEnvironment(Context context, String key) throws NamingException {
+    public static String getFromEnvironment(Context context, String key) throws NamingException {
         try {
             Hashtable<?,?> env = context.getEnvironment();
             if(env != null) {
@@ -216,7 +220,7 @@ public final class Utils {
      * @throws JMSException when <code>msg</code> throws a {@link JMSException} while the properties get set
      */
     public static void addJMSProperties(Message msg, Map<String, Object> map) throws JMSException {
-        if(map == null) {
+        if (map == null) {
             return;
         }
         for (Map.Entry<String, Object> me : map.entrySet()) {
@@ -227,7 +231,7 @@ public final class Utils {
             }
 
             // WebsphereMQ does not allow corr. id. to be set using setStringProperty()
-            if("JMSCorrelationID".equalsIgnoreCase(name)) { // $NON-NLS-1$
+            if ("JMSCorrelationID".equalsIgnoreCase(name)) { // $NON-NLS-1$
                 msg.setJMSCorrelationID((String)value);
             } else {
                 msg.setObjectProperty(name, value);
@@ -242,7 +246,7 @@ public final class Utils {
      * @param args {@link Arguments} to be converted
      * @return jmsProperties The converted {@link JMSProperties}
      */
-    public static final JMSProperties convertArgumentsToJmsProperties(Arguments args) {
+    public static JMSProperties convertArgumentsToJmsProperties(Arguments args) {
         JMSProperties jmsProperties = new JMSProperties();
         Map<String,String>  map = args.getArgumentsAsMap();
         for (Map.Entry<String, String> entry : map.entrySet()) {

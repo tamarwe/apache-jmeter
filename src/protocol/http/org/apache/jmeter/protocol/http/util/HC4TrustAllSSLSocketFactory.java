@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLSocket;
 
@@ -38,12 +37,7 @@ import org.apache.jmeter.util.JsseSSLManager;
 
 public class HC4TrustAllSSLSocketFactory extends SSLSocketFactory {
 
-    private static final TrustStrategy TRUSTALL = new TrustStrategy(){
-        @Override
-        public boolean isTrusted(X509Certificate[] chain, String authType) {
-            return true;
-        }
-    };
+    private static final TrustStrategy TRUSTALL = (chain, authType) -> true;
     private javax.net.ssl.SSLSocketFactory factory;
 
     /**
@@ -63,7 +57,7 @@ public class HC4TrustAllSSLSocketFactory extends SSLSocketFactory {
      */
     protected HC4TrustAllSSLSocketFactory(javax.net.ssl.SSLSocketFactory factory) throws GeneralSecurityException {
         super(TRUSTALL, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-        this.factory = new HttpSSLProtocolSocketFactory((JsseSSLManager)JsseSSLManager.getInstance(), JsseSSLManager.CPS);
+        this.factory = factory;
     }
 
     /* (non-Javadoc)

@@ -32,11 +32,11 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RenderAsHTML extends SamplerResultTab implements ResultRenderer {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(RenderAsHTML.class);
 
     private static final String TEXT_HTML = "text/html"; // $NON-NLS-1$
 
@@ -95,7 +95,7 @@ public class RenderAsHTML extends SamplerResultTab implements ResultRenderer {
         /*
          * Get round problems parsing <META http-equiv='content-type'
          * content='text/html; charset=utf-8'> See
-         * http://issues.apache.org/bugzilla/show_bug.cgi?id=23315
+         * <a href="http://bz.apache.org/bugzilla/show_bug.cgi?id=23315">Bug 23315</a>
          *
          * Is this due to a bug in Java?
          */
@@ -111,8 +111,8 @@ public class RenderAsHTML extends SamplerResultTab implements ResultRenderer {
             resultsScrollPane.setViewportView(results);
         } catch (NumberFormatException e) {
             // Java Bug : http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=9001188.
-            // See https://issues.apache.org/bugzilla/show_bug.cgi?id=54586
-            log.warn("An error occured rendering html code", e);
+            // See https://bz.apache.org/bugzilla/show_bug.cgi?id=54586
+            log.warn("An error occurred rendering html code", e);
             results.setText("Failed to render HTML: " + e.getMessage() +", use Text renderer");            
         }
     }

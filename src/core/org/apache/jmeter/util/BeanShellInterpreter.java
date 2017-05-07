@@ -22,10 +22,10 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JMeterError;
 import org.apache.jorphan.util.JMeterException;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * BeanShell setup function - encapsulates all the access to the BeanShell
@@ -39,7 +39,7 @@ import org.apache.log.Logger;
  */
 
 public class BeanShellInterpreter {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(BeanShellInterpreter.class);
 
     private static final Method bshGet;
 
@@ -55,7 +55,10 @@ public class BeanShellInterpreter {
 
     static {
         // Temporary copies, so can set the final ones
-        Method get = null, eval = null, set = null, source = null;
+        Method get = null;
+        Method eval = null;
+        Method set = null;
+        Method source = null;
         Class<?> clazz = null;
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
@@ -71,11 +74,7 @@ public class BeanShellInterpreter {
                     new Class[] { string, object });
             source = clazz.getMethod("source", //$NON-NLS-1$
                     new Class[] { string });
-        } catch (ClassNotFoundException e) {
-            log.error("Beanshell Interpreter not found");
-        } catch (SecurityException e) {
-            log.error("Beanshell Interpreter not found", e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException|SecurityException | NoSuchMethodException e) {
             log.error("Beanshell Interpreter not found", e);
         } finally {
             bshEval = eval;
@@ -116,13 +115,10 @@ public class BeanShellInterpreter {
         }
         try {
             bshInstance = bshClass.newInstance();
-        } catch (InstantiationException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             log.error("Can't instantiate BeanShell", e);
             throw new ClassNotFoundException("Can't instantiate BeanShell", e);
-        } catch (IllegalAccessException e) {
-            log.error("Can't instantiate BeanShell", e);
-            throw new ClassNotFoundException("Can't instantiate BeanShell", e);
-        }
+        } 
          if (logger != null) {// Do this before starting the script
             try {
                 set("log", logger);//$NON-NLS-1$
@@ -168,11 +164,7 @@ public class BeanShellInterpreter {
         final String errorString = "Error invoking bsh method: ";
         try {
             r = m.invoke(bshInstance, o);
-        } catch (IllegalArgumentException e) { // Programming error
-            final String message = errorString + m.getName();
-            log.error(message);
-            throw new JMeterError(message, e);
-        } catch (IllegalAccessException e) { // Also programming error
+        } catch (IllegalArgumentException | IllegalAccessException e) { // Programming error
             final String message = errorString + m.getName();
             log.error(message);
             throw new JMeterError(message, e);

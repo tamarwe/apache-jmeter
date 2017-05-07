@@ -49,14 +49,13 @@ import java.util.Map;
  * @see HashTree
  * @see HashTreeTraverser
  *
- * @version $Revision: 1648229 $
  * @param <T>
  *            Class that should be searched for
  */
 public class SearchByClass<T> implements HashTreeTraverser {
-    private final List<T> objectsOfClass = new LinkedList<T>();
+    private final List<T> objectsOfClass = new LinkedList<>();
 
-    private final Map<Object, ListedHashTree> subTrees = new HashMap<Object, ListedHashTree>();
+    private final Map<Object, ListedHashTree> subTrees = new HashMap<>();
 
     private final Class<T> searchClass;
 

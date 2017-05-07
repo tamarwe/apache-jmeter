@@ -18,8 +18,7 @@
 
 package org.apache.jmeter.assertions.gui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -33,8 +32,8 @@ import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.gui.util.JTextScrollPane;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.util.XPathUtil;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -43,9 +42,9 @@ import org.w3c.dom.Element;
  *
  */
 public class XPathPanel extends JPanel {
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(XPathPanel.class);
 
     private JCheckBox negated;
 
@@ -61,19 +60,19 @@ public class XPathPanel extends JPanel {
         init();
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
+        setLayout(new BorderLayout());
+
         Box hbox = Box.createHorizontalBox();
+
         hbox.add(Box.createHorizontalGlue());
-        hbox.add(new JTextScrollPane(getXPathField()));
+        hbox.add(getNegatedCheckBox());
         hbox.add(Box.createHorizontalGlue());
         hbox.add(getCheckXPathButton());
+        hbox.add(Box.createHorizontalGlue());
 
-        Box vbox = Box.createVerticalBox();
-        vbox.add(hbox);
-        vbox.add(Box.createVerticalGlue());
-        vbox.add(getNegatedCheckBox());
-
-        add(vbox);
+        add(JTextScrollPane.getInstance(getXPathField()), BorderLayout.CENTER);
+        add(hbox, BorderLayout.SOUTH);
 
         setDefaultValues();
     }
@@ -143,12 +142,7 @@ public class XPathPanel extends JPanel {
     public JButton getCheckXPathButton() {
         if (checkXPath == null) {
             checkXPath = new JButton(JMeterUtils.getResString("xpath_assertion_button")); //$NON-NLS-1$
-            checkXPath.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    validXPath(xpath.getText(), true);
-                }
-            });
+            checkXPath.addActionListener(e -> validXPath(xpath.getText(), true));
         }
         return checkXPath;
     }
@@ -161,7 +155,7 @@ public class XPathPanel extends JPanel {
      */
     public JSyntaxTextArea getXPathField() {
         if (xpath == null) {
-            xpath = new JSyntaxTextArea(20, 80);
+            xpath = JSyntaxTextArea.getInstance(20, 80);
             xpath.setLanguage("xpath"); //$NON-NLS-1$
         }
         return xpath;
@@ -201,23 +195,18 @@ public class XPathPanel extends JPanel {
             Element el = testDoc.createElement("root"); //$NON-NLS-1$
             testDoc.appendChild(el);
             XPathUtil.validateXPath(testDoc, xpathString);
-        } catch (IllegalArgumentException e) {
-            log.warn(e.getLocalizedMessage());
-            success = false;
-            ret = e.getLocalizedMessage();
-        } catch (ParserConfigurationException e) {
-            success = false;
-            ret = e.getLocalizedMessage();
-        } catch (TransformerException e) {
+        } catch (IllegalArgumentException | ParserConfigurationException | TransformerException e) {
+            log.warn("Exception while validating XPath.", e);
             success = false;
             ret = e.getLocalizedMessage();
         }
-
         if (showDialog) {
-            JOptionPane.showMessageDialog(null, (success) ? JMeterUtils.getResString("xpath_assertion_valid") : ret, //$NON-NLS-1$
-                    (success) ? JMeterUtils.getResString("xpath_assertion_valid") : JMeterUtils //$NON-NLS-1$
-                            .getResString("xpath_assertion_failed"), (success) ? JOptionPane.INFORMATION_MESSAGE //$NON-NLS-1$
-                            : JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, 
+                    success ? JMeterUtils.getResString("xpath_assertion_valid") : ret, //$NON-NLS-1$
+                    success ? JMeterUtils.getResString("xpath_assertion_valid") : //$NON-NLS-1$
+                        JMeterUtils.getResString("xpath_assertion_failed"), //$NON-NLS-1$
+                        success ? JOptionPane.INFORMATION_MESSAGE //$NON-NLS-1$
+                                : JOptionPane.ERROR_MESSAGE);
         }
         return success;
 

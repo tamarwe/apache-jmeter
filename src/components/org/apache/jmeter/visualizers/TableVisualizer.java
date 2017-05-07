@@ -23,6 +23,9 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -32,11 +35,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellRenderer;
 
-import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
+import org.apache.jmeter.JMeter;
+import org.apache.jmeter.gui.util.HeaderAsPropertyRendererWrapper;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.samplers.Clearable;
 import org.apache.jmeter.samplers.SampleResult;
@@ -44,6 +49,7 @@ import org.apache.jmeter.util.Calculator;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.visualizers.gui.AbstractVisualizer;
 import org.apache.jorphan.gui.ObjectTableModel;
+import org.apache.jorphan.gui.ObjectTableSorter;
 import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.gui.RightAlignRenderer;
 import org.apache.jorphan.gui.layout.VerticalLayout;
@@ -54,23 +60,25 @@ import org.apache.jorphan.reflect.Functor;
  * and the standard deviation of the sampling process. The samples are displayed
  * in a JTable, and the statistics are displayed at the bottom of the table.
  *
- * created March 10, 2002
- *
  */
 public class TableVisualizer extends AbstractVisualizer implements Clearable {
 
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
+
+    private static final String ICON_SIZE = JMeterUtils.getPropDefault(JMeter.TREE_ICON_SIZE, JMeter.DEFAULT_TREE_ICON_SIZE);
+
+    private static final int REFRESH_PERIOD = JMeterUtils.getPropDefault("jmeter.gui.refresh_period", 500);
 
     // Note: the resource string won't respond to locale-changes,
     // however this does not matter as it is only used when pasting to the clipboard
     private static final ImageIcon imageSuccess = JMeterUtils.getImage(
             JMeterUtils.getPropDefault("viewResultsTree.success",  //$NON-NLS-1$
-                                       "icon_success_sml.gif"),    //$NON-NLS-1$
+                                       "vrt/" + ICON_SIZE + "/security-high-2.png"),    //$NON-NLS-1$ $NON-NLS-2$
             JMeterUtils.getResString("table_visualizer_success")); //$NON-NLS-1$
 
     private static final ImageIcon imageFailure = JMeterUtils.getImage(
             JMeterUtils.getPropDefault("viewResultsTree.failure",  //$NON-NLS-1$
-                                       "icon_warning_sml.gif"),    //$NON-NLS-1$
+                                       "vrt/" + ICON_SIZE + "/security-low-2.png"),    //$NON-NLS-1$ $NON-NLS-2$
             JMeterUtils.getResString("table_visualizer_warning")); //$NON-NLS-1$
 
     private static final String[] COLUMNS = new String[] {
@@ -81,6 +89,7 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
             "table_visualizer_sample_time", // $NON-NLS-1$
             "table_visualizer_status",      // $NON-NLS-1$
             "table_visualizer_bytes",       // $NON-NLS-1$
+            "table_visualizer_sent_bytes",       // $NON-NLS-1$
             "table_visualizer_latency",     // $NON-NLS-1$
             "table_visualizer_connect"};    // $NON-NLS-1$
 
@@ -102,9 +111,11 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
 
     private JCheckBox childSamples = null;
 
-    private transient Calculator calc = new Calculator();
+    private final transient Calculator calc = new Calculator();
 
     private Format format = new SimpleDateFormat("HH:mm:ss.SSS"); //$NON-NLS-1$
+
+    private Deque<SampleResult> newRows = new ConcurrentLinkedDeque<>();
 
     // Column renderers
     private static final TableCellRenderer[] RENDERERS =
@@ -134,11 +145,12 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
                 new Functor("getElapsed"),             // $NON-NLS-1$
                 new SampleSuccessFunctor("isSuccess"), // $NON-NLS-1$
                 new Functor("getBytes"),               // $NON-NLS-1$
+                new Functor("getSentBytes"),               // $NON-NLS-1$
                 new Functor("getLatency"),             // $NON-NLS-1$
                 new Functor("getConnectTime") },       // $NON-NLS-1$
-                new Functor[] { null, null, null, null, null, null, null, null, null },
+                new Functor[] { null, null, null, null, null, null, null, null, null, null },
                 new Class[] {
-                String.class, String.class, String.class, String.class, Long.class, ImageIcon.class, Long.class, Long.class, Long.class });
+                String.class, String.class, String.class, String.class, Long.class, ImageIcon.class, Long.class, Long.class, Long.class, Long.class });
         init();
     }
 
@@ -166,51 +178,30 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
 
     @Override
     public void add(final SampleResult res) {
-        JMeterUtils.runSafe(new Runnable() {
-            @Override
-            public void run() {
-                if (childSamples.isSelected()) {
-                    SampleResult[] subResults = res.getSubResults();
-                    if (subResults.length > 0) {
-                        for (SampleResult sr : subResults) {
-                            add(sr);
-                        }
-                        return;
-                    }
+        if (childSamples.isSelected()) {
+            SampleResult[] subResults = res.getSubResults();
+            if (subResults.length > 0) {
+                for (SampleResult sr : subResults) {
+                    add(sr);
                 }
-                synchronized (calc) {
-                    calc.addSample(res);
-                    int count = calc.getCount();
-                    TableSample newS = new TableSample(
-                            count, 
-                            res.getSampleCount(), 
-                            res.getStartTime(), 
-                            res.getThreadName(), 
-                            res.getSampleLabel(),
-                            res.getTime(),
-                            res.isSuccessful(),
-                            res.getBytes(),
-                            res.getLatency(),
-                            res.getConnectTime()
-                            );
-                    model.addRow(newS);
-                }
-                updateTextFields(res);
-                if (autoscroll.isSelected()) {
-                    table.scrollRectToVisible(table.getCellRect(table.getRowCount() - 1, 0, true));
-                }
+                return;
             }
-        });
+        }
+        newRows.add(res);
+
     }
 
     @Override
     public synchronized void clearData() {
-        model.clearData();
-        calc.clear();
-        noSamplesField.setText("0"); // $NON-NLS-1$
-        dataField.setText("0"); // $NON-NLS-1$
-        averageField.setText("0"); // $NON-NLS-1$
-        deviationField.setText("0"); // $NON-NLS-1$
+        synchronized (calc) {
+            model.clearData();
+            calc.clear();
+            newRows.clear();
+            noSamplesField.setText("0"); // $NON-NLS-1$
+            dataField.setText("0"); // $NON-NLS-1$
+            averageField.setText("0"); // $NON-NLS-1$
+            deviationField.setText("0"); // $NON-NLS-1$
+        }
         repaint();
     }
 
@@ -219,7 +210,7 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
         return "Show the samples in a table";
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         this.setLayout(new BorderLayout());
 
         // MAIN PANEL
@@ -234,8 +225,22 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
 
         // Set up the table itself
         table = new JTable(model);
-        table.getTableHeader().setDefaultRenderer(new HeaderAsPropertyRenderer());
-        // table.getTableHeader().setReorderingAllowed(false);
+        table.setRowSorter(new ObjectTableSorter(model).setValueComparator(5,
+                Comparator.nullsFirst(
+                        (ImageIcon o1, ImageIcon o2) -> {
+                            if (o1 == o2) {
+                                return 0;
+                            }
+                            if (o1 == imageSuccess) {
+                                return -1;
+                            }
+                            if (o1 == imageFailure) {
+                                return 1;
+                            }
+                            throw new IllegalArgumentException("Only success and failure images can be compared");
+                        })));
+        JMeterUtils.applyHiDPI(table);
+        HeaderAsPropertyRendererWrapper.setupDefaultRenderer(table);
         RendererUtils.applyRenderers(table, RENDERERS);
 
         tableScrollPanel = new JScrollPane(table);
@@ -317,6 +322,39 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
         // Add the main panel and the graph
         this.add(mainPanel, BorderLayout.NORTH);
         this.add(tablePanel, BorderLayout.CENTER);
+        new Timer(REFRESH_PERIOD, e -> collectNewSamples()).start();
+    }
+
+    private void collectNewSamples() {
+        synchronized (calc) {
+            SampleResult res = null;
+            while (!newRows.isEmpty()) {
+                res = newRows.pop();
+                calc.addSample(res);
+                int count = calc.getCount();
+                TableSample newS = new TableSample(
+                        count,
+                        res.getSampleCount(),
+                        res.getStartTime(),
+                        res.getThreadName(),
+                        res.getSampleLabel(),
+                        res.getTime(),
+                        res.isSuccessful(),
+                        res.getBytesAsLong(),
+                        res.getSentBytes(),
+                        res.getLatency(),
+                        res.getConnectTime()
+                        );
+                model.addRow(newS);
+            }
+            if (res == null) {
+                return;
+            }
+            updateTextFields(res);
+            if (autoscroll.isSelected()) {
+                table.scrollRectToVisible(table.getCellRect(table.getRowCount() - 1, 0, true));
+            }
+        }
     }
 
     public static class SampleSuccessFunctor extends Functor {
@@ -325,18 +363,16 @@ public class TableVisualizer extends AbstractVisualizer implements Clearable {
         }
 
         @Override
-        public Object invoke(Object p_invokee) {
-            Boolean success = (Boolean)super.invoke(p_invokee);
+        public Object invoke(Object pInvokee) {
+            Boolean success = (Boolean) super.invoke(pInvokee);
 
-            if(success != null) {
-                if(success.booleanValue()) {
+            if (success != null) {
+                if (success.booleanValue()) {
                     return imageSuccess;
-                }
-                else {
+                } else {
                     return imageFailure;
                 }
-            }
-            else {
+            } else {
                 return null;
             }
         }

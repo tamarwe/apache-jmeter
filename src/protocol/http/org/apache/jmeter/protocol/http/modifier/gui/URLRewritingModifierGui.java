@@ -53,7 +53,7 @@ public class URLRewritingModifierGui extends AbstractPreProcessorGui {
         init();
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
 
@@ -101,13 +101,13 @@ public class URLRewritingModifierGui extends AbstractPreProcessorGui {
      */
     @Override
     public void modifyTestElement(TestElement modifier) {
-        this.configureTestElement(modifier);
-        URLRewritingModifier rewritingModifier = ((URLRewritingModifier) modifier);
+        super.configureTestElement(modifier);
+        URLRewritingModifier rewritingModifier = (URLRewritingModifier) modifier;
         rewritingModifier.setArgumentName(argumentName.getText());
         rewritingModifier.setPathExtension(pathExt.isSelected());
         rewritingModifier.setPathExtensionNoEquals(pathExtNoEquals.isSelected());
         rewritingModifier.setPathExtensionNoQuestionmark(pathExtNoQuestionmark.isSelected());
-        rewritingModifier.setShouldCache((shouldCache.isSelected()));
+        rewritingModifier.setShouldCache(shouldCache.isSelected());
         rewritingModifier.setEncode(encode.isSelected());
     }
 
@@ -131,7 +131,7 @@ public class URLRewritingModifierGui extends AbstractPreProcessorGui {
      */
     @Override
     public void configure(TestElement el) {
-        URLRewritingModifier rewritingModifier = ((URLRewritingModifier) el);
+        URLRewritingModifier rewritingModifier = (URLRewritingModifier) el;
         argumentName.setText(rewritingModifier.getArgumentName());
         pathExt.setSelected(rewritingModifier.isPathExtension());
         pathExtNoEquals.setSelected(rewritingModifier.isPathExtensionNoEquals());

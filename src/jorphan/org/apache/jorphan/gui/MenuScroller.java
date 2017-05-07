@@ -640,7 +640,7 @@ public class MenuScroller {
 
         private static final long serialVersionUID = 1;
 
-        private MenuScrollTimer timer;
+        private final MenuScrollTimer timer;
 
         public MenuScrollItem(MenuIcon icon, int increment) {
             setIcon(icon);
@@ -664,7 +664,7 @@ public class MenuScroller {
         }
     }
 
-    private static enum MenuIcon implements Icon {
+    private enum MenuIcon implements Icon {
 
         UP(9, 1, 9), DOWN(1, 9, 1);
         final int[] xPoints = { 1, 5, 9 };

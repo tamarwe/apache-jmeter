@@ -36,7 +36,7 @@ public class HashTreeConverter extends AbstractCollectionConverter {
      * @return the version of this converter
      */
     public static String getVersion() {
-        return "$Revision: 1647347 $";  //$NON-NLS-1$
+        return "$Revision$";  //$NON-NLS-1$
     }
 
     /** {@inheritDoc} */

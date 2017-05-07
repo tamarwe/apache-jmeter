@@ -26,15 +26,15 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JMeterException;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BeanShellTestElement extends AbstractTestElement
     implements Serializable, Cloneable, ThreadListener, TestStateListener
 {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(BeanShellTestElement.class);
 
     private static final long serialVersionUID = 4;
 
@@ -97,7 +97,7 @@ public abstract class BeanShellTestElement extends AbstractTestElement
         return bshInterpreter;
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         parameters=""; // ensure variables are not null
         filename="";
         script="";

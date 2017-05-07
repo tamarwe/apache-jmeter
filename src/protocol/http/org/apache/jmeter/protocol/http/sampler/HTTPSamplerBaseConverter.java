@@ -41,7 +41,7 @@ public class HTTPSamplerBaseConverter extends TestElementConverter {
      * @return the version of this component
      */
     public static String getVersion() {
-        return "$Revision: 1649775 $";  //$NON-NLS-1$
+        return "$Revision$";  //$NON-NLS-1$
     }
 
     public HTTPSamplerBaseConverter(Mapper arg0) {
@@ -69,7 +69,7 @@ public class HTTPSamplerBaseConverter extends TestElementConverter {
             httpSampler.setImplementation(HTTPSamplerFactory.IMPL_JAVA);
         }
         if (nodeName.equals(HTTPSamplerFactory.HTTP_SAMPLER_APACHE)){
-            httpSampler.setImplementation(HTTPSamplerFactory.IMPL_HTTP_CLIENT3_1);
+            httpSampler.setImplementation(HTTPSamplerFactory.IMPL_HTTP_CLIENT4);
         }
         httpSampler.mergeFileProperties();
         return httpSampler;

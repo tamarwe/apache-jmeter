@@ -82,7 +82,7 @@
 <td bgcolor="$tabletdbg" #if ($colspan)colspan="$colspan"#end #if ($rowspan)rowspan="$rowspan"#end valign="top" align="left">
 <font color="#000000" size="-1" face="arial,helvetica,sanserif">
 #if ($value.getText().length() != 0 || $value.getChildren().size() > 0)
-$value.content
+#runloop($value)
 #else
 &nbsp;
 #end
@@ -132,6 +132,10 @@ $value.content
 <img src="$relativePath$value.getAttributeValue("src")" width="$!width" height="$!height" align="$!align"/>
 #end
 
+#macro ( code $value)
+<tt class="code">#runloop($value)</tt>##
+#end
+
 #macro ( source $value)
 <div align="left">
 <table cellspacing="4" cellpadding="0" border="0">
@@ -142,7 +146,7 @@ $value.content
 </tr>
 <tr>
 <td bgcolor="#023264" width="1"><img src="/images/void.gif" width="1" height="1" vspace="0" hspace="0" border="0"/></td>
-<td bgcolor="#ffffff"><pre>$escape.getText($value.getText())</pre></td>
+<td bgcolor="#ffffff"><pre>#runloop($value)</pre></td>
 <td bgcolor="#023264" width="1"><img src="/images/void.gif" width="1" height="1" vspace="0" hspace="0" border="0"/></td>
 </tr>
 <tr>
@@ -157,6 +161,7 @@ $value.content
 #macro (properties $properties)
 <p>
 <b>Parameters</b>
+</p>
 <table border="1" cellspacing="0" cellpadding="2">
 <tr><th>Attribute</th><th>Description</th><th>Required</th></tr>
 #foreach ($items in $properties.getChildren("property"))
@@ -173,11 +178,10 @@ No
 </tr>
 #end
 </table>
-</p>
 #end
 
 #macro (seeAlso $seeAlso)
-<p><b>See Also:</b>
+<p><b>See Also:</b></p>
 <ul>
 #foreach ($items in $seeAlso.getChildren())
 #if($items.getName() == "link")
@@ -187,7 +191,6 @@ No
 #end
 #end
 </ul>
-</p>
 #end
 
 #macro (figure $figure)
@@ -199,8 +202,8 @@ No
 #if  ("$!width" != "")
 #set ($dim = "width='$width' height='$height'")
 #end
-<p><table border="0" cellspacing="0" cellpadding="0"><tr><td><img $dim src="$sshotdir/$figure.getAttributeValue("image")"/><br>
-<font size="-1">#runloop($figure)</font></td></tr></table></p>
+<table border="0" cellspacing="0" cellpadding="0"><tr><td><img $dim src="$sshotdir/$figure.getAttributeValue("image")"/><br>
+<font size="-1">#runloop($figure)</font></td></tr></table>
 #end
 
 #macro (example $example)
@@ -226,7 +229,11 @@ No
 #end
 ##
 #macro ( bugzilla $id)
-<a href="https://issues.apache.org/bugzilla/show_bug.cgi?id=$id.getText()">Bug $id.getText()</a>
+<a href="https://bz.apache.org/bugzilla/show_bug.cgi?id=$id.getText()">Bug $id.getText()</a>
+#end
+
+#macro ( pr $id)
+<a href="https://github.com/apache/jmeter/pull/$id.getText()">Pull request #$id.getText()</a>##
 #end
 
 ## Shorthand - automatically adds " - " before remaining text
@@ -253,6 +260,10 @@ Contributed by $id.getAttributeValue("name") &lt;$id.getAttributeValue("mail")&g
 <tr><td><font color="white" face="Helvetica, Arial, sans-serif">$title.getText()</font></td></tr></table>
 #end
 
+#macro (description $node)
+<div class="description">#runloop($node)</div>
+#end
+
 #macro (unknown $node)
 #if($node.getName() == "note")
 #note($node)
@@ -268,6 +279,8 @@ Contributed by $id.getAttributeValue("name") &lt;$id.getAttributeValue("mail")&g
 #example ($node)
 #elseif ($node.getName().equals("source"))
 #source ($node)
+#elseif ($node.getName().equals("code"))
+#code ($node)
 #elseif ($node.getName().equals("table"))
 #table ($node)
 #elseif ($node.getName().equals("component"))
@@ -280,6 +293,8 @@ Contributed by $id.getAttributeValue("name") &lt;$id.getAttributeValue("mail")&g
 #bugzilla ($node)
 #elseif ($node.getName().equals("bug"))
 #bug ($node)
+#elseif ($node.getName().equals("pr"))
+#pr ($node)
 #elseif ($node.getName().equals("contributor"))
 #contributor ($node)
 #elseif ($node.getName().equals("ch_section"))
@@ -288,6 +303,18 @@ Contributed by $id.getAttributeValue("name") &lt;$id.getAttributeValue("mail")&g
 #ch_category ($node)
 #elseif ($node.getName().equals("ch_title"))
 #ch_title ($node)
+#elseif ($node.getName().equals("menuchoice"))
+#menuchoice ($node)
+#elseif ($node.getName().equals("shortcut"))
+#shortcut ($node)
+#elseif ($node.getName().equals("keycombo"))
+#keycombo ($node)
+#elseif ($node.getName().equals("keysym"))
+#keysym ($node)
+#elseif ($node.getName().equals("guimenuitem"))
+#guimenuitem ($node)
+#elseif ($node.getName().equals("description"))
+#description ($node)
 #else
 #outputTag($node)
 #runloop($node)
@@ -296,27 +323,46 @@ Contributed by $id.getAttributeValue("name") &lt;$id.getAttributeValue("mail")&g
 #end
 
 #macro (complink $complink)
-<a href="$relativePath/usermanual/component_reference.html#$complink.getAttributeValue("name").replace($space,$udsc)">$complink.getAttributeValue("name")</a>
+<a href="$relativePath/usermanual/component_reference.html#$complink.getAttributeValue("name").replace($space,$udsc)">$complink.getAttributeValue("name")</a>##
 #end
 
 #macro (outputTag $tag)
-<$tag.getName()#getAtts($tag)>
+<$tag.getName()#getAtts($tag)>##
 #end
 
 #macro (getAtts $tag)
-#foreach ($att in $tag.getAttributes()) $att.getName()="$att.getValue()"#end
+#foreach ($att in $tag.getAttributes()) $att.getName()="$att.getValue()"#end##
 #end
 
 #macro (outputEndTag $tag)
-</$tag.getName()>
+</$tag.getName()>##
 #end
+
+#macro (menuchoice $items)
+ <span class="menuchoice">
+ #foreach ($item in $items.getChildren("guimenuitem"))#guimenuitem($item)#if ($foreach.hasNext)&nbsp;&rarr;&nbsp;#end#end
+ #foreach ($item in $items.getChildren("shortcut"))
+  #shortcut($item)
+ #end
+ </span>
+#end
+
+#macro (guimenuitem $item)<span class="guimenuitem">$item.getText()</span>#end
+
+#macro (shortcut $shortcut)
+ (#foreach ($keycombo in $shortcut.getChildren("keycombo"))#keycombo ($keycombo)#end)
+#end
+
+#macro (keycombo $combo)<span class="keycombo">#foreach ($key in $combo.getChildren("keysym"))#keysym($key)#if ($foreach.hasNext)&nbsp;+&nbsp;#end#end</span>#end
+
+#macro (keysym $keysym)<span class="keysym">$keysym.getText()</span>#end
 
 #macro (runloop $itemToLoop)
 #foreach ($node in $itemToLoop.getContent())
 #if($node.getClass().getName().indexOf("Element") > -1)
-#unknown($node)
+#unknown($node)##
 #else
-$node.getText()
+$escape.getText($node.getText())##
 #end
 #end
 #end
@@ -463,7 +509,7 @@ $node.getText()
 </ul></td><td valign="top"><ul>
 #end
 <li><a href="#$sect.getAttributeValue("anchor")">$sect.getAttributeValue("name")</a></li>
-#if ("$!level2" != "no")
+#if ("$!level2" != "no" and !$sect.getChildren().isEmpty())
 <ul>
 #foreach ($comp in $sect.getChildren("component"))
 <li>
@@ -492,7 +538,7 @@ $comp.getAttributeValue("index")
 #set ( $logoHeight = $project.getChild("logo").getAttributeValue("height") )
 #set ( $logoWidth  = $project.getChild("logo").getAttributeValue("width") )
 <td align="left">
-<a href="http://www.apache.org"><img title="Apache Software Foundation" width="387" height="100" src="$imgdir/asf-logo.gif" border="0"/></a>
+<a href="http://www.apache.org"><img style="margin: 0px 30px 0px 0px" title="Apache Software Foundation" width="261" height="106" src="$imgdir/asf-logo.png" border="0"/></a>
 </td>
 <td align="right">
 #if ( $logoString.startsWith("/") )
@@ -503,7 +549,7 @@ $comp.getAttributeValue("index")
 </td>
 #else
 <td colspan="2">
-<a href="http://www.apache.org"><img title="Apache Software Foundation" width="387" height="100" src="$imgdir/asf-logo.gif" border="0"/></a>
+<a href="http://www.apache.org"><img title="Apache Software Foundation" width="261" height="106" src="$imgdir/asf-logo.png" border="0"/></a>
 </td>
 #end
 #end
@@ -515,7 +561,7 @@ $comp.getAttributeValue("index")
 <html>
 <head>
 <link rel="stylesheet" type="text/css" href="$cssdir/style.css"/>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 #set ($authors = $root.getChild("properties").getChildren("author"))
 #foreach ( $au in $authors )
 #metaauthor ( $au.getText() $au.getAttributeValue("email") )
@@ -528,6 +574,9 @@ $comp.getAttributeValue("index")
 #set ($id = $root.getAttributeValue("id"))
 
 <title>$project.getChild("title").getText() - $root.getChild("properties").getChild("title").getText()</title>
+<style>
+  .code { font-weight: bold; }
+</style>
 </head>
 
 <body bgcolor="$bodybg" text="$bodyfg" link="$bodylink">

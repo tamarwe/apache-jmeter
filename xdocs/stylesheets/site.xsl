@@ -40,7 +40,7 @@
 -->
 
 
-<!-- $Id: site.xsl 1595400 2014-05-17 00:58:53Z sebb $ -->
+<!-- $Id$ -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="1.0">

@@ -44,7 +44,9 @@ For details of how to subscribe/unsubscribe please read
 </section>
 
 <section name="JMeter lists and archives at the ASF">
+<p>
 The following mailing lists are available:
+</p>
 <subsection name="Apache JMeter User" anchor="JMeterUser">
 <p>
 This is the list where users of Apache JMeter meet and discuss issues. 
@@ -58,7 +60,8 @@ For earlier postings, please see the Jakarta JMeter User list, below.
 </p>
 <ul>
 <li>Subscribe at <a href="mailto:user-subscribe@jmeter.apache.org">user-subscribe@jmeter.apache.org</a></li>
-<li>Unsubscibe at <a href="mailto:user-unsubscribe@jmeter.apache.org">user-unsubscribe@jmeter.apache.org</a></li>
+<li>Send your message to: <a href="mailto:user@jmeter.apache.org">user@jmeter.apache.org</a> (after the subscription process)</li>
+<li>Unsubscribe at <a href="mailto:user-unsubscribe@jmeter.apache.org">user-unsubscribe@jmeter.apache.org</a></li>
 <li>All old mails at <a href="http://mail-archives.apache.org/mod_mbox/jmeter-user/">jmeter-user Archive</a></li>
 </ul>
 </subsection>
@@ -81,6 +84,7 @@ For earlier postings, please see below.
 </p>
 <ul>
 <li>Subscribe at <a href="mailto:dev-subscribe@jmeter.apache.org">dev-subscribe@jmeter.apache.org</a></li>
+<li>Send your message to: <a href="mailto:dev@jmeter.apache.org">dev@jmeter.apache.org</a> (after the subscription process)</li>
 <li>Unsubscribe at <a href="mailto:dev-unsubscribe@jmeter.apache.org">dev-unsubscribe@jmeter.apache.org</a></li>
 <li>All old mails at <a href="http://mail-archives.apache.org/mod_mbox/jmeter-dev/">jmeter-dev Archive</a></li>
 </ul>
@@ -92,13 +96,13 @@ SVN commit messages are sent here.
 Prior to Nov 2011, they were sent to the Jakarta Notifications list, see below. 
 <ul>
 <li>Subscribe at <a href="mailto:commits-subscribe@jmeter.apache.org">commits-subscribe@jmeter.apache.org</a></li>
-<li>Subscribe at <a href="mailto:commits-unsubscribe@jmeter.apache.org">commits-unsubscribe@jmeter.apache.org</a></li>
+<li>Unsubscribe at <a href="mailto:commits-unsubscribe@jmeter.apache.org">commits-unsubscribe@jmeter.apache.org</a></li>
 <li>All old mails at <a href="http://mail-archives.apache.org/mod_mbox/jmeter-commits/">jmeter-commits Archive</a></li>
 </ul>
 </subsection>
 <subsection name="Apache JMeter Issues" anchor="JMeterIssues">
 <p>
-Bugzilla messages are sent here.
+<a href="https://bz.apache.org/bugzilla/">Bugzilla</a> messages are sent here.
 </p>
 <p>
 Prior to Nov 2011, they were sent to the Jakarta Notifications list, see below.
@@ -132,7 +136,7 @@ Includes Bugzilla, SVN and Wiki commit mails for JMeter.
 
 <section name="Other Archives and Searching">
 <p>
-There are several 3rd party sites that archive and provide searching for our mailing lists:
+There are several 3<sup>rd</sup> party sites that archive and provide searching for our mailing lists:
 </p>
 <p>
 <ul>

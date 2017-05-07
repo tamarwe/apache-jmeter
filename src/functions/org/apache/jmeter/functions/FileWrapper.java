@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class wraps the FileRowColContainer for use across multiple threads.
@@ -37,7 +37,7 @@ import org.apache.log.Logger;
  */
 public final class FileWrapper {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(FileWrapper.class);
 
     private static final int NO_LINE = -1;
 
@@ -48,15 +48,14 @@ public final class FileWrapper {
      * - maps file names to  containers
      * - ensures only one container per file across all threads
      */
-    private static final Map<String, FileRowColContainer> fileContainers =
-        new HashMap<String, FileRowColContainer>();
+    private static final Map<String, FileRowColContainer> fileContainers = new HashMap<>();
 
     /* The cache of file packs - used to improve thread access */
     private static final ThreadLocal<Map<String, FileWrapper>> filePacks = 
         new ThreadLocal<Map<String, FileWrapper>>() {
         @Override
         protected Map<String, FileWrapper> initialValue() {
-            return new HashMap<String, FileWrapper>();
+            return new HashMap<>();
         }
     };
 
@@ -102,8 +101,6 @@ public final class FileWrapper {
                 frcc = getFile(file, alias);
                 log.info("Stored " + file + " as " + alias);
                 m.put(alias, new FileWrapper(frcc));
-            } catch (FileNotFoundException e) {
-                // Already logged
             } catch (IOException e) {
                 // Already logged
             }

@@ -18,21 +18,20 @@
 
 package org.apache.jorphan.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-
-import junit.framework.TestCase;
-
 import org.junit.Test;
 
 /**
  * Tests for {@link Converter}
  *
  */
-public class TestConverter extends TestCase {
+public class TestConverter {
 
     /**
      * Test {@link Converter#getCalendar(Object, Calendar)} with a given Date
@@ -67,8 +66,8 @@ public class TestConverter extends TestCase {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         Date time = cal.getTime();
-        for (int formatId : Arrays.asList(DateFormat.SHORT, DateFormat.MEDIUM,
-                DateFormat.LONG, DateFormat.FULL)) {
+        for (int formatId : new int[]{DateFormat.SHORT, DateFormat.MEDIUM,
+                DateFormat.LONG, DateFormat.FULL}) {
             DateFormat formatter = DateFormat.getDateInstance(formatId);
             assertEquals(cal,
                     Converter.getCalendar(formatter.format(time), null));
@@ -81,7 +80,7 @@ public class TestConverter extends TestCase {
      */
     @Test
     public void testGetCalendarObjectCalendarWithInvalidStringAndNullDefault() {
-        assertEquals(null, Converter.getCalendar("invalid date", null));
+        assertNull(Converter.getCalendar("invalid date", null));
     }
 
     /**
@@ -116,8 +115,8 @@ public class TestConverter extends TestCase {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         Date time = cal.getTime();
-        for (int formatId : Arrays.asList(DateFormat.SHORT, DateFormat.MEDIUM,
-                DateFormat.LONG, DateFormat.FULL)) {
+        for (int formatId : new int[]{DateFormat.SHORT, DateFormat.MEDIUM,
+                DateFormat.LONG, DateFormat.FULL}) {
             DateFormat formatter = DateFormat.getDateInstance(formatId);
             assertEquals(time,
                     Converter.getDate(formatter.format(time), null));
@@ -130,7 +129,7 @@ public class TestConverter extends TestCase {
      */
     @Test
     public void testGetDateObjectDateWithInvalidStringAndNullDefault() {
-        assertEquals(null, Converter.getDate("invalid date", null));
+        assertNull(Converter.getDate("invalid date", null));
     }
 
 }

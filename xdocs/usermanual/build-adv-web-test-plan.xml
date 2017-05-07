@@ -17,10 +17,10 @@
 -->
 
 <!DOCTYPE document[
-<!ENTITY sect-num '6'>
+<!ENTITY sect-num '5'>
 ]>
 
-<document prev="build-web-test-plan.html" next="build-db-test-plan.html" id="$Id: build-adv-web-test-plan.xml 1175606 2011-09-25 22:28:22Z sebb $">
+<document prev="build-web-test-plan.html" next="build-db-test-plan.html" id="$Id$">
 
 <properties>
   <title>User's Manual: Building an Advanced Web Test Plan</title>

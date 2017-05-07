@@ -58,6 +58,7 @@ public class SampleSaveConfigurationConverter  extends ReflectionConverter {
     private static final String NODE_HOSTNAME = "hostname"; // $NON-NLS-1$
     private static final String NODE_URL = "url"; // $NON-NLS-1$
     private static final String NODE_BYTES = "bytes"; // $NON-NLS-1$
+    private static final String NODE_SENT_BYTES = "sentBytes"; // $NON-NLS-1$
     private static final String NODE_THREAD_COUNT = "threadCounts"; // $NON-NLS-1$
     private static final String NODE_SAMPLE_COUNT = "sampleCount"; // $NON-NLS-1$
     private static final String NODE_IDLE_TIME = "idleTime"; // $NON-NLS-1$
@@ -82,7 +83,9 @@ public class SampleSaveConfigurationConverter  extends ReflectionConverter {
                 String fieldName) {
             if (SampleSaveConfiguration.class != definedIn) { return true; }
             // These are new fields; not saved unless true
+            // This list MUST agree with the list in the marshall() method below
             if (fieldName.equals(NODE_BYTES)) { return false; }
+            if (fieldName.equals(NODE_SENT_BYTES)) { return false; }
             if (fieldName.equals(NODE_URL)) { return false; }
             if (fieldName.equals(NODE_FILENAME)) { return false; }
             if (fieldName.equals(NODE_HOSTNAME)) { return false; }
@@ -109,7 +112,7 @@ public class SampleSaveConfigurationConverter  extends ReflectionConverter {
      * @return the version of this converter
      */
     public static String getVersion() {
-        return "$Revision: 1649800 $"; // $NON-NLS-1$
+        return "$Revision$"; // $NON-NLS-1$
     }
 
     /** {@inheritDoc} */
@@ -125,8 +128,10 @@ public class SampleSaveConfigurationConverter  extends ReflectionConverter {
 
         SampleSaveConfiguration prop = (SampleSaveConfiguration) obj;
 
-        // Save the new fields - but only if they are not the default
+        // Save the new fields - but only if they are true
+        // This list MUST agree with the list in MyWrapper#shouldSerializeMember()
         createNode(writer,prop.saveBytes(),NODE_BYTES);
+        createNode(writer,prop.saveSentBytes(),NODE_SENT_BYTES);
         createNode(writer,prop.saveUrl(),NODE_URL);
         createNode(writer,prop.saveFileName(),NODE_FILENAME);
         createNode(writer,prop.saveHostname(),NODE_HOSTNAME);
@@ -136,7 +141,7 @@ public class SampleSaveConfigurationConverter  extends ReflectionConverter {
         createNode(writer, prop.saveConnectTime(), NODE_CONNECT_TIME);
     }
 
-    // Helper method to simplify marshall routine
+    // Helper method to simplify marshall routine. Save if and only if true.
     private void createNode(HierarchicalStreamWriter writer, boolean save, String node) {
         if (!save) {
             return;
@@ -154,8 +159,9 @@ public class SampleSaveConfigurationConverter  extends ReflectionConverter {
         if (requiredType != thisClass) {
             throw new IllegalArgumentException("Unexpected class: "+requiredType.getName());
         }
-        SampleSaveConfiguration result = new SampleSaveConfiguration();
-        result.setBytes(false); // Maintain backward compatibility (bytes was not in the JMX file)
+        // The default for missing tags is false, so preset all the fields accordingly
+        SampleSaveConfiguration result = new SampleSaveConfiguration(false);
+        // Now pick up any tags from the input file
         while (reader.hasMoreChildren()) {
             reader.moveDown();
             String nn = reader.getNodeName();

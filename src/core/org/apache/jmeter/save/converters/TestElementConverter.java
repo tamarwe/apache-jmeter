@@ -24,18 +24,18 @@ import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.util.NameUpdater;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.converters.collections.AbstractCollectionConverter;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.mapper.Mapper;
 
 public class TestElementConverter extends AbstractCollectionConverter {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(TestElementConverter.class);
 
 
     /**
@@ -45,7 +45,7 @@ public class TestElementConverter extends AbstractCollectionConverter {
      * @return the version of this converter
      */
     public static String getVersion() {
-        return "$Revision: 1647347 $"; //$NON-NLS-1$
+        return "$Revision$"; //$NON-NLS-1$
     }
 
     /** {@inheritDoc} */
@@ -58,14 +58,12 @@ public class TestElementConverter extends AbstractCollectionConverter {
     @Override
     public void marshal(Object arg0, HierarchicalStreamWriter writer, MarshallingContext context) {
         TestElement el = (TestElement) arg0;
-        if (SaveService.IS_TESTPLAN_FORMAT_22){
-            ConversionHelp.saveSpecialProperties(el,writer);
-        }
+        ConversionHelp.saveSpecialProperties(el,writer);
         PropertyIterator iter = el.propertyIterator();
         while (iter.hasNext()) {
             JMeterProperty jmp=iter.next();
             // Skip special properties if required
-            if (!SaveService.IS_TESTPLAN_FORMAT_22 || !ConversionHelp.isSpecialProperty(jmp.getName())) {
+            if (!ConversionHelp.isSpecialProperty(jmp.getName())) {
                 // Don't save empty comments - except for the TestPlan (to maintain compatibility)
                    if (!(
                            TestElement.COMMENTS.equals(jmp.getName())
@@ -113,11 +111,8 @@ public class TestElementConverter extends AbstractCollectionConverter {
                 reader.moveUp();
             }
             return el;
-        } catch (InstantiationException e) {
-            log.error("TestElement not instantiable: " + type, e);
-            return null;
-        } catch (IllegalAccessException e) {
-            log.error("TestElement not instantiable: " + type, e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("TestElement not instantiable: {}", type, e);
             return null;
         }
     }

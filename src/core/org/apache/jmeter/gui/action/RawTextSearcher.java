@@ -50,13 +50,13 @@ public class RawTextSearcher implements Searcher {
      */
     @Override
     public boolean search(List<String> textTokens) {
-        boolean result = false;
+        boolean result;
         for (String searchableToken : textTokens) {
             if(!StringUtils.isEmpty(searchableToken)) {
                 if(caseSensitive) {
-                    result = searchableToken.indexOf(textToSearch)>=0;
+                    result = searchableToken.contains(textToSearch);
                 } else {
-                    result = searchableToken.toLowerCase().indexOf(textToSearch)>=0;
+                    result = searchableToken.toLowerCase().contains(textToSearch);
                 }
                 if (result) {
                     return result;
@@ -74,7 +74,7 @@ public class RawTextSearcher implements Searcher {
      */
     protected boolean testField(String value, String searchedTextLowerCase) {
         if(!StringUtils.isEmpty(value)) {
-            return value.toLowerCase().indexOf(searchedTextLowerCase)>=0;
+            return value.toLowerCase().contains(searchedTextLowerCase);
         }
         return false;
     }

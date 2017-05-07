@@ -34,9 +34,9 @@ import org.apache.jmeter.util.JMeterUtils;
  * test plan.
  *
  */
-public class Close implements Command {
+public class Close extends AbstractActionWithNoRunningTest {
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.CLOSE);
@@ -65,7 +65,7 @@ public class Close implements Command {
      *            the generic UI action event
      */
     @Override
-    public void doAction(ActionEvent e) {
+    public void doActionAfterCheck(ActionEvent e) {
         performAction(e);
     }
 
@@ -80,12 +80,17 @@ public class Close implements Command {
         GuiPackage guiPackage = GuiPackage.getInstance();
         if (guiPackage.isDirty()) {
             int response;
-            if ((response=JOptionPane.showConfirmDialog(GuiPackage.getInstance().getMainFrame(),
+            if ((response = JOptionPane.showConfirmDialog(GuiPackage.getInstance().getMainFrame(),
                     JMeterUtils.getResString("cancel_new_to_save"), // $NON-NLS-1$
                     JMeterUtils.getResString("save?"),  // $NON-NLS-1$
                     JOptionPane.YES_NO_CANCEL_OPTION,
                     JOptionPane.QUESTION_MESSAGE)) == JOptionPane.YES_OPTION) {
                 ActionRouter.getInstance().doActionNow(new ActionEvent(e.getSource(), e.getID(), ActionNames.SAVE));
+                // the user might cancel the file chooser dialog
+                // in this case we should not close the test plan
+                if (guiPackage.isDirty()) {
+                    return false;
+                }
             }
             if (response == JOptionPane.CLOSED_OPTION || response == JOptionPane.CANCEL_OPTION) {
                 return false; // Don't clear the plan

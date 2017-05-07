@@ -24,19 +24,61 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.jms.Message;
 
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Administration of messages.
  *
  */
 public class MessageAdmin {
+
+    private static final class PlaceHolder {
+        private final CountDownLatch latch;
+        private final Object request;
+    
+        private Object reply;
+    
+        PlaceHolder(Object original, CountDownLatch latch) {
+            this.request = original;
+            this.latch = latch;
+        }
+    
+        void setReply(Object reply) {
+            this.reply = reply;
+        }
+    
+        public Object getReply() {
+            return reply;
+        }
+    
+        public Object getRequest() {
+            return request;
+        }
+    
+        boolean hasReply() {
+            return reply != null;
+        }
+    
+        @Override
+        public String toString() {
+            return "request=" + request + ", reply=" + reply;
+        }
+    
+        /**
+         * @return the latch
+         */
+        public CountDownLatch getLatch() {
+            return latch;
+        }
+    }
+
     private static final MessageAdmin SINGLETON = new MessageAdmin();
 
-    private final Map<String, PlaceHolder> table = new ConcurrentHashMap<String, PlaceHolder>();
+    private final Map<String, PlaceHolder> table = new ConcurrentHashMap<>();
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(MessageAdmin.class);
 
     private MessageAdmin() {
     }
@@ -64,9 +106,7 @@ public class MessageAdmin {
      *            was received
      */
     public void putRequest(String id, Message request, CountDownLatch latch) {
-        if (log.isDebugEnabled()) {
-            log.debug("REQ_ID [" + id + "]");
-        }
+        log.debug("REQ_ID [{}]", id);
         table.put(id, new PlaceHolder(request, latch));
     }
 
@@ -82,22 +122,16 @@ public class MessageAdmin {
      */
     public void putReply(String id, Message reply) {
         PlaceHolder holder = table.get(id);
-        if (log.isDebugEnabled()) {
-            log.debug("RPL_ID [" + id + "] for holder " + holder);
-        }
+        log.debug("RPL_ID [{}] for holder {}", id, holder);
         if (holder != null) {
             holder.setReply(reply);
             CountDownLatch latch = holder.getLatch();
-            if (log.isDebugEnabled()) {
-                log.debug(Thread.currentThread().getName()+" releasing latch : " + latch);
-            }
+            log.debug("{} releasing latch : {}", Thread.currentThread().getName(), latch);
             latch.countDown();
-            if (log.isDebugEnabled()) {
-                log.debug(Thread.currentThread().getName()+" released latch : " + latch);
-            }
+            log.debug("{} released latch : {}", Thread.currentThread().getName(), latch);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Failed to match reply: " + reply);
+                log.debug("Failed to match reply: {}", reply);
             }
         }
     }
@@ -111,52 +145,10 @@ public class MessageAdmin {
      */
     public Message get(String id) {
         PlaceHolder holder = table.remove(id);
-        if (log.isDebugEnabled()) {
-            log.debug("GET_ID [" + id + "] for " + holder);
-        }
+        log.debug("GET_ID [{}] for {}", id, holder);
         if (holder == null || !holder.hasReply()) {
-            log.debug("Message with " + id + " not found.");
+            log.debug("Message with {} not found.", id);
         }
         return holder==null ? null : (Message) holder.getReply();
-    }
-}
-
-class PlaceHolder {
-    private final CountDownLatch latch;
-    private final Object request;
-
-    private Object reply;
-
-    PlaceHolder(Object original, CountDownLatch latch) {
-        this.request = original;
-        this.latch = latch;
-    }
-
-    void setReply(Object reply) {
-        this.reply = reply;
-    }
-
-    public Object getReply() {
-        return reply;
-    }
-
-    public Object getRequest() {
-        return request;
-    }
-
-    boolean hasReply() {
-        return reply != null;
-    }
-
-    @Override
-    public String toString() {
-        return "request=" + request + ", reply=" + reply;
-    }
-
-    /**
-     * @return the latch
-     */
-    public CountDownLatch getLatch() {
-        return latch;
     }
 }

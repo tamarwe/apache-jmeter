@@ -19,10 +19,9 @@
 package org.apache.jmeter.extractor;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.jmeter.processor.PostProcessor;
@@ -94,7 +93,7 @@ public class DebugPostProcessor extends AbstractTestElement implements PostProce
     }
 
     private void formatPropertyIterator(StringBuilder sb, PropertyIterator iter) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         while (iter.hasNext()) {
             JMeterProperty item = iter.next();
             map.put(item.getName(), item.getStringValue());
@@ -104,22 +103,14 @@ public class DebugPostProcessor extends AbstractTestElement implements PostProce
 
     private void formatSet(StringBuilder sb, @SuppressWarnings("rawtypes") Set s) {
         @SuppressWarnings("unchecked")
-        ArrayList<Map.Entry<Object, Object>> al = new ArrayList<Map.Entry<Object, Object>>(s);
-        Collections.sort(al, new Comparator<Map.Entry<Object, Object>>(){
-            @Override
-            public int compare(Map.Entry<Object, Object> o1, Map.Entry<Object, Object> o2) {
-                String m1,m2;
-                m1=(String)o1.getKey();
-                m2=(String)o2.getKey();
+        List<Map.Entry<Object, Object>> al = new ArrayList<>(s);
+        al.sort(
+                (Map.Entry<Object, Object> o1, Map.Entry<Object, Object> o2) -> {
+                String m1 = (String)o1.getKey();
+                String m2 =(String)o2.getKey();
                 return m1.compareTo(m2);
-            }
-        });
-        for(Map.Entry<Object, Object> me : al){
-            sb.append(me.getKey());
-            sb.append("=");
-            sb.append(me.getValue());
-            sb.append("\n");
-        }
+            });
+        al.forEach(me -> sb.append(me.getKey()).append("=").append(me.getValue()).append("\n"));
     }
 
     public boolean isDisplayJMeterVariables() {

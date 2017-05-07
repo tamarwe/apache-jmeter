@@ -31,19 +31,19 @@ import org.apache.jmeter.protocol.http.util.accesslog.LogParser;
 import org.apache.jmeter.testbeans.BeanInfoSupport;
 import org.apache.jmeter.testbeans.gui.FileEditor;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
+import org.slf4j.LoggerFactory;
 import org.apache.jorphan.reflect.ClassFinder;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
 
 public class AccessLogSamplerBeanInfo extends BeanInfoSupport {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(AccessLogSamplerBeanInfo.class);
 
     public AccessLogSamplerBeanInfo() {
         super(AccessLogSampler.class);
         log.debug("Entered access log sampler bean info");
         try {
             createPropertyGroup("defaults",  // $NON-NLS-1$
-                    new String[] { "domain", "portString", "imageParsing" });// $NON-NLS-1$ $NON-NLS-2$ $NON-NLS-3$
+                    new String[] { "protocol", "domain", "portString", "imageParsing" });// $NON-NLS-1$ $NON-NLS-2$ $NON-NLS-3$ $NON-NLS-4$
 
             createPropertyGroup("plugins",  // $NON-NLS-1$
                     new String[] { "parserClassName", "filterClassName" }); // $NON-NLS-1$ $NON-NLS-2$ $NON-NLS-3$
@@ -81,6 +81,11 @@ public class AccessLogSamplerBeanInfo extends BeanInfoSupport {
             p.setValue(NOT_UNDEFINED, Boolean.TRUE);
             p.setValue(DEFAULT, "");
 
+            p = property("protocol"); // $NON-NLS-1$
+            p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+            p.setValue(DEFAULT, "http"); // $NON-NLS-1$
+            p.setValue(DEFAULT_NOT_SAVED, Boolean.TRUE);
+
             p = property("portString"); // $NON-NLS-1$
             p.setValue(NOT_UNDEFINED, Boolean.TRUE);
             p.setValue(DEFAULT, ""); // $NON-NLS-1$
@@ -93,7 +98,7 @@ public class AccessLogSamplerBeanInfo extends BeanInfoSupport {
             log.warn("couldn't find classes and set up properties", e);
             throw new RuntimeException("Could not find classes with class finder", e);
         }
-        log.debug("Got to end of access log samper bean info init");
+        log.debug("Got to end of access log sampler bean info init");
     }
 
 }

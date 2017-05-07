@@ -36,7 +36,7 @@ import org.apache.commons.lang3.mutable.MutableLong;
 public abstract class StatCalculator<T extends Number & Comparable<? super T>> {
 
     // key is the type to collect (usually long), value = count of entries
-    private final Map<T, MutableLong> valuesMap = new TreeMap<T, MutableLong>();
+    private final Map<T, MutableLong> valuesMap = new TreeMap<>();
     // We use a TreeMap because we need the entries to be sorted
 
     // Running values, updated for each sample
@@ -55,6 +55,8 @@ public abstract class StatCalculator<T extends Number & Comparable<? super T>> {
     private T max;
 
     private long bytes = 0;
+    
+    private long sentBytes = 0;
 
     private final T ZERO;
 
@@ -86,13 +88,25 @@ public abstract class StatCalculator<T extends Number & Comparable<? super T>> {
         deviation = 0;
         count = 0;
         bytes = 0;
+        sentBytes = 0;
         max = MIN_VALUE;
         min = MAX_VALUE;
     }
 
-
+    /**
+     * Add to received bytes
+     * @param newValue number of newly received bytes
+     */
     public void addBytes(long newValue) {
         bytes += newValue;
+    }
+
+    /**
+     * Add to sent bytes
+     * @param newValue number of newly sent bytes
+     */
+    public void addSentBytes(long newValue) {
+        sentBytes += newValue;
     }
 
     public void addAll(StatCalculator<T> calc) {
@@ -107,6 +121,10 @@ public abstract class StatCalculator<T extends Number & Comparable<? super T>> {
 
     public long getTotalBytes() {
         return bytes;
+    }
+    
+    public long getTotalSentBytes() {
+        return sentBytes;
     }
 
     /**
@@ -165,7 +183,7 @@ public abstract class StatCalculator<T extends Number & Comparable<? super T>> {
      * TODO - why is the key value also stored in the entry array? See Bug 53825
      */
     public Map<Number, Number[]> getDistribution() {
-        Map<Number, Number[]> items = new HashMap<Number, Number[]>();
+        Map<Number, Number[]> items = new HashMap<>();
 
         for (Entry<T, MutableLong> entry : valuesMap.entrySet()) {
             Number[] dis = new Number[2];

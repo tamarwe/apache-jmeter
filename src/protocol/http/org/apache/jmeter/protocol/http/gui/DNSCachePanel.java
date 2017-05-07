@@ -32,16 +32,18 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.TableCellEditor;
 
 import org.apache.jmeter.config.gui.AbstractConfigGui;
 import org.apache.jmeter.gui.util.PowerTableModel;
 import org.apache.jmeter.protocol.http.control.DNSCacheManager;
+import org.apache.jmeter.protocol.http.control.StaticHost;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jmeter.testelement.property.PropertyIterator;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.GuiUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This gui part of @see
@@ -56,17 +58,28 @@ import org.apache.jorphan.gui.layout.VerticalLayout;
  */
 public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DNSCacheManager.class);
+
     private static final long serialVersionUID = 2120L;
 
     public static final String OPTIONS = JMeterUtils.getResString("option");
 
     private static final String ADD_COMMAND = JMeterUtils.getResString("add"); // $NON-NLS-1$
 
+    private static final String ADD_HOST_COMMAND = JMeterUtils.getResString("add_host"); // $NON-NLS-1$
+
     private static final String DELETE_COMMAND = JMeterUtils.getResString("delete"); // $NON-NLS-1$
+
+    private static final String DELETE_HOST_COMMAND = JMeterUtils.getResString("delete_host"); // $NON-NLS-1$
 
     private static final String SYS_RES_COMMAND = JMeterUtils.getResString("use_system_dns_resolver"); // $NON-NLS-1$
 
     private static final String CUST_RES_COMMAND = JMeterUtils.getResString("use_custom_dns_resolver"); // $NON-NLS-1$
+
+    private JTable dnsHostsTable;
+
+    private JPanel dnsHostsPanel;
+    private JPanel dnsHostsButPanel;
 
     private JTable dnsServersTable;
 
@@ -75,6 +88,7 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
     private JPanel dnsServButPanel;
 
     private PowerTableModel dnsServersTableModel;
+    private PowerTableModel dnsHostsTableModel;
 
     private JRadioButton sysResButton;
 
@@ -84,13 +98,19 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
 
     private JButton addButton;
 
+    private JButton addHostButton;
+    private JButton deleteHostButton;
+
     private ButtonGroup providerDNSradioGroup = new ButtonGroup();
 
     private static final String[] COLUMN_RESOURCE_NAMES = {
-        (JMeterUtils.getResString("dns_hostname_or_ip")), //$NON-NLS-1$
+        JMeterUtils.getResString("dns_hostname_or_ip"), //$NON-NLS-1$
     };
     private static final Class<?>[] columnClasses = {
         String.class };
+
+    private static final String[] HOSTS_COLUMN_RESOURCE_NAMES = { JMeterUtils.getResString("dns_host"), JMeterUtils.getResString("dns_hostname_or_ip") };
+    private static final Class<?>[] HOSTS_COLUMN_CLASSES = { String.class, String.class };
 
     private JCheckBox clearEachIteration;
 
@@ -122,6 +142,11 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
                 String server = (String) dnsServersTableModel.getRowData(i)[0];
                 dnsCacheManager.addServer(server);
             }
+            for (int i = 0; i < dnsHostsTableModel.getRowCount(); i++) {
+                String host = (String) dnsHostsTableModel.getRowData(i)[0];
+                String addresses = (String) dnsHostsTableModel.getRowData(i)[1];
+                dnsCacheManager.addHost(host, addresses);
+            }
             dnsCacheManager.setClearEachIteration(clearEachIteration.isSelected());
             if (providerDNSradioGroup.isSelected(custResButton.getModel())) {
                 dnsCacheManager.setCustomResolver(true);
@@ -141,14 +166,22 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
         providerDNSradioGroup.setSelected(sysResButton.getModel(), true);
         dnsServersTableModel.clearData();
         deleteButton.setEnabled(false);
+        dnsHostsTableModel.clearData();
+        deleteHostButton.setEnabled(false);
 
     }
 
     private void populateTable(DNSCacheManager resolver) {
         dnsServersTableModel.clearData();
-        PropertyIterator iter = resolver.getServers().iterator();
-        while (iter.hasNext()) {
-            addServerToTable((String) iter.next().getObjectValue());
+        for (JMeterProperty jMeterProperty : resolver.getServers()) {
+            addServerToTable((String) jMeterProperty.getObjectValue());
+        }
+    }
+
+    private void populateHostsTable(DNSCacheManager resolver) {
+        dnsHostsTableModel.clearData();
+        for (JMeterProperty hostEntry : resolver.getHosts()) {
+            addHostToTable((StaticHost) hostEntry.getObjectValue());
         }
     }
 
@@ -165,18 +198,22 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
 
         DNSCacheManager dnsCacheManager = (DNSCacheManager) el;
         populateTable(dnsCacheManager);
+        populateHostsTable(dnsCacheManager);
         clearEachIteration.setSelected(dnsCacheManager.isClearEachIteration());
         if (dnsCacheManager.isCustomResolver()) {
             providerDNSradioGroup.setSelected(custResButton.getModel(), true);
             deleteButton.setEnabled(dnsServersTable.getColumnCount() > 0);
+            deleteHostButton.setEnabled(dnsHostsTable.getColumnCount() > 0);
             addButton.setEnabled(true);
+            addHostButton.setEnabled(true);
         } else {
             providerDNSradioGroup.setSelected(sysResButton.getModel(), true);
         }
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         dnsServersTableModel = new PowerTableModel(COLUMN_RESOURCE_NAMES, columnClasses);
+        dnsHostsTableModel = new PowerTableModel(HOSTS_COLUMN_RESOURCE_NAMES, HOSTS_COLUMN_CLASSES);
 
         clearEachIteration = new JCheckBox(JMeterUtils.getResString("clear_cache_each_iteration"), true); //$NON-NLS-1$
         setLayout(new BorderLayout());
@@ -192,14 +229,21 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
         northPanel.add(optionsPane);
         add(northPanel, BorderLayout.NORTH);
 
+        JPanel tables = new JPanel();
+        tables.setLayout(new VerticalLayout(2, VerticalLayout.BOTH));
         dnsServersPanel = createDnsServersTablePanel();
-        add(dnsServersPanel, BorderLayout.CENTER);
+        dnsHostsPanel = createDnsHostsTablePanel();
+        tables.add(dnsServersPanel);
+        tables.add(dnsHostsPanel);
+        add(tables, BorderLayout.CENTER);
+
 
     }
 
     public JPanel createDnsServersTablePanel() {
         // create the JTable that holds header per row
         dnsServersTable = new JTable(dnsServersTableModel);
+        JMeterUtils.applyHiDPI(dnsServersTable);
         dnsServersTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         dnsServersTable.setPreferredScrollableViewportSize(new Dimension(400, 100));
 
@@ -210,6 +254,23 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
         panel.add(dnsServScrollPane, BorderLayout.CENTER);
         dnsServButPanel = createButtonPanel();
         panel.add(dnsServButPanel, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    public JPanel createDnsHostsTablePanel() {
+        // create the JTable that holds header per row
+        dnsHostsTable = new JTable(dnsHostsTableModel);
+        JMeterUtils.applyHiDPI(dnsHostsTable);
+        dnsHostsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        dnsHostsTable.setPreferredScrollableViewportSize(new Dimension(400, 100));
+
+        JPanel panel = new JPanel(new BorderLayout(0, 5));
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
+                JMeterUtils.getResString("dns_hosts"))); // $NON-NLS-1$
+        JScrollPane dnsHostsScrollPane = new JScrollPane(dnsHostsTable);
+        panel.add(dnsHostsScrollPane, BorderLayout.CENTER);
+        dnsHostsButPanel = createHostsButtonPanel();
+        panel.add(dnsHostsButPanel, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -238,7 +299,7 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
     }
 
     private JPanel createButtonPanel() {
-        boolean tableEmpty = (dnsServersTableModel.getRowCount() == 0);
+        boolean tableEmpty = dnsServersTableModel.getRowCount() == 0;
 
         addButton = createButton("add", 'A', ADD_COMMAND, custResButton.isSelected()); // $NON-NLS-1$
         deleteButton = createButton("delete", 'D', DELETE_COMMAND, !tableEmpty); // $NON-NLS-1$
@@ -246,6 +307,18 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(addButton, BorderLayout.WEST);
         buttonPanel.add(deleteButton, BorderLayout.LINE_END);
+        return buttonPanel;
+    }
+
+    private JPanel createHostsButtonPanel() {
+        boolean tableEmpty = dnsHostsTableModel.getRowCount() == 0;
+
+        addHostButton = createButton("add_host", 'H', ADD_HOST_COMMAND, custResButton.isSelected()); // $NON-NLS-1$
+        deleteHostButton = createButton("delete_host", 'X', DELETE_HOST_COMMAND, !tableEmpty); // $NON-NLS-1$
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(addHostButton, BorderLayout.WEST);
+        buttonPanel.add(deleteHostButton, BorderLayout.LINE_END);
         return buttonPanel;
     }
 
@@ -263,67 +336,85 @@ public class DNSCachePanel extends AbstractConfigGui implements ActionListener {
             dnsServer });
     }
 
+    private void addHostToTable(StaticHost hostEntry) {
+        LOGGER.debug("Adding entry {}", hostEntry);
+        dnsHostsTableModel.addRow(new Object[] {
+            hostEntry.getName(), hostEntry.getAddress() });
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String action = e.getActionCommand();
-        dnsServersTable.setEnabled(custResButton.isSelected());
+
+        enableTable(custResButton.isSelected(), sysResButton.isSelected(), dnsServersTable, dnsServersTableModel,
+                addButton, deleteButton);
+        enableTable(custResButton.isSelected(), sysResButton.isSelected(), dnsHostsTable, dnsHostsTableModel,
+                addHostButton, deleteHostButton);
+
+        if (action.equals(DELETE_COMMAND)) {
+            deleteTableRow(dnsServersTable, dnsServersTableModel, deleteButton);
+        } else if (action.equals(ADD_COMMAND)) {
+            addTableRow(dnsServersTable, dnsServersTableModel, deleteButton);
+        } else if (DELETE_HOST_COMMAND.equals(action)) {
+            deleteTableRow(dnsHostsTable, dnsHostsTableModel, deleteHostButton);
+        } else if (ADD_HOST_COMMAND.equals(action)) {
+            addTableRow(dnsHostsTable, dnsHostsTableModel, deleteHostButton);
+        }
+    }
+
+    private void enableTable(boolean custEnabled, boolean sysEnabled, JTable table, PowerTableModel model,
+            JButton addButton, JButton deleteButton) {
+        table.setEnabled(custEnabled);
         Color greyColor = new Color(240, 240, 240);
         Color blueColor = new Color(184, 207, 229);
-        dnsServersTable.setBackground(sysResButton.isSelected() ? greyColor : Color.WHITE);
-        dnsServersTable.setSelectionBackground(sysResButton.isSelected() ? greyColor : blueColor);
-        addButton.setEnabled(custResButton.isSelected());
-        deleteButton.setEnabled(custResButton.isSelected());
-        if (custResButton.isSelected() && (dnsServersTableModel.getRowCount() > 0)) {
+        table.setBackground(sysEnabled ? greyColor : Color.WHITE);
+        table.setSelectionBackground(sysEnabled ? greyColor : blueColor);
+        addButton.setEnabled(custEnabled);
+        deleteButton.setEnabled(custEnabled);
+        if (custEnabled && (model.getRowCount() > 0)) {
             deleteButton.setEnabled(true);
             addButton.setEnabled(true);
         }
+    }
 
-        if (action.equals(DELETE_COMMAND)) {
-            if (dnsServersTableModel.getRowCount() > 0) {
-                // If a table cell is being edited, we must cancel the editing
-                // before deleting the row.
-                if (dnsServersTable.isEditing()) {
-                    TableCellEditor cellEditor = dnsServersTable.getCellEditor(dnsServersTable.getEditingRow(),
-                            dnsServersTable.getEditingColumn());
-                    cellEditor.cancelCellEditing();
+    private void addTableRow(JTable table, PowerTableModel model, JButton button) {
+        // If a table cell is being edited, we should accept the current
+        // value and stop the editing before adding a new row.
+        GuiUtils.stopTableEditing(table);
+
+        model.addNewRow();
+        model.fireTableDataChanged();
+
+        if (!button.isEnabled()) {
+            button.setEnabled(true);
+        }
+
+        // Highlight (select) the appropriate row.
+        int rowToSelect = model.getRowCount() - 1;
+        table.setRowSelectionInterval(rowToSelect, rowToSelect);
+    }
+
+    private void deleteTableRow(JTable table, PowerTableModel model, JButton button) {
+        if (model.getRowCount() > 0) {
+            // If a table cell is being edited, we must cancel the editing
+            // before deleting the row.
+            GuiUtils.cancelEditing(table);
+
+            int rowSelected = table.getSelectedRow();
+
+            if (rowSelected != -1) {
+                model.removeRow(rowSelected);
+                model.fireTableDataChanged();
+
+                if (model.getRowCount() == 0) {
+                    button.setEnabled(false);
                 }
 
-                int rowSelected = dnsServersTable.getSelectedRow();
-
-                if (rowSelected != -1) {
-                    dnsServersTableModel.removeRow(rowSelected);
-                    dnsServersTableModel.fireTableDataChanged();
-
-                    if (dnsServersTableModel.getRowCount() == 0) {
-                        deleteButton.setEnabled(false);
-                    }
-
-                    else {
-                        int rowToSelect = rowSelected;
-
-                        if (rowSelected >= dnsServersTableModel.getRowCount()) {
-                            rowToSelect = rowSelected - 1;
-                        }
-
-                        dnsServersTable.setRowSelectionInterval(rowToSelect, rowToSelect);
-                    }
+                else {
+                    int rowToSelect = Math.min(rowSelected, model.getRowCount() - 1);
+                    table.setRowSelectionInterval(rowToSelect, rowToSelect);
                 }
             }
-        } else if (action.equals(ADD_COMMAND)) {
-            // If a table cell is being edited, we should accept the current
-            // value and stop the editing before adding a new row.
-            GuiUtils.stopTableEditing(dnsServersTable);
-
-            dnsServersTableModel.addNewRow();
-            dnsServersTableModel.fireTableDataChanged();
-
-            if (!deleteButton.isEnabled()) {
-                deleteButton.setEnabled(true);
-            }
-
-            // Highlight (select) the appropriate row.
-            int rowToSelect = dnsServersTableModel.getRowCount() - 1;
-            dnsServersTable.setRowSelectionInterval(rowToSelect, rowToSelect);
         }
     }
 }

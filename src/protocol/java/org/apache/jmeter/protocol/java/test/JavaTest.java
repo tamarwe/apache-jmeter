@@ -25,10 +25,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.java.sampler.AbstractJavaSamplerClient;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+import org.apache.jmeter.samplers.Interruptible;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The <code>JavaTest</code> class is a simple sampler which is intended for
@@ -67,11 +68,11 @@ import org.apache.log.Logger;
  *
  */
 
-public class JavaTest extends AbstractJavaSamplerClient implements Serializable {
+public class JavaTest extends AbstractJavaSamplerClient implements Serializable, Interruptible {
 
-    private static final Logger LOG = LoggingManager.getLoggerForClass();
+    private static final Logger LOG = LoggerFactory.getLogger(JavaTest.class);
 
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
     /** The base number of milliseconds to sleep during each sample. */
     private long sleepTime;
@@ -100,8 +101,6 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
     /** The label to store in the sample result. */
     private String label;
 
-    /** The default value of the Label parameter. */
-    // private static final String LABEL_DEFAULT = "JavaTest";
     /** The name used to store the Label parameter. */
     private static final String LABEL_NAME = "Label";
 
@@ -150,6 +149,8 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
     /** The name used to store the Success Status parameter. */
     private static final String SUCCESS_NAME = "Status";
 
+    private transient volatile Thread myThread;
+
     /**
      * Default constructor for <code>JavaTest</code>.
      *
@@ -172,7 +173,7 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
 
         responseCode = context.getParameter(RESPONSE_CODE_NAME, RESPONSE_CODE_DEFAULT);
 
-        success = context.getParameter(SUCCESS_NAME, SUCCESS_DEFAULT).equalsIgnoreCase("OK");
+        success = "OK".equalsIgnoreCase(context.getParameter(SUCCESS_NAME, SUCCESS_DEFAULT));
 
         label = context.getParameter(LABEL_NAME, "");
         if (label.length() == 0) {
@@ -257,7 +258,7 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
      * @see org.apache.jmeter.samplers.SampleResult#setSampleLabel(String)
      * @see org.apache.jmeter.samplers.SampleResult#setResponseCode(String)
      * @see org.apache.jmeter.samplers.SampleResult#setResponseMessage(String)
-     * @see org.apache.jmeter.samplers.SampleResult#setResponseData(byte [])
+     * @see org.apache.jmeter.samplers.SampleResult#setResponseData(byte[])
      * @see org.apache.jmeter.samplers.SampleResult#setDataType(String)
      *
      * @param context
@@ -279,11 +280,13 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
         if (samplerData != null && samplerData.length() > 0) {
             results.setSamplerData(samplerData);
         }
-
+        if(samplerData != null) {
+            results.setSentBytes(samplerData.length());
+        }
         if (resultData != null && resultData.length() > 0) {
             results.setResponseData(resultData, null);
-            results.setDataType(SampleResult.TEXT);
         }
+        results.setDataType(SampleResult.TEXT); // It's always text type even if empty
 
         // Record sample start time.
         results.sampleStart();
@@ -300,12 +303,15 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
             // Execute the sample. In this case sleep for the
             // specified time, if any
             if (sleep > 0) {
+                myThread = Thread.currentThread();
                 TimeUnit.MILLISECONDS.sleep(sleep);
+                myThread = null;
             }
             results.setSuccessful(success);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             LOG.warn("JavaTest: interrupted.");
-            results.setSuccessful(true);
+            results.setSuccessful(false);
         } catch (Exception e) {
             LOG.error("JavaTest: error during sample", e);
             results.setSuccessful(false);
@@ -350,4 +356,12 @@ public class JavaTest extends AbstractJavaSamplerClient implements Serializable 
         return sb.toString();
     }
 
+    @Override
+    public boolean interrupt() {
+        Thread t = myThread;
+        if (t!= null) {
+            t.interrupt();
+        }
+        return t != null;
+    }
 }

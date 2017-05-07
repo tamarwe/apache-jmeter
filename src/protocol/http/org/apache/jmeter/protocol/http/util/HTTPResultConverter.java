@@ -47,7 +47,7 @@ public class HTTPResultConverter extends SampleResultConverter {
      * @return the version of this component
      */
     public static String getVersion() {
-        return "$Revision: 1649775 $";  //$NON-NLS-1$
+        return "$Revision$";  //$NON-NLS-1$
     }
 
     /**

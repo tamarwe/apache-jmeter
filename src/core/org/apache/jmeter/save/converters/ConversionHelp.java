@@ -24,14 +24,15 @@ package org.apache.jmeter.save.converters;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.NameUpdater;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
@@ -42,9 +43,9 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
  *
  */
 public class ConversionHelp {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(ConversionHelp.class);
 
-    private static final String CHAR_SET = "UTF-8"; //$NON-NLS-1$
+    private static final String CHAR_SET = StandardCharsets.UTF_8.name();
 
     // Attributes for TestElement and TestElementProperty
     // Must all be unique
@@ -97,7 +98,7 @@ public class ConversionHelp {
             String p1 = URLEncoder.encode(p, CHAR_SET);
             return p1;
         } catch (UnsupportedEncodingException e) {
-            log.warn("System doesn't support " + CHAR_SET, e);
+            log.warn("System doesn't support {}", CHAR_SET, e);
             return p;
         }
     }
@@ -120,7 +121,7 @@ public class ConversionHelp {
         try {
             return URLDecoder.decode(p, CHAR_SET);
         } catch (UnsupportedEncodingException e) {
-            log.warn("System doesn't support " + CHAR_SET, e);
+            log.warn("System doesn't support {}", CHAR_SET, e);
             return p;
         }
     }
@@ -147,7 +148,7 @@ public class ConversionHelp {
     /**
      *  Names of properties that are handled specially
      */
-    private static final Map<String, String> propertyToAttribute=new HashMap<String, String>();
+    private static final Map<String, String> propertyToAttribute = new HashMap<>();
 
     private static void mapentry(String prop, String att){
         propertyToAttribute.put(prop,att);

@@ -21,6 +21,7 @@ package org.apache.jmeter.control.gui;
 import javax.swing.JCheckBox;
 
 import org.apache.jmeter.control.InterleaveControl;
+import org.apache.jmeter.gui.util.CheckBoxPanel;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
@@ -29,6 +30,8 @@ public class InterleaveControlGui extends AbstractControllerGui {
     private static final long serialVersionUID = 240L;
 
     private JCheckBox style;
+    
+    private JCheckBox accrossThreads;
 
     public InterleaveControlGui() {
         init();
@@ -37,11 +40,13 @@ public class InterleaveControlGui extends AbstractControllerGui {
     @Override
     public void configure(TestElement el) {
         super.configure(el);
-        if (((InterleaveControl) el).getStyle() == InterleaveControl.IGNORE_SUB_CONTROLLERS) {
+        InterleaveControl controller = (InterleaveControl) el;
+        if (controller.getStyle() == InterleaveControl.IGNORE_SUB_CONTROLLERS) {
             style.setSelected(true);
         } else {
             style.setSelected(false);
         }
+        accrossThreads.setSelected(controller.getInterleaveAccrossThreads());
     }
 
     @Override
@@ -59,11 +64,14 @@ public class InterleaveControlGui extends AbstractControllerGui {
     @Override
     public void modifyTestElement(TestElement ic) {
         configureTestElement(ic);
+        InterleaveControl controller = (InterleaveControl) ic;
         if (style.isSelected()) {
-            ((InterleaveControl) ic).setStyle(InterleaveControl.IGNORE_SUB_CONTROLLERS);
+            controller.setStyle(InterleaveControl.IGNORE_SUB_CONTROLLERS);
         } else {
-            ((InterleaveControl) ic).setStyle(InterleaveControl.USE_SUB_CONTROLLERS);
+            controller.setStyle(InterleaveControl.USE_SUB_CONTROLLERS);
         }
+        
+        controller.setInterleaveAccrossThreads(accrossThreads.isSelected());
     }
 
     /**
@@ -73,6 +81,7 @@ public class InterleaveControlGui extends AbstractControllerGui {
     public void clearGui() {
         super.clearGui();
         style.setSelected(false);
+        accrossThreads.setSelected(false);
     }
 
     @Override
@@ -80,13 +89,16 @@ public class InterleaveControlGui extends AbstractControllerGui {
         return "interleave_control_title"; // $NON-NLS-1$
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new VerticalLayout(5, VerticalLayout.BOTH, VerticalLayout.TOP));
         setBorder(makeBorder());
 
         add(makeTitlePanel());
 
         style = new JCheckBox(JMeterUtils.getResString("ignore_subcontrollers")); // $NON-NLS-1$
-        add(style);
+        add(CheckBoxPanel.wrap(style));
+        
+        accrossThreads = new JCheckBox(JMeterUtils.getResString("interleave_accross_threads")); // $NON-NLS-1$
+        add(CheckBoxPanel.wrap(accrossThreads));
     }
 }

@@ -39,7 +39,6 @@ import javax.swing.event.ChangeListener;
  * the text changing in the Text Field. The registered change listeners are only
  * called when the text has changed.
  *
- * @version $Revision: 1413254 $
  */
 public class JLabeledTextField extends JPanel implements JLabeledField, FocusListener {
     private static final long serialVersionUID = 240L;
@@ -48,8 +47,7 @@ public class JLabeledTextField extends JPanel implements JLabeledField, FocusLis
 
     private JTextField mTextField;
 
-    // Maybe move to vector if MT problems occur
-    private final ArrayList<ChangeListener> mChangeListeners = new ArrayList<ChangeListener>(3);
+    private final ArrayList<ChangeListener> mChangeListeners = new ArrayList<>(3);
 
     // A temporary cache for the focus listener
     private String oldValue = "";
@@ -94,7 +92,7 @@ public class JLabeledTextField extends JPanel implements JLabeledField, FocusLis
      */
     @Override
     public List<JComponent> getComponentList() {
-        List<JComponent> comps = new LinkedList<JComponent>();
+        List<JComponent> comps = new LinkedList<>();
         comps.add(mLabel);
         comps.add(mTextField);
         return comps;
@@ -114,7 +112,7 @@ public class JLabeledTextField extends JPanel implements JLabeledField, FocusLis
     /**
      * Initialises all of the components on this panel.
      */
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new BorderLayout(5, 0));
         // Register the handler for focus listening. This handler will
         // only notify the registered when the text changes from when
@@ -130,7 +128,7 @@ public class JLabeledTextField extends JPanel implements JLabeledField, FocusLis
      * Callback method when the focus to the Text Field component is lost.
      *
      * @param pFocusEvent
-     *            The focus event that occured.
+     *            The focus event that occurred.
      */
     @Override
     public void focusLost(FocusEvent pFocusEvent) {
@@ -243,8 +241,8 @@ public class JLabeledTextField extends JPanel implements JLabeledField, FocusLis
      */
     protected void notifyChangeListeners() {
         ChangeEvent ce = new ChangeEvent(this);
-        for (int index = 0; index < mChangeListeners.size(); index++) {
-            mChangeListeners.get(index).stateChanged(ce);
+        for (ChangeListener mChangeListener : mChangeListeners) {
+            mChangeListener.stateChanged(ce);
         }
     }
 }

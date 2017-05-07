@@ -21,7 +21,6 @@ package org.apache.jmeter.assertions.gui;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -41,17 +40,17 @@ import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * GUI for HTMLAssertion
  */
 public class HTMLAssertionGui extends AbstractAssertionGui implements KeyListener, ActionListener {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HTMLAssertionGui.class);
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     // Names for the fields
     private static final String WARNING_THRESHOLD_FIELD = "warningThresholdField"; // $NON-NLS-1$
@@ -65,7 +64,7 @@ public class HTMLAssertionGui extends AbstractAssertionGui implements KeyListene
 
     private JCheckBox errorsOnly = null;
 
-    private JComboBox docTypeBox = null;
+    private JComboBox<String> docTypeBox = null;
 
     private JRadioButton htmlRadioButton = null;
 
@@ -198,7 +197,7 @@ public class HTMLAssertionGui extends AbstractAssertionGui implements KeyListene
     /**
      * Inits the GUI.
      */
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
 
         setLayout(new BorderLayout(0, 10));
         setBorder(makeBorder());
@@ -213,14 +212,14 @@ public class HTMLAssertionGui extends AbstractAssertionGui implements KeyListene
 
         // doctype
         HorizontalPanel docTypePanel = new HorizontalPanel();
-        docTypeBox = new JComboBox(new String[] { "omit", "auto", "strict", "loose" });
+        docTypeBox = new JComboBox<>(new String[] { "omit", "auto", "strict", "loose" });
         // docTypePanel.add(new
         // JLabel(JMeterUtils.getResString("duration_assertion_label"))); //$NON-NLS-1$
         docTypePanel.add(new JLabel("Doctype:"));
         docTypePanel.add(docTypeBox);
         assertionPanel.add(docTypePanel);
 
-        // format (HMTL, XHTML, XML)
+        // format (HTML, XHTML, XML)
         VerticalPanel formatPanel = new VerticalPanel();
         formatPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Format"));
         htmlRadioButton = new JRadioButton("HTML", true); //$NON-NLS-1$
@@ -263,62 +262,7 @@ public class HTMLAssertionGui extends AbstractAssertionGui implements KeyListene
     }
 
     /**
-     * This method is called if one of the threshold field looses the focus
-     *
-     * @param inEvent The {@link FocusEvent} with detailed information about the focus loss
-     */
-    public void focusLost(FocusEvent inEvent) {
-        log.debug("HTMLAssertionGui.focusLost() called");
-
-        String errorThresholdString = errorThresholdField.getText();
-        if (errorThresholdString != null) {
-            boolean isInvalid = false;
-            try {
-                long errorThreshold = Long.parseLong(errorThresholdString);
-                if (errorThreshold < 0) {
-                    isInvalid = true;
-                }
-            } catch (NumberFormatException ex) {
-                isInvalid = true;
-            }
-            if (isInvalid) {
-                log.warn("HTMLAssertionGui: Error threshold Not a valid number!");
-                JOptionPane.showMessageDialog(null, "Threshold for errors is invalid", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        }
-
-        String warningThresholdString = warningThresholdField.getText();
-        if (warningThresholdString != null) {
-            boolean isInvalid = false;
-            try {
-                long warningThreshold = Long.parseLong(warningThresholdString);
-                if (warningThreshold < 0) {
-                    isInvalid = true;
-                }
-            } catch (NumberFormatException ex) {
-                isInvalid = true;
-            }
-            if (isInvalid) {
-                log.warn("HTMLAssertionGui: Error threshold Not a valid number!");
-                JOptionPane.showMessageDialog(null, "Threshold for warnings is invalid", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    /**
-     * Method gets called when one of the threshold fields gains focus
-     * 
-     * @param e The {@link FocusEvent} with detailed information about the focus gain
-     * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
-     */
-    public void focusGained(FocusEvent e) {
-        // NOOP
-    }
-
-    /**
-     * This method is called from erros-only checkbox
+     * This method is called from errors-only checkbox
      *
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */

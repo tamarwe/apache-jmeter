@@ -18,10 +18,7 @@
 
 package org.apache.jmeter.control.gui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -31,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.apache.jmeter.control.ThroughputController;
+import org.apache.jmeter.gui.util.CheckBoxPanel;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
@@ -38,7 +36,7 @@ import org.apache.jorphan.gui.layout.VerticalLayout;
 public class ThroughputControllerGui extends AbstractControllerGui {
     private static final long serialVersionUID = 240L;
 
-    private JComboBox styleBox;
+    private JComboBox<String> styleBox;
 
     private int style;
 
@@ -100,9 +98,9 @@ public class ThroughputControllerGui extends AbstractControllerGui {
     @Override
     public void clearGui() {
         super.clearGui();
-        styleBox.setSelectedIndex(0);
+        styleBox.setSelectedIndex(1);
         throughput.setText("1"); // $NON-NLS-1$
-        perthread.setSelected(true);
+        perthread.setSelected(false);
     }
 
     @Override
@@ -123,23 +121,20 @@ public class ThroughputControllerGui extends AbstractControllerGui {
         return "throughput_control_title"; // $NON-NLS-1$
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new VerticalLayout(5, VerticalLayout.BOTH, VerticalLayout.TOP));
         setBorder(makeBorder());
         add(makeTitlePanel());
 
-        DefaultComboBoxModel styleModel = new DefaultComboBoxModel();
+        DefaultComboBoxModel<String> styleModel = new DefaultComboBoxModel<>();
         styleModel.addElement(BYNUMBER_LABEL);
         styleModel.addElement(BYPERCENT_LABEL);
-        styleBox = new JComboBox(styleModel);
-        styleBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (((String) styleBox.getSelectedItem()).equals(BYNUMBER_LABEL)) {
-                    style = ThroughputController.BYNUMBER;
-                } else {
-                    style = ThroughputController.BYPERCENT;
-                }
+        styleBox = new JComboBox<>(styleModel);
+        styleBox.addActionListener(evt -> {
+            if (((String) styleBox.getSelectedItem()).equals(BYNUMBER_LABEL)) {
+                style = ThroughputController.BYNUMBER;
+            } else {
+                style = ThroughputController.BYPERCENT;
             }
         });
         add(styleBox);
@@ -153,22 +148,18 @@ public class ThroughputControllerGui extends AbstractControllerGui {
         throughput = new JTextField(15);
         tpPanel.add(throughput);
         throughput.setText("1"); // $NON-NLS-1$
-        // throughput.addActionListener(this);
         tpPanel.add(throughput);
         add(tpPanel);
 
         // PERTHREAD FIELD
         perthread = new JCheckBox(PERTHREAD_LABEL, isPerThread);
-        perthread.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent event) {
-                if (event.getStateChange() == ItemEvent.SELECTED) {
-                    isPerThread = true;
-                } else {
-                    isPerThread = false;
-                }
+        perthread.addItemListener(evt -> {
+            if (evt.getStateChange() == ItemEvent.SELECTED) {
+                isPerThread = true;
+            } else {
+                isPerThread = false;
             }
         });
-        add(perthread);
+        add(CheckBoxPanel.wrap(perthread));
     }
 }

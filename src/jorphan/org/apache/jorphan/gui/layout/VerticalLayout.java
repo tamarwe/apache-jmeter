@@ -34,7 +34,6 @@ import java.io.Serializable;
  * anchor components to the top or bottom of the display area or center them
  * between the top and bottom. Revision date 04 April 1999
  *
- * @version $Revision: 1413254 $
  */
 public class VerticalLayout implements LayoutManager, Serializable {
     private static final long serialVersionUID = 240L;

@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.event.TableModelListener;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.TreeNode;
 
@@ -36,20 +36,20 @@ public abstract class AbstractTreeTableModel extends DefaultTableModel implement
     protected final TreeNode rootNode;
     protected final EventListenerList listener = new EventListenerList();
 
-    protected transient final List<Object> objects = new ArrayList<Object>();
+    protected final transient List<Object> objects = new ArrayList<>();
 
-    protected transient final List<String> headers = new ArrayList<String>();
+    protected final transient List<String> headers = new ArrayList<>();
 
-    protected transient final List<Class<?>> classes = new ArrayList<Class<?>>();
+    protected final transient List<Class<?>> classes = new ArrayList<>();
 
-    protected transient final List<Functor> readFunctors;
+    protected final transient List<Functor> readFunctors;
 
-    protected transient final List<Functor> writeFunctors;
+    protected final transient List<Functor> writeFunctors;
 
     public AbstractTreeTableModel(TreeNode root) {
         this.rootNode = root;
-        readFunctors = new ArrayList<Functor>();
-        writeFunctors = new ArrayList<Functor>();
+        readFunctors = new ArrayList<>();
+        writeFunctors = new ArrayList<>();
     }
 
     public AbstractTreeTableModel(String[] headers,
@@ -59,8 +59,8 @@ public abstract class AbstractTreeTableModel extends DefaultTableModel implement
         this.rootNode = null;
         this.headers.addAll(Arrays.asList(headers));
         this.classes.addAll(Arrays.asList(editorClasses));
-        this.readFunctors = new ArrayList<Functor>(Arrays.asList(readFunctors));
-        this.writeFunctors = new ArrayList<Functor>(Arrays.asList(writeFunctors));
+        this.readFunctors = new ArrayList<>(Arrays.asList(readFunctors));
+        this.writeFunctors = new ArrayList<>(Arrays.asList(writeFunctors));
     }
 
     /**
@@ -111,9 +111,6 @@ public abstract class AbstractTreeTableModel extends DefaultTableModel implement
      */
     @Override
     public int getRowCount() {
-        if (objects == null) {
-            return 0;
-        }
         return objects.size();
     }
 

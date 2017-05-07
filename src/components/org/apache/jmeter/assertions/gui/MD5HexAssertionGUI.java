@@ -44,7 +44,7 @@ public class MD5HexAssertionGUI extends AbstractAssertionGui {
         init();
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
 
         setLayout(new BorderLayout(0, 10));
         setBorder(makeBorder());
@@ -61,7 +61,6 @@ public class MD5HexAssertionGUI extends AbstractAssertionGui {
         md5HexPanel.add(new JLabel(JMeterUtils.getResString("md5hex_assertion_label"))); //$NON-NLS-1$
 
         md5HexInput = new JTextField(25);
-        // md5HexInput.addFocusListener(this);
         md5HexPanel.add(md5HexInput);
 
         mainPanel.add(md5HexPanel, BorderLayout.NORTH);

@@ -29,8 +29,8 @@ import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.threads.JMeterContextService;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The purpose of the SyncTimer is to block threads until X number of threads
@@ -39,12 +39,12 @@ import org.apache.log.Logger;
  *
  */
 public class SyncTimer extends AbstractTestElement implements Timer, Serializable, TestBean, TestStateListener, ThreadListener {
-    private static final Logger LOGGER = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(SyncTimer.class);
 
     /**
      * Wrapper to {@link CyclicBarrier} to allow lazy init of CyclicBarrier when SyncTimer is configured with 0
      */
-    private static final class BarrierWrapper implements Cloneable {
+    private static class BarrierWrapper implements Cloneable {
 
         private CyclicBarrier barrier;
 
@@ -134,7 +134,7 @@ public class SyncTimer extends AbstractTestElement implements Timer, Serializabl
         }
     }
 
-    private static final long serialVersionUID = 2;
+    private static final long serialVersionUID = 3;
 
     private transient BarrierWrapper barrier;
 
@@ -178,12 +178,12 @@ public class SyncTimer extends AbstractTestElement implements Timer, Serializabl
                 } else {
                     throw new IllegalArgumentException("Negative value for timeout:"+timeoutInMs+" in Synchronizing Timer "+getName());
                 }
-            } catch (InterruptedException e) {
-                return 0;
-            } catch (BrokenBarrierException e) {
+            } catch (InterruptedException | BrokenBarrierException e) {
                 return 0;
             } catch (TimeoutException e) {
-                LOGGER.warn("SyncTimer "+ getName() + " timeouted waiting for users after:"+getTimeoutInMs()+"ms");
+                if (log.isWarnEnabled()) {
+                    log.warn("SyncTimer {} timeouted waiting for users after: {}ms", getName(), getTimeoutInMs());
+                }
                 return 0;
             } finally {
                 if(arrival == 0) {

@@ -18,14 +18,14 @@
 
 <!DOCTYPE document[
 <!ENTITY sect-num '17'>
+<!ENTITY hellip   "&#x02026;" >
 ]>
 
-<document prev="best-practices.html" next="component_reference.html" id="$Id: boss.xml 1664853 2015-03-07 14:17:55Z pmouawad $">
+<document prev="best-practices.html" next="component_reference.html" id="$Id$">
 
 <properties>
-  <author email="mramshaw at alumni.concordia.ca">Martin Ramshaw</author>
-  <author email="p.mouawad at ubik-ingenierie.com">Philippe Mouawad</author>
-  <title>User's Manual: My boss wants me to...</title>
+  <author email="dev@jmeter.apache.org">JMeter developers</author>
+  <title>User's Manual: My boss wants me to &hellip;</title>
 </properties>
 
 <body>
@@ -38,15 +38,15 @@ tools will prove useful. There are a number of products to consider.  And finall
 why is Java a good choice to implement a load-testing/Benchmarking product.
 </p>
 <subsection name="&sect-num;.1 Questions to ask" anchor="questions">
-<p>What is our anticipated average number of users (normal load) ?
+<p>What is our anticipated average number of users (normal load)?
 </p>
-<p>What is our anticipated peak number of users ?
+<p>What is our anticipated peak number of users?
 </p>
 <p>When is a good time to load-test our application (i.e. off-hours or week-ends),
-bearing in mind that this may very well crash one or more of our servers ?
+bearing in mind that this may very well crash one or more of our servers?
 </p>
-<p>Does our application have state ? If so, how does our application manage it
-(cookies, session-rewriting, or some other method) ?
+<p>Does our application have state? If so, how does our application manage it
+(cookies, session-rewriting, or some other method)?
 </p>
 <p>What is the testing intended to achieve?</p>
 </subsection>
@@ -57,17 +57,17 @@ already have your work cut out for you, it is worth knowing who the following
 people are, so that you can ask them for help if you need it.
 </p>
     <subsection name="&sect-num;.2.1 Network" anchor="network">
-    <p>Who knows our network topology ? If you run into any firewall or
+    <p>Who knows our network topology? If you run into any firewall or
     proxy issues, this will become very important. As well, a private
     testing network (which will therefore have very low network latency)
     would be a very nice thing. Knowing who can set one up for you
     (if you feel that this is necessary) will be very useful. If the
     application doesn't scale as expected, who can add additional
-    hardware ?
+    hardware?
     </p>
     </subsection>
     <subsection name="&sect-num;.2.2 Application" anchor="application">
-    <p>Who knows how our application functions ? The normal sequence is
+    <p>Who knows how our application functions? The normal sequence is
     <ul>
         <li>test (low-volume - can we benchmark our application?)</li>
         <li>benchmark (the average number of users)</li>
@@ -82,7 +82,7 @@ people are, so that you can ask them for help if you need it.
     during this process, so be prepared to defend your work.</p>
     </subsection>
 </subsection>
-<subsection name="&sect-num;.3 What platform should I use to run the benchmarks/load-tests ?" anchor="platform">
+<subsection name="&sect-num;.3 What platform should I use to run the benchmarks/load-tests?" anchor="platform">
 <p>This should be a widely-used piece of hardware, with a standard
 (i.e. vanilla) software installation. Remember, if you publish your results,
 the first thing your clients will do is hire a graduate student to verify them.
@@ -97,9 +97,15 @@ you have a little more money, there are commercial linuxes.
 This may be worth it if you need the support.
 </p>
 <p>
-For non-Windows platforms, investigate "ulimit -n unlimited" with a view to
-including it in your user account startup scripts (.bashrc or .cshrc scripts
+For non-Windows platforms, investigate "<code>ulimit -n unlimited</code>" with a view to
+including it in your user account startup scripts (<code>.bashrc</code> or <code>.cshrc</code> scripts
 for the testing account).
+</p>
+<p>
+Also note that some Linux/Unix editions are intended for server use.
+These generally have minimal or no GUI support.
+Such OSes should be OK for running JMeter in non-GUI mode, but JMeter GUI mode probably won't work
+unless you install a minimal GUI environment.
 </p>
 <p>As you progress to larger-scale benchmarks/load-tests, this platform
 will become the limiting factor. So it's worth using the best hardware and
@@ -129,21 +135,21 @@ and any supplied documentation).
     <subsection name="&sect-num;.4.1 ping" anchor="ping">
     <p>
     This can be used to establish whether or not you can reach your
-    target site. Options can be specified so that 'ping' provides the
-    same type of route reporting as 'traceroute'.
+    target site. Options can be specified so that '<code>ping</code>' provides the
+    same type of route reporting as '<code>traceroute</code>'.
     </p>
     </subsection>
     <subsection name="&sect-num;.4.2 nslookup/dig" anchor="dig">
     <p>
-    While the <u>user</u> will normally use a human-readable internet
-    address, <u>you</u> may wish to avoid the overhead of DNS lookups when
+    While the <b>user</b> will normally use a human-readable internet
+    address, <b>you</b> may wish to avoid the overhead of DNS lookups when
     performing benchmarking/load-testing. These can be used to determine
     the unique address (dotted quad) of your target site.
     </p>
     </subsection>
     <subsection name="&sect-num;.4.3 traceroute" anchor="traceroute">
     <p>
-    If you cannot "ping" your target site, this may be used to determine 
+    If you cannot "<code>ping</code>" your target site, this may be used to determine 
     the problem (possibly a firewall or a proxy). It can also be used
     to estimate the overall network latency (running locally should give
     the lowest possible network latency - remember that your users will
@@ -152,37 +158,21 @@ and any supplied documentation).
     </p>
     </subsection>
 </subsection>
-<subsection name="&sect-num;.5 How can I enhance JMeter ?" anchor="plugins">
-<p>There a lot of open-source and commercial plugins that can enhance JMeter, let's mention here the main open-source ones:
+<subsection name="&sect-num;.5 How can I enhance JMeter?" anchor="plugins">
+<p>There a lot of open-source and commercial providers who provide JMeter plugins or other resources for use with JMeter.
+Some of these are listed on the JMeter Wiki.
+They are listed under several categories:
+<ul>
+<li><a href="http://wiki.apache.org/jmeter/JMeterPlugins">JMeterPlugins</a> - plugins for extending JMeter</li>
+<li><a href="http://wiki.apache.org/jmeter/JMeterAddons">JMeterAddons</a> - addons for use with JMeter, e.g. plugins for browsers, Maven and Jenkins.</li>
+<li><a href="http://wiki.apache.org/jmeter/JMeterServices">JMeterServices</a> - 3<sup>rd</sup> party services, e.g. cloud-based JMeter</li>
+</ul>
+Note that appearance of these on the Wiki does not imply any endorsement by the Apache JMeter project.
+Any requests for support should be directed to the relevant supplier.
 </p>
-    <subsection name="&sect-num;.5.1 JMeter-Plugins" anchor="jmeter-plugins">
-    <p>This <a href="http://jmeter-plugins.org/" target="_blank">non official project</a> is THE companion to core JMeter.<br/>
-    It provides many useful extensions, among which:
-    <ul>
-    <li>Active Threads Over Time Graph Listener</li>
-    <li>Response Times vs Threads Graph Listener</li>
-    <li>Transaction Throughput vs Threads Graph Listener</li>
-    <li>GraphGenerator listener to create graphs at end of a load test</li>
-    <li>Selenium WebDriver Sampler</li>
-     <li>....</li>
-    </ul> 
-    </p>
-    </subsection>
-    <subsection name="&sect-num;.5.2 JMeter Plugin for Maven" anchor="jmeter-maven-plugin">
-        <p>This <a href="http://jmeter.lazerycode.com/" target="_blank" >non official plugin</a> allows you to run your automated JMeter tests through Maven.</p>
-    </subsection>
-    <subsection name="&sect-num;.5.3 JMeter Performance Plugin" anchor="jmeter-performance-plugin">
-        <p>This <a href="https://wiki.jenkins-ci.org/display/JENKINS/Performance+Plugin" target="_blank" >non official plugin</a> allows you to capture reports from JMeter and JUnit.<br/>
-        Jenkins will generate graphic charts with the trend report of performance and robustness.
-        It includes the feature of setting the final build status as good, unstable or failed, based on the reported error percentage.
-        </p>
-    </subsection>
-    <subsection name="&sect-num;.5.4 JMeter plugin for AWS" anchor="jmeter-ec2">
-        <p>This <a href="https://github.com/oliverlloyd/jmeter-ec2" target="_blank" >non official plugin</a> automates running Apache JMeter on Amazon EC2</p>
-    </subsection>    
 </subsection>
-<subsection name="&sect-num;.6 Why Java ?" anchor="java">
-<p>Why not Perl or C ?
+<subsection name="&sect-num;.6 Why Java?" anchor="java">
+<p>Why not Perl or C?
 </p>
 <p>Well, Perl might be a very good choice except that the Benchmark package
 seems to give fairly fuzzy results. Also, simulating multiple users with
@@ -192,7 +182,7 @@ be processes). However, the Perl community is very large. If you find that
 someone has already written something that seems useful, this could be a very
 good solution.
 </p>
-<p>C, of course, is a very good choice (check out the Apache <b>ab</b> tool).
+<p>C, of course, is a very good choice (check out the Apache <code>ab</code> tool).
 But be prepared to write all of the custom networking, threading, and state
 management code that you will need to benchmark your application.
 </p>

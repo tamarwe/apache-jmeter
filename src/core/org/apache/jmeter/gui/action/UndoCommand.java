@@ -31,9 +31,9 @@ import org.apache.jorphan.collections.HashTree;
  * Menu command to serve Undo/Redo
  * @since 2.12
  */
-public class UndoCommand implements Command {
+public class UndoCommand extends AbstractAction {
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.UNDO);

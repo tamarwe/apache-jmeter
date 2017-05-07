@@ -15,10 +15,6 @@
  * under the License.
  *
  */
-
-/*
- * Created on May 21, 2004
- */
 package org.apache.jmeter.protocol.http.util.accesslog;
 
 import java.io.Serializable;
@@ -34,8 +30,8 @@ import org.apache.jmeter.testelement.TestCloneable;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Perl5Matcher;
@@ -45,17 +41,41 @@ import org.apache.oro.text.regex.Perl5Matcher;
  *
  */
 public class SessionFilter implements Filter, Serializable, TestCloneable,ThreadListener {
-    private static final long serialVersionUID = 232L;
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final long serialVersionUID = 233L;
+    private static final Logger log = LoggerFactory.getLogger(SessionFilter.class);
 
+    /**
+     * Protects access to managersInUse
+     */
+    private static final Object LOCK = new Object();
     /**
      * These objects are static across multiple threads in a test, via clone()
      * method.
      */
-    protected Map<String, CookieManager> cookieManagers;
-    protected Set<CookieManager> managersInUse;
+    private final Map<String, CookieManager> cookieManagers;
+    private final Set<CookieManager> managersInUse;
 
-    protected CookieManager lastUsed;
+    private CookieManager lastUsed;
+
+    /**
+     * Creates a new SessionFilter and initializes its fields to new collections
+     */
+    public SessionFilter() {
+        this(new ConcurrentHashMap<>(), Collections.synchronizedSet(new HashSet<>()));
+    }
+
+    /**
+     * Creates a new SessionFilter, but re-uses the given collections
+     * 
+     * @param cookieManagers
+     *            {@link CookieManager}s to be used for the different IPs
+     * @param managersInUse
+     *            CookieManagers currently in use by other threads
+     */
+    public SessionFilter(Map<String, CookieManager> cookieManagers, Set<CookieManager> managersInUse) {
+        this.cookieManagers = cookieManagers;
+        this.managersInUse = managersInUse;
+    }
 
     /*
      * (non-Javadoc)
@@ -87,24 +107,7 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public Object clone() {
-        if(cookieManagers == null)
-        {
-            cookieManagers = new ConcurrentHashMap<String, CookieManager>();
-        }
-        if(managersInUse == null)
-        {
-            managersInUse = Collections.synchronizedSet(new HashSet<CookieManager>());
-        }
-        SessionFilter f = new SessionFilter();
-        f.cookieManagers = cookieManagers;
-        f.managersInUse = managersInUse;
-        return f;
-    }
-
-    /**
-     *
-     */
-    public SessionFilter() {
+        return new SessionFilter(cookieManagers, managersInUse);
     }
 
     /**
@@ -112,6 +115,7 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void excludeFiles(String[] filenames) {
+        // NOOP
     }
 
     /**
@@ -119,6 +123,7 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void excludePattern(String[] regexp) {
+        // NOOP
     }
 
     /**
@@ -134,6 +139,7 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void includeFiles(String[] filenames) {
+        // NOOP
     }
 
     /**
@@ -141,6 +147,7 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void includePattern(String[] regexp) {
+        // NOOP
     }
 
     /**
@@ -156,40 +163,35 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
 
     protected CookieManager getCookieManager(String ipAddr)
     {
-        CookieManager cm = null;
+        CookieManager cm;
         // First have to release the cookie we were using so other
         // threads stuck in wait can move on
-        synchronized(managersInUse)
-        {
-            if(lastUsed != null)
-            {
+        synchronized(LOCK) {
+            if(lastUsed != null) {
                 managersInUse.remove(lastUsed);
-                managersInUse.notify();
+                LOCK.notifyAll();
             }
         }
         // let notified threads move on and get lock on managersInUse
-        if(lastUsed != null)
-        {
+        if(lastUsed != null) {
             Thread.yield();
         }
         // here is the core routine to find appropriate cookie manager and
         // check it's not being used.  If used, wait until whoever's using it gives
         // it up
-        synchronized(managersInUse)
-        {
+        synchronized(LOCK) {
             cm = cookieManagers.get(ipAddr);
-            if(cm == null)
-            {
+            if(cm == null) {
                 cm = new CookieManager();
                 cm.testStarted();
                 cookieManagers.put(ipAddr,cm);
             }
-            while(managersInUse.contains(cm))
-            {
+            while(managersInUse.contains(cm)) {
                 try {
-                    managersInUse.wait();
+                    LOCK.wait();
                 } catch (InterruptedException e) {
                     log.info("SessionFilter wait interrupted");
+                    Thread.currentThread().interrupt();
                 }
             }
             managersInUse.add(cm);
@@ -203,6 +205,7 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void setReplaceExtension(String oldextension, String newextension) {
+        // NOOP
     }
 
     /**
@@ -210,10 +213,9 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void threadFinished() {
-        synchronized(managersInUse)
-        {
+        synchronized(LOCK) {
             managersInUse.remove(lastUsed);
-            managersInUse.notify();
+            LOCK.notifyAll();
         }
     }
 
@@ -222,5 +224,6 @@ public class SessionFilter implements Filter, Serializable, TestCloneable,Thread
      */
     @Override
     public void threadStarted() {
+        // NOOP
     }
 }

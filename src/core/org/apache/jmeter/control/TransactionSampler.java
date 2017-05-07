@@ -36,14 +36,13 @@ import org.apache.jmeter.testelement.TestElement;
 
 /**
  * Transaction Sampler class to measure transaction times
- * (not exposed a a GUI class, as it is only used internally by TransactionController in Generate Parent sample mode)
+ * (not exposed as a GUI class, as it is only used internally by TransactionController in Generate Parent sample mode)
  */
 public class TransactionSampler extends AbstractSampler {
     private static final long serialVersionUID = 240L;
 
-    private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<String>(
-            Arrays.asList(new String[]{
-                    "org.apache.jmeter.config.gui.SimpleConfigGui"}));
+    private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<>(
+            Arrays.asList("org.apache.jmeter.config.gui.SimpleConfigGui"));
 
     private boolean transactionDone = false;
 
@@ -64,7 +63,7 @@ public class TransactionSampler extends AbstractSampler {
      */
     @Deprecated
     public TransactionSampler(){
-        //log.warn("Constructor only intended for use in testing");
+        super();
     }
 
     public TransactionSampler(TransactionController controller, String name) {
@@ -126,7 +125,7 @@ public class TransactionSampler extends AbstractSampler {
         this.transactionDone = true;
         // Set the overall status for the transaction sample
         // TODO: improve, e.g. by adding counts to the SampleResult class
-        transactionSampleResult.setResponseMessage("Number of samples in transaction : "
+        transactionSampleResult.setResponseMessage(TransactionController.NUMBER_OF_SAMPLES_IN_TRANSACTION_PREFIX
                         + calls + ", number of failing samples : "
                         + noFailingSamples);
         if (transactionSampleResult.isSuccessful()) {

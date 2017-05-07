@@ -21,13 +21,13 @@ package org.apache.jmeter.functions;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.jmeter.engine.util.CompoundVariable;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jmeter.util.ThreadLocalRandom;
 
 /**
  * Provides a Random function which returns a random long integer between a min
@@ -36,7 +36,7 @@ import org.apache.jmeter.util.ThreadLocalRandom;
  */
 public class Random extends AbstractFunction {
 
-    private static final List<String> desc = new LinkedList<String>();
+    private static final List<String> desc = new LinkedList<>();
     private static final String KEY = "__Random"; //$NON-NLS-1$
 
     static {
@@ -45,7 +45,9 @@ public class Random extends AbstractFunction {
         desc.add(JMeterUtils.getResString("function_name_paropt")); //$NON-NLS-1$
     }
 
-    private CompoundVariable varName, minimum, maximum;
+    private CompoundVariable varName; 
+    private CompoundVariable minimum;
+    private CompoundVariable maximum;
 
     /**
      * No-arg constructor.
@@ -62,7 +64,7 @@ public class Random extends AbstractFunction {
         long min = Long.parseLong(minimum.execute().trim());
         long max = Long.parseLong(maximum.execute().trim());
 
-        long rand = ThreadLocalRandom.current().nextLong(min, max);
+        long rand = ThreadLocalRandom.current().nextLong(min, max+1);
 
         String randString = Long.toString(rand);
 

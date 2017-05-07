@@ -37,7 +37,6 @@ import java.beans.PropertyDescriptor;
  * Javadocs, only results of getBeanInfo(Class) are actually cached.
  * </ol>
  *
- * @version $Revision: 1595401 $
  */
 public class AbstractTestElementBeanInfo implements BeanInfo {
 

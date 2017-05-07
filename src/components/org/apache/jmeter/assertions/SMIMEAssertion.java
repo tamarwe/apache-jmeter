@@ -21,13 +21,11 @@ package org.apache.jmeter.assertions;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.Security;
-import java.security.cert.CertStore;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -40,26 +38,32 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.security.auth.x500.X500Principal;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.jmeter.samplers.SampleResult;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.cms.SignerInformationStore;
-import org.bouncycastle.cms.jcajce.JcaX509CertSelectorConverter;
-import org.bouncycastle.jce.PrincipalUtil;
-import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.mail.smime.SMIMEException;
 import org.bouncycastle.mail.smime.SMIMESignedParser;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
-import org.bouncycastle.x509.extension.X509ExtensionUtil;
+import org.bouncycastle.util.Store;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper class which isolates the BouncyCastle code.
@@ -67,7 +71,7 @@ import org.bouncycastle.x509.extension.X509ExtensionUtil;
 class SMIMEAssertion {
 
     // Use the name of the test element, otherwise cannot enable/disable debug from the GUI
-    private static final Logger log = LoggingManager.getLoggerForShortName(SMIMEAssertionTestElement.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SMIMEAssertionTestElement.class);
 
     SMIMEAssertion() {
         super();
@@ -77,21 +81,21 @@ class SMIMEAssertion {
         checkForBouncycastle();
         AssertionResult res = new AssertionResult(name);
         try {
-            MimeMessage msg = null;
+            MimeMessage msg;
             final int msgPos = testElement.getSpecificMessagePositionAsInt();
             if (msgPos < 0){ // means counting from end
-                SampleResult subResults[] = response.getSubResults();
+                SampleResult[] subResults = response.getSubResults();
                 final int pos = subResults.length + msgPos;
-                log.debug("Getting message number: "+pos+" of "+subResults.length);
+                log.debug("Getting message number: {} of {}", pos, subResults.length);
                 msg = getMessageFromResponse(response,pos);
             } else {
-                log.debug("Getting message number: "+msgPos);
+                log.debug("Getting message number: {}", msgPos);
                 msg = getMessageFromResponse(response, msgPos);
             }
             
             SMIMESignedParser s = null;
-            if (log.isDebugEnabled()) {
-                log.debug("Content-type: "+msg.getContentType());
+            if(log.isDebugEnabled()) {
+                log.debug("Content-type: {}", msg.getContentType());
             }
             if (msg.isMimeType("multipart/signed")) { // $NON-NLS-1$
                 MimeMultipart multipart = (MimeMultipart) msg.getContent();
@@ -130,11 +134,10 @@ class SMIMEAssertion {
                     + e.getMessage());
         } catch (SMIMEException e) {
             res.setFailure(true);
-            res
-                    .setFailureMessage("Cannot extract signed body part from signature: "
-                            + e.getMessage());
+            res.setFailureMessage("Cannot extract signed body part from signature: "
+                    + e.getMessage());
         } catch (IOException e) { // should never happen
-            log.error("Cannot read mime message content: " + e.getMessage(), e);
+            log.error("Cannot read mime message content: {}", e.getMessage(), e);
             res.setError(true);
             res.setFailureMessage(e.getMessage());
         }
@@ -147,23 +150,29 @@ class SMIMEAssertion {
         AssertionResult res = new AssertionResult(name);
 
         try {
-            CertStore certs = s.getCertificatesAndCRLs("Collection", "BC"); // $NON-NLS-1$  // $NON-NLS-2$
+            Store certs = s.getCertificates();
             SignerInformationStore signers = s.getSignerInfos();
             Iterator<?> signerIt = signers.getSigners().iterator();
 
             if (signerIt.hasNext()) {
 
                 SignerInformation signer = (SignerInformation) signerIt.next();
-                Iterator<?> certIt = certs.getCertificates(
-                        (new JcaX509CertSelectorConverter()).getCertSelector(signer.getSID())).iterator();
+                Iterator<?> certIt = certs.getMatches(signer.getSID()).iterator();
 
                 if (certIt.hasNext()) {
                     // the signer certificate
-                    X509Certificate cert = (X509Certificate) certIt.next();
+                    X509CertificateHolder cert = (X509CertificateHolder) certIt.next();
 
                     if (testElement.isVerifySignature()) {
 
-                        if (!signer.verify(cert.getPublicKey(), "BC")) { // $NON-NLS-1$
+                        SignerInformationVerifier verifier = null;
+                        try {
+                            verifier = new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC")
+                                    .build(cert);
+                        } catch (OperatorCreationException e) {
+                            log.error("Can't create a provider.", e);
+                        }
+                        if (verifier == null || !signer.verify(verifier)) {
                             res.setFailure(true);
                             res.setFailureMessage("Signature is invalid");
                         }
@@ -187,8 +196,8 @@ class SMIMEAssertion {
 
                         String email = testElement.getSignerEmail();
                         if (!JOrphanUtils.isBlank(email)) {
-                            List<String> emailfromCert = getEmailFromCert(cert);
-                            if (!emailfromCert.contains(email)) {
+                            List<String> emailFromCert = getEmailFromCert(cert);
+                            if (!emailFromCert.contains(email)) {
                                 res.setFailure(true);
                                 failureMessage
                                         .append("Email address \"")
@@ -200,10 +209,10 @@ class SMIMEAssertion {
 
                         String subject = testElement.getSignerDn();
                         if (subject.length() > 0) {
-                            final X500Principal certPrincipal = cert.getSubjectX500Principal();
-                            log.debug(certPrincipal.getName(X500Principal.CANONICAL));
-                            X500Principal principal = new X500Principal(subject);
-                            log.debug(principal.getName(X500Principal.CANONICAL));
+                            final X500Name certPrincipal = cert.getSubject();
+                            log.debug("DN from cert: {}", certPrincipal);
+                            X500Name principal = new X500Name(subject);
+                            log.debug("DN from assertion: {}", principal);
                             if (!principal.equals(certPrincipal)) {
                                 res.setFailure(true);
                                 failureMessage
@@ -214,11 +223,11 @@ class SMIMEAssertion {
 
                         String issuer = testElement.getIssuerDn();
                         if (issuer.length() > 0) {
-                            final X500Principal issuerX500Principal = cert.getIssuerX500Principal();
-                            log.debug(issuerX500Principal.getName(X500Principal.CANONICAL));
-                            X500Principal principal = new X500Principal(issuer);
-                            log.debug(principal.getName(X500Principal.CANONICAL));
-                            if (!principal.equals(issuerX500Principal)) {
+                            final X500Name issuerX500Name = cert.getIssuer();
+                            log.debug("IssuerDN from cert: {}", issuerX500Name);
+                            X500Name principal = new X500Name(issuer);
+                            log.debug("IssuerDN from assertion: {}", principal);
+                            if (!principal.equals(issuerX500Name)) {
                                 res.setFailure(true);
                                 failureMessage
                                         .append("Issuer distinguished name of signer certificate does not match \"")
@@ -234,20 +243,23 @@ class SMIMEAssertion {
                     if (testElement.isSignerCheckByFile()) {
                         CertificateFactory cf = CertificateFactory
                                 .getInstance("X.509");
-                        X509Certificate certFromFile;
-                        InputStream inStream = null;
-                        try {
-                            inStream = new BufferedInputStream(new FileInputStream(testElement.getSignerCertFile()));
-                            certFromFile = (X509Certificate) cf.generateCertificate(inStream);
-                        } finally {
-                            IOUtils.closeQuietly(inStream);
+                        try (InputStream fis = new FileInputStream(testElement.getSignerCertFile());
+                                InputStream bis = new BufferedInputStream(fis)){
+                            X509CertificateHolder certFromFile = new JcaX509CertificateHolder((X509Certificate) cf.generateCertificate(bis));
+                            if (!certFromFile.equals(cert)) {
+                                res.setFailure(true);
+                                res.setFailureMessage("Signer certificate does not match certificate "
+                                                + testElement.getSignerCertFile());
+                            }
+                        } catch (IOException e) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Could not read cert file {}", testElement.getSignerCertFile(), e);
+                            }
+                            res.setFailure(true);
+                            res.setFailureMessage("Could not read certificate file " + testElement.getSignerCertFile());
                         }
 
-                        if (!certFromFile.equals(cert)) {
-                            res.setFailure(true);
-                            res.setFailureMessage("Signer certificate does not match certificate "
-                                            + testElement.getSignerCertFile());
-                        }
+                        
                     }
 
                 } else {
@@ -266,9 +278,6 @@ class SMIMEAssertion {
             log.error(e.getMessage(), e);
             res.setError(true);
             res.setFailureMessage(e.getMessage());
-        } catch (FileNotFoundException e) {
-            res.setFailure(true);
-            res.setFailureMessage("certificate file not found: " + e.getMessage());
         }
 
         return res;
@@ -279,21 +288,23 @@ class SMIMEAssertion {
      */
     private static MimeMessage getMessageFromResponse(SampleResult response,
             int messageNumber) throws MessagingException {
-        SampleResult subResults[] = response.getSubResults();
+        SampleResult[] subResults = response.getSubResults();
 
         if (messageNumber >= subResults.length || messageNumber < 0) {
             throw new MessagingException("Message number not present in results: "+messageNumber);
         }
 
         final SampleResult sampleResult = subResults[messageNumber];
-        if (log.isDebugEnabled()) {
-            log.debug("Bytes: "+sampleResult.getBytes()+" CT: "+sampleResult.getContentType());
+        if(log.isDebugEnabled()) {
+            log.debug("Bytes: {}, Content Type: {}", sampleResult.getBytesAsLong(), sampleResult.getContentType());
         }
         byte[] data = sampleResult.getResponseData();
         Session session = Session.getDefaultInstance(new Properties());
         MimeMessage msg = new MimeMessage(session, new ByteArrayInputStream(data));
 
-        log.debug("msg.getSize() = " + msg.getSize());
+        if(log.isDebugEnabled()) {
+            log.debug("msg.getSize() = {}", msg.getSize());
+        }
         return msg;
     }
 
@@ -304,7 +315,7 @@ class SMIMEAssertion {
      * 
      * @param serialString
      *            the String representation of the serial Number
-     * @return
+     * @return the BitInteger representation of the serial Number
      */
     private static BigInteger readSerialNumber(String serialString) {
         if (serialString.startsWith("0x") || serialString.startsWith("0X")) { // $NON-NLS-1$  // $NON-NLS-2$
@@ -316,29 +327,34 @@ class SMIMEAssertion {
     /**
      * Extract email addresses from a certificate
      * 
-     * @param cert
+     * @param cert the X509 certificate holder
      * @return a List of all email addresses found
      * @throws CertificateException
      */
-    private static List<String> getEmailFromCert(X509Certificate cert)
+    private static List<String> getEmailFromCert(X509CertificateHolder cert)
             throws CertificateException {
-        List<String> res = new ArrayList<String>();
+        List<String> res = new ArrayList<>();
 
-        X509Principal subject = PrincipalUtil.getSubjectX509Principal(cert);
-        Iterator<?> addressIt = subject.getValues(X509Name.EmailAddress).iterator();
-        while (addressIt.hasNext()) {
-            String address = (String) addressIt.next();
-            res.add(address);
+        X500Name subject = cert.getSubject();
+        for (RDN emails : subject.getRDNs(BCStyle.EmailAddress)) {
+            for (AttributeTypeAndValue emailAttr: emails.getTypesAndValues()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Add email from RDN: {}", IETFUtils.valueToString(emailAttr.getValue()));
+                }
+                res.add(IETFUtils.valueToString(emailAttr.getValue()));
+            }
         }
 
-        Iterator<?> subjectAltNamesIt = 
-            X509ExtensionUtil.getSubjectAlternativeNames(cert).iterator();
-        while (subjectAltNamesIt.hasNext()) {
-            List<?> altName = (List<?>) subjectAltNamesIt.next();
-            int type = ((Integer) altName.get(0)).intValue();
-            if (type == GeneralName.rfc822Name) {
-                String address = (String) altName.get(1);
-                res.add(address);
+        Extension subjectAlternativeNames = cert
+                .getExtension(Extension.subjectAlternativeName);
+        if (subjectAlternativeNames != null) {
+            for (GeneralName name : GeneralNames.getInstance(
+                    subjectAlternativeNames.getParsedValue()).getNames()) {
+                if (name.getTagNo() == GeneralName.rfc822Name) {
+                    String email = IETFUtils.valueToString(name.getName());
+                    log.debug("Add email from subjectAlternativeName: {}", email);
+                    res.add(email);
+                }
             }
         }
 
@@ -348,7 +364,6 @@ class SMIMEAssertion {
     /**
      * Check if the Bouncycastle jce provider is installed and dynamically load
      * it, if needed;
-     * 
      */
     private static void checkForBouncycastle() {
         if (null == Security.getProvider("BC")) { // $NON-NLS-1$

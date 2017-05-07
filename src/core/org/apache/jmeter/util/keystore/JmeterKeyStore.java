@@ -32,12 +32,13 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.threads.JMeterContextService;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Use this Keystore for JMeter specific KeyStores.
@@ -45,7 +46,7 @@ import org.apache.log.Logger;
  */
 public final class JmeterKeyStore {
 
-    private static final Logger LOG = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(JmeterKeyStore.class);
 
     private final KeyStore store;
 
@@ -59,8 +60,8 @@ public final class JmeterKeyStore {
     private String clientCertAliasVarName;
 
     private String[] names = new String[0]; // default empty array to prevent NPEs
-    private Map<String, PrivateKey> privateKeyByAlias = new HashMap<String, PrivateKey>();
-    private Map<String, X509Certificate[]> certsByAlias = new HashMap<String, X509Certificate[]>();
+    private Map<String, PrivateKey> privateKeyByAlias = new HashMap<>();
+    private Map<String, X509Certificate[]> certsByAlias = new HashMap<>();
 
     //@GuardedBy("this")
     private int last_user;
@@ -111,12 +112,12 @@ public final class JmeterKeyStore {
      *             happen here, either)
      */
     public void load(InputStream is, String pword) throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, UnrecoverableKeyException {
-        char pw[] = pword==null ? null : pword.toCharArray();
+        char[] pw = pword==null ? null : pword.toCharArray();
         store.load(is, pw);
     
-        ArrayList<String> v_names = new ArrayList<String>();
-        this.privateKeyByAlias = new HashMap<String, PrivateKey>();
-        this.certsByAlias = new HashMap<String, X509Certificate[]>();
+        List<String> v_names = new ArrayList<>();
+        this.privateKeyByAlias = new HashMap<>();
+        this.certsByAlias = new HashMap<>();
 
         if (null != is){ // No point checking an empty keystore
             PrivateKey _key = null;
@@ -151,8 +152,10 @@ public final class JmeterKeyStore {
                 throw new IOException("No key(s) found");
             }
             if (index <= endIndex-startIndex) {
-                LOG.warn("Did not find all requested aliases. Start="+startIndex
-                        +", end="+endIndex+", found="+certsByAlias.size());
+                if (log.isWarnEnabled()) {
+                    log.warn("Did not find all requested aliases. Start={}, end={}, found={}",
+                            startIndex, endIndex, certsByAlias.size());
+                }
             }
         }
     
@@ -177,7 +180,7 @@ public final class JmeterKeyStore {
         if(result != null) {
             return result;
         }
-        // API expects null not empty array, see http://docs.oracle.com/javase/6/docs/api/javax/net/ssl/X509KeyManager.html
+        // API expects null not empty array, see http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/X509KeyManager.html
         throw new IllegalArgumentException("No certificate found for alias:'"+alias+"'");
     }
 
@@ -195,7 +198,7 @@ public final class JmeterKeyStore {
             // We return even if result is null
             String aliasName = JMeterContextService.getContext().getVariables().get(clientCertAliasVarName);
             if(StringUtils.isEmpty(aliasName)) {
-                LOG.error("No var called '"+clientCertAliasVarName+"' found");
+                log.error("No var called '{}' found", clientCertAliasVarName);
                 throw new IllegalArgumentException("No var called '"+clientCertAliasVarName+"' found");
             }
             return aliasName;
@@ -310,7 +313,7 @@ public final class JmeterKeyStore {
         if(aliases.length>0) {
             return aliases;
         } else {
-            // API expects null not empty array, see http://docs.oracle.com/javase/6/docs/api/javax/net/ssl/X509KeyManager.html
+            // API expects null not empty array, see http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/X509KeyManager.html
             return null;
         }
     }

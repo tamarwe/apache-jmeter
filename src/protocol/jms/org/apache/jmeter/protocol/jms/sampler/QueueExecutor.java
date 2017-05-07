@@ -25,7 +25,6 @@ import javax.jms.Message;
  * Executor for (pseudo) synchronous communication. <br>
  * Created on: October 28, 2004
  *
- * @version $Revision: 1649531 $
  */
 public interface QueueExecutor {
     /**

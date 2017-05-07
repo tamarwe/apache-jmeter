@@ -26,17 +26,17 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * InitialContextFactory is responsible for getting an instance of the initial context.
  */
 public class InitialContextFactory {
 
-    private static final ConcurrentHashMap<String, Context> MAP = new ConcurrentHashMap<String, Context>();
+    private static final ConcurrentHashMap<String, Context> MAP = new ConcurrentHashMap<>();
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(InitialContextFactory.class);
 
     /**
      * Look up the context from the local cache, creating it if necessary.
@@ -65,9 +65,7 @@ public class InitialContextFactory {
             }
             try {
                 ctx = new InitialContext(props);
-            } catch (NoClassDefFoundError e){
-                throw new NamingException(e.toString());
-            } catch (Exception e) {
+            } catch (NoClassDefFoundError | Exception e){
                 throw new NamingException(e.toString());
             }
             // we want to return the context that is actually in the map
@@ -151,9 +149,7 @@ public class InitialContextFactory {
         if (useProps) {
             try {
                 return new InitialContext();
-            } catch (NoClassDefFoundError e){
-                throw new NamingException(e.toString());
-            } catch (Exception e) {
+            } catch (NoClassDefFoundError | Exception e){
                 throw new NamingException(e.toString());
             }
         } else {

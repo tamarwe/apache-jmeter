@@ -18,31 +18,35 @@
 
 package org.apache.jorphan.collections;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.Collection;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+public class PackageTest {
 
-public class PackageTest extends TestCase {
-        public PackageTest(String name) {
-            super(name);
-        }
+    private static Logger log = LoggerFactory.getLogger(PackageTest.class);
 
+        @Test
         public void testAdd1() throws Exception {
-            Logger log = LoggingManager.getLoggerForClass();
             Collection<String> treePath = Arrays.asList(new String[] { "1", "2", "3", "4" });
             HashTree tree = new HashTree();
-            log.debug("treePath = " + treePath);
+            log.debug("treePath = {}", treePath);
             tree.add(treePath, "value");
-            log.debug("Now treePath = " + treePath);
-            log.debug(tree.toString());
+            log.debug("Now treePath = {}, tree = {}", treePath, tree);
             assertEquals(1, tree.list(treePath).size());
             assertEquals("value", tree.getArray(treePath)[0]);
         }
 
+        @Test
         public void testEqualsAndHashCode1() throws Exception {
             HashTree tree1 = new HashTree("abcd");
             HashTree tree2 = new HashTree("abcd");
@@ -89,6 +93,7 @@ public class PackageTest extends TestCase {
         }
 
 
+        @Test
         public void testAddObjectAndTree() throws Exception {
             ListedHashTree tree = new ListedHashTree("key");
             ListedHashTree newTree = new ListedHashTree("value");
@@ -101,6 +106,7 @@ public class PackageTest extends TestCase {
             assertNotNull(tree.getTree("key").get("value"));
         }
 
+        @Test
         public void testEqualsAndHashCode2() throws Exception {
             ListedHashTree tree1 = new ListedHashTree("abcd");
             ListedHashTree tree2 = new ListedHashTree("abcd");
@@ -160,9 +166,10 @@ public class PackageTest extends TestCase {
         }
 
 
+        @Test
         public void testSearch() throws Exception {
             ListedHashTree tree = new ListedHashTree();
-            SearchByClass<Integer> searcher = new SearchByClass<Integer>(Integer.class);
+            SearchByClass<Integer> searcher = new SearchByClass<>(Integer.class);
             String one = "one";
             String two = "two";
             Integer o = Integer.valueOf(1);

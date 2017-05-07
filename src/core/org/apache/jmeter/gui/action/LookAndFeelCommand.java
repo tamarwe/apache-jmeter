@@ -18,34 +18,31 @@
 
 package org.apache.jmeter.gui.action;
 
-import java.awt.Dialog;
-import java.awt.Frame;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.apache.jmeter.gui.util.JMeterMenuBar;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the Look and Feel menu item.
  */
-public class LookAndFeelCommand implements Command {
+public class LookAndFeelCommand extends AbstractAction {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(LookAndFeelCommand.class);
 
     private static final String JMETER_LAF = "jmeter.laf"; // $NON-NLS-1$
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     private static final Preferences PREFS = Preferences.userNodeForPackage(LookAndFeelCommand.class);
     // Note: Windows user preferences are stored relative to: HKEY_CURRENT_USER\Software\JavaSoft\Prefs
@@ -55,21 +52,21 @@ public class LookAndFeelCommand implements Command {
 
     static {
         UIManager.LookAndFeelInfo[] lfs = JMeterMenuBar.getAllLAFs();
-        for (int i = 0; i < lfs.length; i++) {
-            commands.add(ActionNames.LAF_PREFIX + lfs[i].getClassName());
+        for (UIManager.LookAndFeelInfo lf : lfs) {
+            commands.add(ActionNames.LAF_PREFIX + lf.getClassName());
         }
-        String jMeterLaf = getJMeterLaf();
         if (log.isInfoEnabled()) {
-            ArrayList<String> names=new ArrayList<String>();
+            final String jMeterLaf = getJMeterLaf();
+            List<String> names = new ArrayList<>();
             for(UIManager.LookAndFeelInfo laf : lfs) {
                 if (laf.getClassName().equals(jMeterLaf)) {
                     names.add(laf.getName());
                 }
             }
-            if (names.size() > 0) {
-                log.info("Using look and feel: "+jMeterLaf+ " " +names.toString());
+            if (!names.isEmpty()) {
+                log.info("Using look and feel: {} {}", jMeterLaf, names);
             } else {
-                log.info("Using look and feel: "+jMeterLaf);
+                log.info("Using look and feel: {}", jMeterLaf);
             }
         }
     }
@@ -129,23 +126,9 @@ public class LookAndFeelCommand implements Command {
         try {
             String className = ev.getActionCommand().substring(ActionNames.LAF_PREFIX.length()).replace('/', '.');
             UIManager.setLookAndFeel(className);
-            for (Window w : Window.getWindows()) {
-                SwingUtilities.updateComponentTreeUI(w);
-                if (w.isDisplayable() &&
-                    (w instanceof Frame ? !((Frame)w).isResizable() :
-                    w instanceof Dialog ? !((Dialog)w).isResizable() :
-                    true)) {
-                    w.pack();
-                }
-            }
+            JMeterUtils.refreshUI();
             PREFS.put(USER_PREFS_KEY, className);
-        } catch (javax.swing.UnsupportedLookAndFeelException e) {
-            JMeterUtils.reportErrorToUser("Look and Feel unavailable:" + e.toString());
-        } catch (InstantiationException e) {
-            JMeterUtils.reportErrorToUser("Look and Feel unavailable:" + e.toString());
-        } catch (ClassNotFoundException e) {
-            JMeterUtils.reportErrorToUser("Look and Feel unavailable:" + e.toString());
-        } catch (IllegalAccessException e) {
+        } catch (javax.swing.UnsupportedLookAndFeelException | InstantiationException | ClassNotFoundException | IllegalAccessException e) {
             JMeterUtils.reportErrorToUser("Look and Feel unavailable:" + e.toString());
         }
     }

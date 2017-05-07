@@ -23,7 +23,6 @@ import java.awt.Image;
 /**
  * TODO - interface is used but getImage() does not appear to be used
  *
- * @version $Revision: 1377064 $
  */
 public interface ImageVisualizer {
     Image getImage();

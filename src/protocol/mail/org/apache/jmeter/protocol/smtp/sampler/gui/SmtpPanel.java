@@ -22,7 +22,6 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,14 +37,12 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.protocol.smtp.sampler.SmtpSampler;
 import org.apache.jmeter.testelement.property.CollectionProperty;
-import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.util.JMeterUtils;
 
 /**
@@ -106,8 +103,8 @@ public class SmtpPanel extends JPanel {
     private JButton addHeaderFieldButton;
     private JLabel headerFieldName;
     private JLabel headerFieldValue;
-    private Map<JTextField, JTextField> headerFields = new HashMap<JTextField, JTextField>();
-    private Map<JButton,JTextField> removeButtons = new HashMap<JButton, JTextField>();
+    private Map<JTextField, JTextField> headerFields = new HashMap<>();
+    private Map<JButton,JTextField> removeButtons = new HashMap<>();
     private int headerGridY = 0;
 
     private SecuritySettingsPanel securitySettingsPanel;
@@ -387,7 +384,6 @@ public class SmtpPanel extends JPanel {
         tfAuthUsername.setEditable(selected); // ensure correctly set on initial display
     }
 
-
     public boolean isEnableDebug() {
         return cbEnableDebug.isSelected();
     }
@@ -395,8 +391,6 @@ public class SmtpPanel extends JPanel {
     public void setEnableDebug(boolean selected){
         cbEnableDebug.setSelected(selected);
     }
-
-
 
     /**
      * Returns if an .eml-message is sent instead of the content of message-text
@@ -498,8 +492,7 @@ public class SmtpPanel extends JPanel {
     public CollectionProperty getHeaderFields() {
         CollectionProperty result = new CollectionProperty();
         result.setName(SmtpSampler.HEADER_FIELDS);
-        for (Iterator<JTextField> iterator = headerFields.keySet().iterator(); iterator.hasNext();) {
-            JTextField headerName = iterator.next();
+        for (JTextField headerName : headerFields.keySet()) {
             String name = headerName.getText();
             String value = headerFields.get(headerName).getText();
             Argument argument = new Argument(name, value);
@@ -511,7 +504,7 @@ public class SmtpPanel extends JPanel {
     public void setHeaderFields(CollectionProperty fields) {
         clearHeaderFields();
         for (int i = 0; i < fields.size(); i++) {
-            Argument argument = (Argument)((TestElementProperty)fields.get(i)).getObjectValue();
+            Argument argument = (Argument) fields.get(i).getObjectValue();
             String name = argument.getName();
             JButton removeButton = addHeaderActionPerformed(null);
             JTextField nameTF = removeButtons.get(removeButton);
@@ -535,8 +528,6 @@ public class SmtpPanel extends JPanel {
      * Main method of class, builds all gui-components for SMTP-sampler.
      */
     private void initComponents() {
-        GridBagConstraints gridBagConstraints, gridBagConstraintsMain;
-
         jlAddressReplyTo = new JLabel(JMeterUtils.getResString("smtp_replyto")); // $NON-NLS-1$
         jlAddressFrom = new JLabel(JMeterUtils.getResString("smtp_from")); // $NON-NLS-1$
         jlAddressTo = new JLabel(JMeterUtils.getResString("smtp_to")); // $NON-NLS-1$
@@ -573,12 +564,7 @@ public class SmtpPanel extends JPanel {
         cbPlainBody = new JCheckBox(JMeterUtils.getResString("smtp_plainbody")); // $NON-NLS-1$
         
         cbSuppressSubject = new JCheckBox(JMeterUtils.getResString("smtp_suppresssubj")); // $NON-NLS-1$
-        cbSuppressSubject.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent evt) {
-                emptySubjectActionPerformed(evt);
-            }
-        });
+        cbSuppressSubject.addChangeListener(this::emptySubjectActionPerformed);
 
         cbUseAuth = new JCheckBox(JMeterUtils.getResString("smtp_useauth")); // $NON-NLS-1$
 
@@ -594,28 +580,18 @@ public class SmtpPanel extends JPanel {
         emlBrowseButton = new JButton(JMeterUtils.getResString("browse")); // $NON-NLS-1$
 
         attachmentFileChooser
-                .addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        attachmentFolderFileChooserActionPerformed(evt);
-                    }
-                });
+                .addActionListener(this::attachmentFolderFileChooserActionPerformed);
 
-        emlFileChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                emlFileChooserActionPerformed(evt);
-            }
-        });
+        emlFileChooser.addActionListener(this::emlFileChooserActionPerformed);
 
         setLayout(new GridBagLayout());
 
-        gridBagConstraintsMain = new GridBagConstraints();
+        GridBagConstraints gridBagConstraintsMain = new GridBagConstraints();
         gridBagConstraintsMain.fill = GridBagConstraints.HORIZONTAL;
         gridBagConstraintsMain.anchor = GridBagConstraints.WEST;
         gridBagConstraintsMain.weightx = 0.5;
 
-        gridBagConstraints = new GridBagConstraints();
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         gridBagConstraints.fill = GridBagConstraints.NONE;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
@@ -723,12 +699,7 @@ public class SmtpPanel extends JPanel {
 
         cbUseAuth.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         cbUseAuth.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        cbUseAuth.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                cbUseAuthActionPerformed(evt);
-            }
-        });
+        cbUseAuth.addActionListener(this::cbUseAuthActionPerformed);
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         panelAuthSettings.add(cbUseAuth, gridBagConstraints);
@@ -807,12 +778,7 @@ public class SmtpPanel extends JPanel {
          */
 
         addHeaderFieldButton = new JButton(JMeterUtils.getResString("smtp_header_add")); // $NON-NLS-1$
-        addHeaderFieldButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                addHeaderActionPerformed(evt);
-            }
-        });
+        addHeaderFieldButton.addActionListener(this::addHeaderActionPerformed);
         headerFieldName = new JLabel(JMeterUtils.getResString("smtp_header_name")); // $NON-NLS-1$
         headerFieldValue = new JLabel(JMeterUtils.getResString("smtp_header_value")); // $NON-NLS-1$
         headerFieldsPanel = new JPanel(new GridBagLayout());
@@ -865,12 +831,7 @@ public class SmtpPanel extends JPanel {
         panelMessageSettings.add(tfAttachment, gridBagConstraints);
         tfAttachment.setToolTipText(JMeterUtils.getResString("smtp_attach_file_tooltip")); // $NON-NLS-1$
 
-        browseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                browseButtonActionPerformed(evt);
-            }
-        });
+        browseButton.addActionListener(this::browseButtonActionPerformed);
 
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -878,12 +839,7 @@ public class SmtpPanel extends JPanel {
         panelMessageSettings.add(browseButton, gridBagConstraints);
 
         cbUseEmlMessage.setSelected(false);
-        cbUseEmlMessage.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                cbUseEmlMessageActionPerformed(evt);
-            }
-        });
+        cbUseEmlMessage.addActionListener(this::cbUseEmlMessageActionPerformed);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -896,12 +852,7 @@ public class SmtpPanel extends JPanel {
         tfEmlMessage.setEnabled(false);
         panelMessageSettings.add(tfEmlMessage, gridBagConstraints);
 
-        emlBrowseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                emlBrowseButtonActionPerformed(evt);
-            }
-        });
+        emlBrowseButton.addActionListener(this::emlBrowseButtonActionPerformed);
         emlBrowseButton.setEnabled(false);
 
         gridBagConstraints.gridx = 2;
@@ -943,12 +894,10 @@ public class SmtpPanel extends JPanel {
      * @param evt
      *            ActionEvent to be handled
      */
-    private void cbUseAuthActionPerformed(ActionEvent evt) {
+    private void cbUseAuthActionPerformed(ActionEvent evt) { // NOSONAR This method is used through lambda
         tfAuthUsername.setEditable(cbUseAuth.isSelected());
         tfAuthPassword.setEditable(cbUseAuth.isSelected());
     }
-
-
 
     /**
      * ActionPerformed-method for filechoser "attachmentFileChoser", creates
@@ -957,20 +906,19 @@ public class SmtpPanel extends JPanel {
      * @param evt
      *            ActionEvent to be handled
      */
-    private void attachmentFolderFileChooserActionPerformed(ActionEvent evt) {
+    private void attachmentFolderFileChooserActionPerformed(ActionEvent evt) { // NOSONAR This method is used through lambda
         File chosen = attachmentFileChooser.getSelectedFile();
-        if (chosen == null){
+        if (chosen == null) {
             return;
         }
         final String attachments = tfAttachment.getText().trim();
-        if (null != attachments && attachments.length() > 0) {
+        if (attachments.length() > 0) {
             tfAttachment.setText(attachments
                             + SmtpSampler.FILENAME_SEPARATOR
                             + chosen.getAbsolutePath());
         } else {
             tfAttachment.setText(chosen.getAbsolutePath());
         }
-
     }
 
     /**
@@ -979,32 +927,20 @@ public class SmtpPanel extends JPanel {
      * @param evt
      *            ActionEvent to be handled
      */
-    private void browseButtonActionPerformed(ActionEvent evt) {
+    private void browseButtonActionPerformed(ActionEvent evt) { // NOSONAR This method is used through lambda
         attachmentFileChooser.showOpenDialog(this);
     }
 
-    private void cbUseEmlMessageActionPerformed(ActionEvent evt) {
+    private void cbUseEmlMessageActionPerformed(ActionEvent evt) { // NOSONAR This method is used through lambda
         if (cbUseEmlMessage.isSelected()) {
             tfEmlMessage.setEnabled(true);
             emlBrowseButton.setEnabled(true);
-
-            /*tfMailFrom.setEnabled(false);
-            tfMailTo.setEnabled(false);
-            tfMailToCC.setEnabled(false);
-            tfMailToBCC.setEnabled(false);
-            tfSubject.setEnabled(false);*/
             taMessage.setEnabled(false);
             tfAttachment.setEnabled(false);
             browseButton.setEnabled(false);
         } else {
             tfEmlMessage.setEnabled(false);
             emlBrowseButton.setEnabled(false);
-
-            /*tfMailFrom.setEnabled(true);
-            tfMailTo.setEnabled(true);
-            tfMailToCC.setEnabled(true);
-            tfMailToBCC.setEnabled(true);
-            tfSubject.setEnabled(true);*/
             taMessage.setEnabled(true);
             tfAttachment.setEnabled(true);
             browseButton.setEnabled(true);
@@ -1018,7 +954,7 @@ public class SmtpPanel extends JPanel {
      * @param evt
      *            ActionEvent to be handled
      */
-    private void emlFileChooserActionPerformed(ActionEvent evt) {
+    private void emlFileChooserActionPerformed(ActionEvent evt) { // NOSONAR This method is used through lambda
         tfEmlMessage.setText(emlFileChooser.getSelectedFile().getAbsolutePath());
     }
 
@@ -1028,11 +964,9 @@ public class SmtpPanel extends JPanel {
      * @param evt
      *            ActionEvent to be handled
      */
-    private void emlBrowseButtonActionPerformed(ActionEvent evt) {
+    private void emlBrowseButtonActionPerformed(ActionEvent evt) { // NOSONAR This method is used through lambda
         emlFileChooser.showOpenDialog(this);
     }
-
-
 
     /**
      * Reset all the Gui fields.
@@ -1067,11 +1001,11 @@ public class SmtpPanel extends JPanel {
 
     private void clearHeaderFields() {
         headerFieldName.setVisible(false);
-           headerFieldValue.setVisible(false);
+        headerFieldValue.setVisible(false);
 
         for (Iterator<JButton> iterator = removeButtons.keySet().iterator(); iterator.hasNext();) {
             JButton removeButton = iterator.next();
-               JTextField headerName = removeButtons.get(removeButton);
+            JTextField headerName = removeButtons.get(removeButton);
             JTextField headerValue = headerFields.get(headerName);
 
             headerFieldsPanel.remove(headerName);
@@ -1095,12 +1029,7 @@ public class SmtpPanel extends JPanel {
         headerFields.put(nameTF, valueTF);
         removeButtons.put(removeButton, nameTF);
 
-        removeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                removeHeaderActionPerformed(evt);
-            }
-        });
+        removeButton.addActionListener(this::removeHeaderActionPerformed);
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
@@ -1133,9 +1062,9 @@ public class SmtpPanel extends JPanel {
         this.securitySettingsPanel = securitySettingsPanel;
     }
 
-    private void removeHeaderActionPerformed(ActionEvent evt){
+    private void removeHeaderActionPerformed(ActionEvent evt){ // NOSONAR This method is used through lambda
         final Object source = evt.getSource();
-        if(source != null && source instanceof JButton){
+        if(source instanceof JButton){
             if(headerFields.size() == 1){
                 headerFieldName.setVisible(false);
                 headerFieldValue.setVisible(false);
@@ -1150,9 +1079,10 @@ public class SmtpPanel extends JPanel {
             validate();
         }
     }
-    private void emptySubjectActionPerformed(ChangeEvent evt) {
+    
+    private void emptySubjectActionPerformed(ChangeEvent evt) { // NOSONAR This method is used through lambda
         final Object source = evt.getSource();
-        if(source != null && source instanceof JCheckBox){
+        if(source instanceof JCheckBox){
             if(cbSuppressSubject.isSelected()){
                 tfSubject.setEnabled(false);
                 cbIncludeTimestamp.setEnabled(false);

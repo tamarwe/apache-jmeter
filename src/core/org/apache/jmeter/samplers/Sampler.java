@@ -26,7 +26,6 @@ import org.apache.jmeter.testelement.TestElement;
  * Classes which are able to generate information about an entry should
  * implement this interface.
  *
- * @version $Revision: 1647215 $
  */
 public interface Sampler extends Serializable, TestElement {
     /**

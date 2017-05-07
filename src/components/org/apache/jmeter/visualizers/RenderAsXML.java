@@ -36,9 +36,9 @@ import javax.swing.tree.TreeSelectionModel;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.util.XPathUtil;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.tidy.Tidy;
@@ -47,7 +47,7 @@ import org.xml.sax.SAXException;
 public class RenderAsXML extends SamplerResultTab
     implements ResultRenderer {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(RenderAsXML.class);
 
     private static final byte[] XML_PFX = {'<','?','x','m','l',' '};//"<?xml "
 
@@ -68,17 +68,14 @@ public class RenderAsXML extends SamplerResultTab
         final ByteArrayInputStream baIS = new ByteArrayInputStream(source);
         for(int i=0; i<source.length-XML_PFX.length; i++){
             if (JOrphanUtils.startsWith(source, XML_PFX, i)){
-                baIS.skip(i);// Skip the leading bytes (if any)
+                baIS.skip(i);// NOSONAR Skip the leading bytes (if any)
                 break;
             }
         }
 
-        // there is also a javax.swing.text.Document class.
-        org.w3c.dom.Document document = null;
-
         StringWriter sw = new StringWriter();
         Tidy tidy = XPathUtil.makeTidyParser(true, true, true, sw);
-        document = tidy.parseDOM(baIS, null);
+        org.w3c.dom.Document document = tidy.parseDOM(baIS, null);
         document.normalize();
         if (tidy.getParseErrors() > 0) {
             showErrorMessageDialog(sw.toString(),
@@ -133,10 +130,10 @@ public class RenderAsXML extends SamplerResultTab
         }
 
         /**
-         * Skip all DTD nodes, all prolog nodes. They dont support in tree view
-         * We let user to insert them however in DOMTreeView, we dont display it
+         * Skip all DTD nodes, all prolog nodes. They are not supported in tree view
+         * We let user insert them however in DOMTreeView, we don't display them.
          *
-         * @param root
+         * @param parent {@link Node}
          * @return
          */
         private Node getFirstElement(Node parent) {
@@ -157,7 +154,7 @@ public class RenderAsXML extends SamplerResultTab
          * This class is to view as tooltext. This is very useful, when the
          * contents has long string and does not fit in the view. it will also
          * automatically wrap line for each 100 characters since tool tip
-         * support html. author <a href="mailto:d.maung@mdl.com">Dave Maung</a>
+         * support html. 
          */
         private static class DomTreeRenderer extends DefaultTreeCellRenderer {
 

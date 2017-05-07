@@ -19,6 +19,9 @@
 package org.apache.jmeter.util;
 
 import org.apache.jmeter.testelement.AbstractTestElement;
+import org.apache.jorphan.util.JMeterStopTestException;
+import org.apache.jorphan.util.JMeterStopTestNowException;
+import org.apache.jorphan.util.JMeterStopThreadException;
 
 /**
  * Common parent class for the {@link BSFTestElement} and {@link JSR223TestElement} scripting test elements.
@@ -26,7 +29,7 @@ import org.apache.jmeter.testelement.AbstractTestElement;
  */
 public abstract class ScriptingTestElement extends AbstractTestElement {
 
-    private static final long serialVersionUID = 281L;
+    private static final long serialVersionUID = 282L;
 
     //++ For TestBean implementations only
     private String parameters = ""; // passed to file or script
@@ -36,6 +39,9 @@ public abstract class ScriptingTestElement extends AbstractTestElement {
     private String script = ""; // script (if file not provided)
 
     protected String scriptLanguage = ""; // BSF/JSR223 language to use
+    
+    public final static String DEFAULT_SCRIPT_LANGUAGE = "groovy"; // if no language is chosen in GUI
+    
     //-- For TestBean implementations only
 
     public ScriptingTestElement() {
@@ -80,5 +86,13 @@ public abstract class ScriptingTestElement extends AbstractTestElement {
         filename = s;
     }
 
-
+    /**
+     * @param rootCause Throwable
+     * @return true if Throwable is an Exception that impacts test state
+     */
+    protected boolean isStopCondition(Throwable rootCause) {
+        return rootCause instanceof JMeterStopTestNowException 
+                || rootCause instanceof JMeterStopTestException
+                || rootCause instanceof JMeterStopThreadException;
+    }
 }

@@ -21,25 +21,23 @@ package org.apache.jmeter.protocol.http.sampler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.apache.jmeter.NewDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/*
+/**
  * Utility class to set up default HttpClient parameters from a file.
  * 
- * Supports both Commons HttpClient and Apache HttpClient.
- * 
+ * Supports Apache HttpClient.
  */
 public class HttpClientDefaultParameters {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HttpClientDefaultParameters.class);
 
     // Non-instantiable
     private HttpClientDefaultParameters(){
@@ -49,29 +47,6 @@ public class HttpClientDefaultParameters {
     private static abstract class GenericHttpParams {
         public abstract void setParameter(String name, Object value);
         public abstract void setVersion(String name, String value) throws Exception;
-    }
-
-    /**
-     * Loads a property file and converts parameters as necessary.
-     * 
-     * @param file the file to load
-     * @param params Commons HttpClient parameter instance
-     */
-    public static void load(String file, 
-            final org.apache.commons.httpclient.params.HttpParams params){
-        load(file, 
-                new GenericHttpParams (){
-                    @Override
-                    public void setParameter(String name, Object value) {
-                        params.setParameter(name, value);
-                    }
-                    @Override
-                    public void setVersion(String name, String value) throws Exception {
-                        params.setParameter(name,
-                        org.apache.commons.httpclient.HttpVersion.parse("HTTP/"+value));
-                    }            
-                }
-            );
     }
 
     /**
@@ -91,7 +66,7 @@ public class HttpClientDefaultParameters {
 
                     @Override
                     public void setVersion(String name, String value) {
-                        String parts[] = value.split("\\.");
+                        String[] parts = value.split("\\.");
                         if (parts.length != 2){
                             throw new IllegalArgumentException("Version must have form m.n");
                         }
@@ -104,12 +79,20 @@ public class HttpClientDefaultParameters {
     }
 
     private static void load(String file, GenericHttpParams params){
-        log.info("Reading httpclient parameters from "+file);
-        File f = new File(file);
-        InputStream is = null;
+        log.info("Trying httpclient parameters from "+file);
+        File f = new File(file);        
+        if(! (f.exists() && f.canRead())) {
+            f = new File(NewDriver.getJMeterDir() + File.separator
+                    + "bin" + File.separator + file); // $NON-NLS-1$
+            log.info(file + " httpclient parameters does not exist, trying "+f.getAbsolutePath());
+            if(! (f.exists() && f.canRead())) {
+                log.error("Cannot read parameters file for HttpClient: "+ file);
+                return;
+            }
+        }
+        log.info("Reading httpclient parameters from "+f.getAbsolutePath());
         Properties props = new Properties();
-        try {
-            is = new FileInputStream(f);
+        try ( InputStream is = new FileInputStream(f) ){
             props.load(is);
             for (Map.Entry<Object, Object> me : props.entrySet()){
                 String key = (String) me.getKey();
@@ -139,13 +122,8 @@ public class HttpClientDefaultParameters {
                     log.error("Error in property: "+key+"="+value+" "+e.toString());
                 }
             }
-        } catch (FileNotFoundException e) {
-            log.error("Problem loading properties "+e.toString());
         } catch (IOException e) {
             log.error("Problem loading properties "+e.toString());
-        } finally {
-            JOrphanUtils.closeQuietly(is);
         }
     }
-
 }

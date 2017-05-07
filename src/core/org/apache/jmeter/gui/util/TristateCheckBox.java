@@ -48,8 +48,9 @@ import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
 
-// derived from: http://www.javaspecialists.eu/archive/Issue145.html
-
+/**
+ * derived from: http://www.javaspecialists.eu/archive/Issue145.html
+ */
 public final class TristateCheckBox extends JCheckBox {
     private static final long serialVersionUID = 1L;
     // Listener on model changes to maintain correct focusability
@@ -155,8 +156,9 @@ public final class TristateCheckBox extends JCheckBox {
     public void setModel(ButtonModel newModel) {
         super.setModel(newModel);
         //Listen for enable changes
-        if (model instanceof TristateButtonModel)
+        if (model instanceof TristateButtonModel) {
             model.addChangeListener(enableListener);
+        }
     }
 
     //Empty override of superclass method
@@ -167,7 +169,9 @@ public final class TristateCheckBox extends JCheckBox {
     // Mostly delegates to model
     private void iterateState() {
         //Maybe do nothing at all?
-        if (!getModel().isEnabled()) return;
+        if (!getModel().isEnabled()) {
+            return;
+        }
 
         grabFocus();
 
@@ -287,8 +291,9 @@ public final class TristateCheckBox extends JCheckBox {
         }
     }
 
-  // derived from: http://www.coderanch.com/t/342563/GUI/java/TriState-CheckBox
-
+    /**
+     * derived from: http://www.coderanch.com/t/342563/GUI/java/TriState-CheckBox
+     */
     private static class TristateCheckBoxIcon implements Icon, UIResource, Serializable {
 
         private static final long serialVersionUID = 290L;
@@ -325,19 +330,11 @@ public final class TristateCheckBox extends JCheckBox {
             }
 
             drawLine(g, x, y);
-//            drawCross(g, x, y);
-
         }// paintIcon
 
-//        private void drawCross(Graphics g, int x, int y) {
-//            g.drawLine(x + (iconWidth - 4), y + 2, x + 3, y + (iconHeight - 5));
-//            g.drawLine(x + (iconWidth - 4), y + 3, x + 3, y + (iconHeight - 4));
-//            g.drawLine(x + 3, y + 2, x + (iconWidth - 4), y + (iconHeight - 5));
-//            g.drawLine(x + 3, y + 3, x + (iconWidth - 4), y + (iconHeight - 4));
-//        }
-
         private void drawLine(Graphics g, int x, int y) {
-            final int left = x + 2, right =  x + (iconWidth - 4);
+            final int left = x + 2;
+            final int right =  x + (iconWidth - 4);
             int height = y + iconHeight/2;
             g.drawLine(left, height, right, height);
             g.drawLine(left, height - 1, right, height - 1);

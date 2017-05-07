@@ -18,7 +18,9 @@
 
 package org.apache.jmeter.protocol.http.sampler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.protocol.http.control.CookieManager;
+import org.apache.jmeter.protocol.http.util.HTTPConstants;
 import org.apache.jmeter.protocol.http.util.accesslog.Filter;
 import org.apache.jmeter.protocol.http.util.accesslog.LogParser;
 import org.apache.jmeter.samplers.Entry;
@@ -27,9 +29,9 @@ import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testelement.TestCloneable;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.apache.jmeter.threads.JMeterContextService;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JMeterException;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Description: <br>
@@ -48,7 +50,7 @@ import org.apache.log.Logger;
  * the logs. It also doesn't care how Generator is implemented, as long as it
  * implements the interface. This means a person could simply implement a dummy
  * parser to generate random parameters and the generator consumes the results.
- * This wasn't the original intent of the sampler. I originaly wanted to write
+ * This wasn't the original intent of the sampler. I originally wanted to write
  * this sampler, so that I can take production logs to simulate production
  * traffic in a test environment. Doing so is desirable to study odd or unusual
  * behavior. It's also good to compare a new system against an existing system
@@ -59,22 +61,22 @@ import org.apache.log.Logger;
  * Some bugs only appear under production traffic, so it is useful to generate
  * traffic using production logs. This way, JMeter can record when problems
  * occur and provide a way to match the server logs.
- * <p>
- * Created on: Jun 26, 2003
+ * </p>
  *
  */
 public class AccessLogSampler extends HTTPSampler implements TestBean,ThreadListener {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(AccessLogSampler.class);
 
-    private static final long serialVersionUID = 232L; // Remember to change this when the class changes ...
+    private static final long serialVersionUID = 233L; // Remember to change this when the class changes ...
 
     public static final String DEFAULT_CLASS = "org.apache.jmeter.protocol.http.util.accesslog.TCLogParser"; // $NON-NLS-1$
 
     /* private members used by class */
     private transient LogParser parser = null;
 
-    // NOTUSED private Class PARSERCLASS = null;
-    private String logFile, parserClassName, filterClassName;
+    private String logFile;
+    private String parserClassName;
+    private String filterClassName;
 
     private transient Filter filter;
 
@@ -136,9 +138,6 @@ public class AccessLogSampler extends HTTPSampler implements TestBean,ThreadList
             if (parser == null) {
                 throw new JMeterException("No Parser available");
             }
-            /*
-             * samp.setDomain(this.getDomain()); samp.setPort(this.getPort());
-             */
             // we call parse with 1 to get only one.
             // this also means if we change the implementation
             // to use 2, it would use every other entry and
@@ -207,11 +206,8 @@ public class AccessLogSampler extends HTTPSampler implements TestBean,ThreadList
                         log.error("No log file specified");
                     }
                 }
-            } catch (InstantiationException e) {
-                log.error("", e);
-            } catch (IllegalAccessException e) {
-                log.error("", e);
-            } catch (ClassNotFoundException e) {
+            } catch (InstantiationException | ClassNotFoundException
+                    | IllegalAccessException e) {
                 log.error("", e);
             }
         }
@@ -277,6 +273,29 @@ public class AccessLogSampler extends HTTPSampler implements TestBean,ThreadList
      */
     public void setPortString(String port) {
         super.setProperty(HTTPSamplerBase.PORT, port);
+    }
+    
+    /**
+     * Sets the scheme, with default
+     * @param value the protocol
+     */
+    @Override
+    public void setProtocol(String value) {
+        setProperty(PROTOCOL, value.toLowerCase(java.util.Locale.ENGLISH));
+    }
+    
+    /**
+     * Gets the protocol, with default.
+     *
+     * @return the protocol
+     */
+    @Override
+    public String getProtocol() {
+        String protocol = getPropertyAsString(PROTOCOL);
+        if (StringUtils.isEmpty(protocol)) {
+            return HTTPConstants.PROTOCOL_HTTP;
+        }
+        return protocol;
     }
 
     /**

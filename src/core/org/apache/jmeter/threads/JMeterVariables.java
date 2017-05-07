@@ -32,7 +32,7 @@ import org.apache.jmeter.util.JMeterUtils;
  * These are similar to properties, but they are local to a single thread.
  */
 public class JMeterVariables {
-    private final Map<String, Object> variables = new HashMap<String, Object>();
+    private final Map<String, Object> variables = new HashMap<>();
 
     private int iteration = 0;
 
@@ -49,11 +49,10 @@ public class JMeterVariables {
     }
 
     private void preloadVariables(){
-        for (int i = 0; i < PRE_LOAD.length; i++){
-            String property=PRE_LOAD[i];
-            String value=JMeterUtils.getProperty(property);
-            if (value != null){
-                variables.put(property,value);
+        for (String property : PRE_LOAD) {
+            String value = JMeterUtils.getProperty(property);
+            if (value != null) {
+                variables.put(property, value);
             }
         }
     }
@@ -68,12 +67,6 @@ public class JMeterVariables {
 
     public void incIteration() {
         iteration++;
-    }
-
-    // Does not appear to be used
-    public void initialize() {
-        variables.clear();
-        preloadVariables();
     }
 
     /**

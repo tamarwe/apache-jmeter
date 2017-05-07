@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @version $Id: index.xml 1664974 2015-03-08 11:28:16Z fschumacher $
+ * @version $Id$
 -->
 <document>
 
   <properties>
 
-     <author email="jsalvata@atg.com">Jordi Salvat i Alabart</author>
+    <author email="dev@jmeter.apache.org">Apache JMeter developers</author>
 
      <title>JMeter Localisation (Translator's Guide)</title>
 

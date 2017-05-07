@@ -43,7 +43,6 @@ package org.apache.jorphan.collections;
  * @see HashTree
  * @see SearchByClass
  *
- * @version $Revision: 1595401 $
  */
 public interface HashTreeTraverser {
     /**

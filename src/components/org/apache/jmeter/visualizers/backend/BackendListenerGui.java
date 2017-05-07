@@ -33,17 +33,18 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.config.gui.ArgumentsPanel;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jmeter.testelement.property.PropertyIterator;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.visualizers.gui.AbstractListenerGui;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.reflect.ClassFinder;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link BackendListenerGui} class provides the user interface for the
@@ -55,13 +56,13 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
     /**
      * 
      */
-    private static final long serialVersionUID = 4331668988576438604L;
+    private static final long serialVersionUID = 1L;
 
     /** Logging */
-    private static final Logger LOGGER = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(BackendListenerGui.class);
 
     /** A combo box allowing the user to choose a backend class. */
-    private JComboBox classnameCombo;
+    private JComboBox<String> classnameCombo;
     
     /**
      * A field allowing the user to specify the size of Queue
@@ -109,7 +110,7 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
      * @return a panel containing the relevant components
      */
     private JPanel createClassnamePanel() {
-        List<String> possibleClasses = new ArrayList<String>();
+        List<String> possibleClasses = new ArrayList<>();
 
         try {
             // Find all the classes which implement the BackendListenerClient
@@ -122,12 +123,12 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
 
             possibleClasses.remove(BackendListener.class.getName() + "$ErrorBackendListenerClient");
         } catch (Exception e) {
-            LOGGER.debug("Exception getting interfaces.", e);
+            log.debug("Exception getting interfaces.", e);
         }
 
         JLabel label = new JLabel(JMeterUtils.getResString("backend_listener_classname")); // $NON-NLS-1$
 
-        classnameCombo = new JComboBox(possibleClasses.toArray());
+        classnameCombo = new JComboBox<>(possibleClasses.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
         classnameCombo.addActionListener(this);
         classnameCombo.setEditable(false);
         label.setLabelFor(classnameCombo);
@@ -174,15 +175,14 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
                 try {
                     testParams = client.getDefaultParameters();
                 } catch (AbstractMethodError e) {
-                    LOGGER.warn("BackendListenerClient doesn't implement "
+                    log.warn("BackendListenerClient doesn't implement "
                             + "getDefaultParameters.  Default parameters won't "
-                            + "be shown.  Please update your client class: " + className);
+                            + "be shown.  Please update your client class: {}", className);
                 }
 
                 if (testParams != null) {
-                    PropertyIterator i = testParams.getArguments().iterator();
-                    while (i.hasNext()) {
-                        Argument arg = (Argument) i.next().getObjectValue();
+                    for (JMeterProperty jMeterProperty : testParams.getArguments()) {
+                        Argument arg = (Argument) jMeterProperty.getObjectValue();
                         String name = arg.getName();
                         String value = arg.getValue();
 
@@ -202,7 +202,7 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
 
                 argsPanel.configure(newArgs);
             } catch (Exception e) {
-                LOGGER.error("Error getting argument list for " + className, e);
+                log.error("Error getting argument list for {}", className, e);
             }
         }
     }
@@ -229,8 +229,9 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
         if(checkContainsClassName(classnameCombo.getModel(), className)) {
             classnameCombo.setSelectedItem(className);
         } else {
-            LOGGER.error("Error setting class:'"+className+"' in BackendListener: "+getName()+
-                    ", check for a missing jar in your jmeter 'search_paths' and 'plugin_dependency_paths' properties");
+            log.error(
+                    "Error setting class: '{}' in BackendListener: {}, check for a missing jar in your jmeter 'search_paths' and 'plugin_dependency_paths' properties",
+                    className, getName());
         }
         queueSize.setText(((BackendListener)config).getQueueSize());
     }
@@ -241,9 +242,10 @@ public class BackendListenerGui extends AbstractListenerGui implements ActionLis
      * @param className String class name
      * @return boolean true if model contains className
      */
-    private static final boolean checkContainsClassName(ComboBoxModel model, String className) {
+    private static boolean checkContainsClassName(
+            ComboBoxModel<?> model, String className) {
         int size = model.getSize();
-        Set<String> set = new HashSet<String>(size);
+        Set<String> set = new HashSet<>(size);
         for (int i = 0; i < size; i++) {
             set.add((String)model.getElementAt(i));
         }

@@ -18,19 +18,24 @@
 
 package org.apache.jmeter.assertions;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import junit.framework.TestCase;
-
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
+import org.junit.Before;
+import org.junit.Test;
 
-public class ResponseAssertionTest  extends TestCase {
+public class ResponseAssertionTest {
 
     public ResponseAssertionTest() {
     }
@@ -39,7 +44,7 @@ public class ResponseAssertionTest  extends TestCase {
     private SampleResult sample;
     private AssertionResult result;
     
-    @Override
+    @Before
     public void setUp() throws MalformedURLException {
         JMeterContext jmctx = JMeterContextService.getContext();
         assertion = new ResponseAssertion();
@@ -52,8 +57,10 @@ public class ResponseAssertionTest  extends TestCase {
         sample.setURL(new URL("http://localhost/Sampler/Data/"));
         sample.setResponseCode("401");
         sample.setResponseHeaders("X-Header: abcd");
+        sample.setRequestHeaders("X-reqHeader: cdef");
     }
 
+    @Test
     public void testResponseAssertionEquals() throws Exception{
         assertion.unsetNotType();
         assertion.setToEqualsType();
@@ -71,7 +78,8 @@ public class ResponseAssertionTest  extends TestCase {
         assertPassed();
     }
     
-    public void testResponseAssertionHeaders() throws Exception{
+    @Test
+    public void testResponseAssertionResponseHeaders() throws Exception{
         assertion.unsetNotType();
         assertion.setToEqualsType();
         assertion.setTestFieldResponseHeaders();
@@ -86,6 +94,23 @@ public class ResponseAssertionTest  extends TestCase {
         assertPassed();
     }
     
+    @Test
+    public void testResponseAssertionRequestHeaders() throws Exception{
+        assertion.unsetNotType();
+        assertion.setToEqualsType();
+        assertion.setTestFieldRequestHeaders();
+        assertion.addTestString("X-reqHeader: cdef");
+        assertion.addTestString("X-reqHeader: cdefx");
+        result = assertion.getResult(sample);
+        assertFailed();
+
+        assertion.clearTestStrings();
+        assertion.addTestString("X-reqHeader: cdef");
+        result = assertion.getResult(sample);
+        assertPassed();
+    }
+    
+    @Test
     public void testResponseAssertionContains() throws Exception{
         assertion.unsetNotType();
         assertion.setToContainsType();
@@ -114,7 +139,56 @@ public class ResponseAssertionTest  extends TestCase {
         assertion.addTestString("line 2");
         result = assertion.getResult(sample);
         assertPassed();
+        
+        assertion.clearTestStrings();
+        assertion.addTestString("line 2");
+        assertion.addTestString("NOTINSAMPLEDATA");
+        result = assertion.getResult(sample);
+        assertFailed();
+        
+        assertion.clearTestStrings();
+        assertion.setToOrType();
+        assertion.addTestString("line 2");
+        assertion.addTestString("NOTINSAMPLEDATA");
+        result = assertion.getResult(sample);
+        assertPassed();
+        assertion.unsetOrType();
+        
+        assertion.clearTestStrings();
+        assertion.setToOrType();
+        assertion.addTestString("NOTINSAMPLEDATA");
+        assertion.addTestString("line 2");
+        result = assertion.getResult(sample);
+        assertPassed();
+        assertion.unsetOrType();
+        
+        assertion.clearTestStrings();
+        assertion.setToOrType();
+        assertion.addTestString("NOTINSAMPLEDATA");
+        assertion.addTestString("NOTINSAMPLEDATA2");
+        result = assertion.getResult(sample);
+        assertFailed();
+        assertion.unsetOrType();
+        
+        assertion.clearTestStrings();
+        assertion.setToOrType();
+        assertion.setToNotType();
+        assertion.addTestString("line 2");
+        assertion.addTestString("NOTINSAMPLEDATA2");
+        result = assertion.getResult(sample);
+        assertPassed();
+        assertion.unsetOrType();
+        assertion.unsetNotType();
 
+        
+        assertion.clearTestStrings();
+        assertion.setToNotType();
+        assertion.addTestString("NOTINSAMPLEDATA");
+        result = assertion.getResult(sample);
+        assertPassed();
+        assertion.unsetNotType();
+        
+        
         assertion.clearTestStrings();
         assertion.addTestString("(?s)line \\d+.*EOF");
         result = assertion.getResult(sample);
@@ -130,6 +204,7 @@ public class ResponseAssertionTest  extends TestCase {
     }
 
     // Bug 46831 - check can match dollars
+    @Test
     public void testResponseAssertionContainsDollar() throws Exception {
         sample.setResponseData("value=\"${ID}\" Group$ctl00$drpEmails", null);
         assertion.unsetNotType();
@@ -141,6 +216,7 @@ public class ResponseAssertionTest  extends TestCase {
         assertPassed();        
     }
     
+    @Test
     public void testResponseAssertionSubstring() throws Exception{
         assertion.unsetNotType();
         assertion.setToSubstringType();
@@ -202,6 +278,7 @@ public class ResponseAssertionTest  extends TestCase {
     }
     private AtomicInteger failed;
 
+    @Test
     public void testThreadSafety() throws Exception {
         Thread[] threads = new Thread[100];
         CountDownLatch latch = new CountDownLatch(threads.length);
@@ -209,8 +286,8 @@ public class ResponseAssertionTest  extends TestCase {
             threads[i] = new TestThread(latch);
         }
         failed = new AtomicInteger(0);
-        for (int i = 0; i < threads.length; i++) {
-            threads[i].start();
+        for (Thread thread : threads) {
+            thread.start();
         }
         latch.await();
         assertEquals(failed.get(), 0);

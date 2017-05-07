@@ -18,16 +18,21 @@
 package org.apache.jmeter.protocol.jms.sampler;
 
 import java.util.Date;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.util.JMeterUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -36,7 +41,9 @@ import org.apache.jmeter.util.JMeterUtils;
  */
 public abstract class BaseJMSSampler extends AbstractSampler {
 
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseJMSSampler.class);
 
     //++ These are JMX file attribute names and must not be changed
     private static final String JNDI_INITIAL_CONTEXT_FAC = "jms.initial_context_factory"; // $NON-NLS-1$
@@ -52,17 +59,28 @@ public abstract class BaseJMSSampler extends AbstractSampler {
 
     private static final String CREDENTIALS = "jms.security_credentials"; // $NON-NLS-1$
 
+    /*
+     * The number of samples to aggregate
+     */
     private static final String ITERATIONS = "jms.iterations"; // $NON-NLS-1$
 
     private static final String USE_AUTH = "jms.authenticate"; // $NON-NLS-1$
 
     private static final String USE_PROPERTIES_FILE = "jms.jndi_properties"; // $NON-NLS-1$
 
-    private static final String READ_RESPONSE = "jms.read_response"; // $NON-NLS-1$
+    /*
+     * If true, store the response in the sampleResponse
+     * (N.B. do not change the value, as it is used in JMX files)
+     */
+    private static final String STORE_RESPONSE = "jms.read_response"; // $NON-NLS-1$
 
     // Is Destination setup static? else dynamic
     private static final String DESTINATION_STATIC = "jms.destination_static"; // $NON-NLS-1$
     private static final boolean DESTINATION_STATIC_DEFAULT = true; // default to maintain compatibility
+
+    /** Property name for regex of error codes which force reconnection **/
+    private static final String ERROR_RECONNECT_ON_CODES = "jms_error_reconnect_on_codes"; // $NON-NLS-1$
+    private transient Predicate<String> isReconnectErrorCode = e -> false;
 
     //-- End of JMX file attribute names
 
@@ -203,18 +221,18 @@ public abstract class BaseJMSSampler extends AbstractSampler {
     }
 
     /**
-     * get the iterations as string
+     * get the number of samples to aggregate
      *
-     * @return the number of iterations
+     * @return String containing the number of samples to aggregate
      */
     public String getIterations() {
         return getPropertyAsString(ITERATIONS);
     }
 
     /**
-     * return the number of iterations as int instead of string
+     * get the number of samples to aggregate
      *
-     * @return the number of iterations as int instead of string
+     * @return int containing the number of samples to aggregate
      */
     public int getIterationCount() {
         return getPropertyAsInt(ITERATIONS);
@@ -240,30 +258,30 @@ public abstract class BaseJMSSampler extends AbstractSampler {
     }
 
     /**
-     * set whether the sampler should read the response or not
+     * set whether the sampler should store the response or not
      *
-     * @param read whether the sampler should read the response or not
+     * @param read whether the sampler should store the response or not
      */
     public void setReadResponse(String read) {
-        setProperty(READ_RESPONSE, read);
+        setProperty(STORE_RESPONSE, read);
     }
 
     /**
-     * return whether the sampler should read the response
+     * return whether the sampler should store the response
      *
-     * @return whether the sampler should read the response
+     * @return whether the sampler should store the response
      */
     public String getReadResponse() {
-        return getPropertyAsString(READ_RESPONSE);
+        return getPropertyAsString(STORE_RESPONSE);
     }
 
     /**
-     * return whether the sampler should read the response as a boolean value
+     * return whether the sampler should store the response
      *
-     * @return whether the sampler should read the response as a boolean value
+     * @return boolean: whether the sampler should read the response
      */
     public boolean getReadResponseAsBoolean() {
-        return getPropertyAsBoolean(READ_RESPONSE);
+        return getPropertyAsBoolean(STORE_RESPONSE);
     }
 
     /**
@@ -336,8 +354,8 @@ public abstract class BaseJMSSampler extends AbstractSampler {
             final Destination destination = message.getJMSDestination();
 
             response.append("\n   Destination: ");
-            response.append((destination == null ? null : destination
-                .toString()));
+            response.append(destination == null ? null : destination
+                .toString());
 
             response.append("\n   Expiration: ");
             response.append(new Date(message.getJMSExpiration()));
@@ -353,7 +371,7 @@ public abstract class BaseJMSSampler extends AbstractSampler {
 
             final Destination replyTo = message.getJMSReplyTo();
             response.append("\n   Reply to: ");
-            response.append((replyTo == null ? null : replyTo.toString()));
+            response.append(replyTo == null ? null : replyTo.toString());
 
             response.append("\n   Timestamp: ");
             response.append(new Date(message.getJMSTimestamp()));
@@ -364,9 +382,34 @@ public abstract class BaseJMSSampler extends AbstractSampler {
             response.append("\n\n");
 
         } catch (JMSException e) {
-            e.printStackTrace();
+            LOGGER.warn(
+                    "Can't extract message headers", e);
         }
 
-        return new String(response);
+        return response.toString();
+    }
+
+    public String getReconnectionErrorCodes() {
+        return getPropertyAsString(ERROR_RECONNECT_ON_CODES);
+    }
+
+    public void setReconnectionErrorCodes(String reconnectionErrorCodes) {
+        setProperty(ERROR_RECONNECT_ON_CODES, reconnectionErrorCodes);
+    }
+
+    public Predicate<String> getIsReconnectErrorCode() {
+        return isReconnectErrorCode;
+    }
+
+    /**
+     * 
+     */
+    protected void configureIsReconnectErrorCode() {
+        String regex = StringUtils.trimToEmpty(getReconnectionErrorCodes());
+        if (regex.isEmpty()) {
+            isReconnectErrorCode = e -> false;
+        } else {
+            isReconnectErrorCode = Pattern.compile(regex).asPredicate();
+        }
     }
 }

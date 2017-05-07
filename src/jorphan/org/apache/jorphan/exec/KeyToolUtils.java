@@ -25,19 +25,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.JavaVersion;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utilities for working with Java keytool
  */
 public class KeyToolUtils {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(KeyToolUtils.class);
 
     // The DNAME which is used if none is provided
     private static final String DEFAULT_DNAME = "cn=JMeter Proxy (DO NOT TRUST)";  // $NON-NLS-1$
@@ -51,6 +51,16 @@ public class KeyToolUtils {
 
     /** Name of property that can be used to override the default keytool location */
     private static final String KEYTOOL_DIRECTORY = "keytool.directory"; // $NON-NLS-1$
+    
+    private static final String DNAME_INTERMEDIATE_CA_KEY  = "cn=DO NOT INSTALL THIS CERTIFICATE (JMeter Intermediate CA)"; // $NON-NLS-1$
+
+    public static final String ROOT_CACERT_CRT_PFX = "ApacheJMeterTemporaryRootCA"; // $NON-NLS-1$ (do not change)
+    private static final String ROOT_CACERT_CRT = ROOT_CACERT_CRT_PFX + ".crt"; // $NON-NLS-1$ (Firefox and Windows)
+    private static final String ROOT_CACERT_USR = ROOT_CACERT_CRT_PFX + ".usr"; // $NON-NLS-1$ (Opera)
+
+    private static final String ROOTCA_ALIAS = ":root_ca:";  // $NON-NLS-1$
+    private static final String INTERMEDIATE_CA_ALIAS = ":intermediate_ca:";  // $NON-NLS-1$
+
 
     /**
      * Where to find the keytool application.
@@ -58,13 +68,6 @@ public class KeyToolUtils {
      */
     private static final String KEYTOOL_PATH;
 
-    private static void addElement(StringBuilder sb, String prefix, String value) {
-        if (value != null) {
-            sb.append(", ");
-            sb.append(prefix);
-            sb.append(value);
-        }
-    }
 
     static {
         StringBuilder sb = new StringBuilder();
@@ -81,9 +84,9 @@ public class KeyToolUtils {
 
         String keytoolPath; // work field
         if (keytoolDir != null) {
-            keytoolPath = new File(new File(keytoolDir),KEYTOOL).getPath();
-        if (!checkKeytool(keytoolPath)) {
-                log.error("Cannot find keytool using property " + KEYTOOL_DIRECTORY + "="+keytoolDir);
+            keytoolPath = new File(new File(keytoolDir), KEYTOOL).getPath();
+            if (!checkKeytool(keytoolPath)) {
+                log.error("Cannot find keytool using property " + KEYTOOL_DIRECTORY + "=" + keytoolDir);
                 keytoolPath = null; // don't try anything else if the property is provided
             }
         } else {
@@ -91,7 +94,7 @@ public class KeyToolUtils {
             if (!checkKeytool(keytoolPath)) { // Not found on PATH, check Java Home
                 File javaHome = SystemUtils.getJavaHome();
                 if (javaHome != null) {
-                    keytoolPath = new File(new File(javaHome,"bin"),KEYTOOL).getPath(); // $NON-NLS-1$
+                    keytoolPath = new File(new File(javaHome, "bin"), KEYTOOL).getPath(); // $NON-NLS-1$
                     if (!checkKeytool(keytoolPath)) {
                         keytoolPath = null;
                     }
@@ -108,33 +111,29 @@ public class KeyToolUtils {
         KEYTOOL_PATH = keytoolPath;
     }
 
-    private static final String DNAME_INTERMEDIATE_CA_KEY  = "cn=DO NOT INSTALL THIS CERTIFICATE (JMeter Intermediate CA)"; // $NON-NLS-1$
-
-    public static final String ROOT_CACERT_CRT_PFX = "ApacheJMeterTemporaryRootCA"; // $NON-NLS-1$ (do not change)
-    private static final String ROOT_CACERT_CRT = ROOT_CACERT_CRT_PFX + ".crt"; // $NON-NLS-1$ (Firefox and Windows)
-    private static final String ROOT_CACERT_USR = ROOT_CACERT_CRT_PFX + ".usr"; // $NON-NLS-1$ (Opera)
-
-    private static final String ROOTCA_ALIAS = ":root_ca:";  // $NON-NLS-1$
-    private static final String INTERMEDIATE_CA_ALIAS = ":intermediate_ca:";  // $NON-NLS-1$
-
-    /** Does this class support generation of host certificates? */
-    public static final boolean SUPPORTS_HOST_CERT = SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_7);
-    // i.e. does keytool support -gencert and -ext ?
 
     private KeyToolUtils() {
         // not instantiable
     }
 
+
+    private static void addElement(StringBuilder sb, String prefix, String value) {
+        if (value != null) {
+            sb.append(", ");
+            sb.append(prefix);
+            sb.append(value);
+        }
+    }
+    
     /**
      * Generate a self-signed keypair using the algorithm "RSA".
-     * Requires Java 7 or later if the "ext" parameter is not null.
      *
      * @param keystore the keystore; if it already contains the alias the command will fail
      * @param alias the alias to use, not null
      * @param password the password to use for the store and the key
      * @param validity the validity period in days, greater than 0
      * @param dname the <em>distinguished name</em> value, if omitted use "cn=JMeter Proxy (DO NOT TRUST)"
-     * @param ext if not null, the extension (-ext) to add (e.g. "bc:c"). This requires Java 7.
+     * @param ext if not null, the extension (-ext) to add (e.g. "bc:c").
      *
      * @throws IOException if keytool was not configured or running keytool application fails
      */
@@ -142,7 +141,7 @@ public class KeyToolUtils {
             throws IOException {
         final File workingDir = keystore.getParentFile();
         final SystemCommand nativeCommand = new SystemCommand(workingDir, null);
-        final List<String> arguments = new ArrayList<String>();
+        final List<String> arguments = new ArrayList<>();
         arguments.add(getKeyToolPath());
         arguments.add("-genkeypair"); // $NON-NLS-1$
         arguments.add("-alias"); // $NON-NLS-1$
@@ -160,7 +159,7 @@ public class KeyToolUtils {
         arguments.add(password);
         arguments.add("-validity"); // $NON-NLS-1$
         arguments.add(Integer.toString(validity));
-        if (ext != null) { // Requires Java 7
+        if (ext != null) {
             arguments.add("-ext"); // $NON-NLS-1$
             arguments.add(ext);
         }
@@ -171,7 +170,7 @@ public class KeyToolUtils {
                     + "\nCommand failed, code: " + exitVal
                     + "\n'" + formatCommand(arguments)+"'");
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException e) { // NOSONAR
             throw new IOException("Command was interrupted\n" + nativeCommand.getOutResult(), e);
         }
     }
@@ -186,14 +185,18 @@ public class KeyToolUtils {
         boolean redact = false; // whether to redact next parameter
         for (String string : arguments) {
             final boolean quote = string.contains(" ");
-            if (quote) builder.append("\"");
-            builder.append(redact? "{redacted}" : string);
-            if (quote) builder.append("\"");
+            if (quote) {
+                builder.append("\"");
+            }
+            builder.append(redact ? "{redacted}" : string);
+            if (quote) {
+                builder.append("\"");
+            }
             builder.append(" ");
-            redact = string.equals("-storepass") || string.equals("-keypass");
+            redact = "-storepass".equals(string) || "-keypass".equals(string);
         }
-        if(arguments.size()>0) {
-            builder.setLength(builder.length()-1); // trim trailing space
+        if (!arguments.isEmpty()) {
+            builder.setLength(builder.length() - 1); // trim trailing space
         }
         return builder.toString();
     }
@@ -203,7 +206,6 @@ public class KeyToolUtils {
      * (signed by the Root CA certificate) that can be used to sign server certificates.
      * The Root CA certificate file is exported to the same directory as the keystore
      * in formats suitable for Firefox/Chrome/IE (.crt) and Opera (.usr).
-     * Requires Java 7 or later.
      *
      * @param keystore the keystore in which to store everything
      * @param password the password for keystore and keys
@@ -211,30 +213,30 @@ public class KeyToolUtils {
      *
      * @throws IOException if keytool was not configured, running keytool application failed or copying the keys failed
      */
-    public static void generateProxyCA(File keystore, String password,  int validity) throws IOException {
-        File caCert_crt = new File(ROOT_CACERT_CRT);
-        File caCert_usr = new File(ROOT_CACERT_USR);
+    public static void generateProxyCA(File keystore, String password, int validity) throws IOException {
+        File caCertCrt = new File(ROOT_CACERT_CRT);
+        File caCertUsr = new File(ROOT_CACERT_USR);
         boolean fileExists = false;
         if (!keystore.delete() && keystore.exists()) {
             log.warn("Problem deleting the keystore '" + keystore + "'");
             fileExists = true;
         }
-        if (!caCert_crt.delete() && caCert_crt.exists()) {
-            log.warn("Problem deleting the certificate file '" + caCert_crt + "'");
+        if (!caCertCrt.delete() && caCertCrt.exists()) {
+            log.warn("Problem deleting the certificate file '" + caCertCrt + "'");
             fileExists = true;
         }
-        if (!caCert_usr.delete() && caCert_usr.exists()) {
-            log.warn("Problem deleting the certificate file '" + caCert_usr + "'");
+        if (!caCertUsr.delete() && caCertUsr.exists()) {
+            log.warn("Problem deleting the certificate file '" + caCertUsr + "'");
             fileExists = true;
         }
         if (fileExists) {
             log.warn("If problems occur when recording SSL, delete the files manually and retry.");
         }
-        // Create the self-signed keypairs (requires Java 7 for -ext flag)
+        // Create the self-signed keypairs
         KeyToolUtils.genkeypair(keystore, ROOTCA_ALIAS, password, validity, DNAME_ROOT_CA_KEY, "bc:c");
         KeyToolUtils.genkeypair(keystore, INTERMEDIATE_CA_ALIAS, password, validity, DNAME_INTERMEDIATE_CA_KEY, "bc:c");
 
-        // Create cert for CA using root (requires Java 7 for gencert)
+        // Create cert for CA using root
         ByteArrayOutputStream certReqOut = new ByteArrayOutputStream();
         // generate the request
         KeyToolUtils.keytool("-certreq", keystore, password, INTERMEDIATE_CA_ALIAS, null, certReqOut);
@@ -251,16 +253,15 @@ public class KeyToolUtils {
         // Export the Root CA for Firefox/Chrome/IE
         KeyToolUtils.keytool("-exportcert", keystore, password, ROOTCA_ALIAS, null, null, "-rfc", "-file", ROOT_CACERT_CRT);
         // Copy for Opera
-        if(caCert_crt.exists() && caCert_crt.canRead()) {
-            FileUtils.copyFile(caCert_crt, caCert_usr);            
+        if(caCertCrt.exists() && caCertCrt.canRead()) {
+            FileUtils.copyFile(caCertCrt, caCertUsr);            
         } else {
-            log.warn("Failed creating "+caCert_crt.getAbsolutePath()+", check 'keytool' utility in path is available and points to a JDK >= 7");
+            log.warn("Failed creating "+caCertCrt.getAbsolutePath()+", check 'keytool' utility in path is available and points to a JDK >= 7");
         }
     }
 
     /**
      * Create a host certificate signed with the CA certificate.
-     * Requires Java 7 or later.
      *
      * @param keystore the keystore to use
      * @param password the password to use for the keystore and keys
@@ -281,7 +282,7 @@ public class KeyToolUtils {
             int validity, String alias, String subject) throws IOException {
         String dname = "cn=" + subject + ", o=JMeter Proxy (TEMPORARY TRUST ONLY)";
         KeyToolUtils.genkeypair(keystore, alias, password, validity, dname, null);
-        //rem generate cert for DOMAIN using CA (requires Java7 for gencert) and import it
+        //rem generate cert for DOMAIN using CA and import it
 
         // get the certificate request
         ByteArrayOutputStream certReqOut = new ByteArrayOutputStream();
@@ -293,7 +294,7 @@ public class KeyToolUtils {
         ByteArrayOutputStream certOut = new ByteArrayOutputStream();
         KeyToolUtils.keytool("-gencert", keystore, password, INTERMEDIATE_CA_ALIAS, certReqIn, certOut, "-ext", "ku:c=dig,keyE");
 
-        // inport the certificate
+        // import the certificate
         InputStream certIn = new ByteArrayInputStream(certOut.toByteArray());
         KeyToolUtils.keytool("-importcert", keystore, password, alias, certIn, null, "-noprompt");
     }
@@ -313,7 +314,7 @@ public class KeyToolUtils {
     public static String list(final File keystore, final String storePass) throws IOException {
         final File workingDir = keystore.getParentFile();
         final SystemCommand nativeCommand = new SystemCommand(workingDir, null);
-        final List<String> arguments = new ArrayList<String>();
+        final List<String> arguments = new ArrayList<>();
         arguments.add(getKeyToolPath());
         arguments.add("-list"); // $NON-NLS-1$
         arguments.add("-v"); // $NON-NLS-1$
@@ -322,15 +323,23 @@ public class KeyToolUtils {
         arguments.add(keystore.getName());
         arguments.add("-storepass"); // $NON-NLS-1$
         arguments.add(storePass);
+        runNativeCommand(nativeCommand, arguments);
+        return nativeCommand.getOutResult();
+    }
+
+    /**
+     * @param nativeCommand {@link SystemCommand}
+     * @param arguments {@link List}
+     */
+    private static void runNativeCommand(SystemCommand nativeCommand, List<String> arguments) throws IOException {
         try {
             int exitVal = nativeCommand.run(arguments);
             if (exitVal != 0) {
                 throw new IOException("Command failed, code: " + exitVal + "\n" + nativeCommand.getOutResult());
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException e) { // NOSONAR 
             throw new IOException("Command was interrupted\n" + nativeCommand.getOutResult(), e);
         }
-        return nativeCommand.getOutResult();
     }
 
     /**
@@ -375,8 +384,9 @@ public class KeyToolUtils {
             InputStream input, OutputStream output, String ... parameters)
             throws IOException {
         final File workingDir = keystore.getParentFile();
-        final SystemCommand nativeCommand = new SystemCommand(workingDir, 0L, 0, null, input, output, null);
-        final List<String> arguments = new ArrayList<String>();
+        final SystemCommand nativeCommand =
+                new SystemCommand(workingDir, 0L, 0, null, input, output, null);
+        final List<String> arguments = new ArrayList<>();
         arguments.add(getKeyToolPath());
         arguments.add(command);
         arguments.add("-keystore"); // $NON-NLS-1$
@@ -387,18 +397,9 @@ public class KeyToolUtils {
         arguments.add(password);
         arguments.add("-alias"); // $NON-NLS-1$
         arguments.add(alias);
-        for (String parameter : parameters) {
-            arguments.add(parameter);
-        }
+        Collections.addAll(arguments, parameters);
 
-        try {
-            int exitVal = nativeCommand.run(arguments);
-            if (exitVal != 0) {
-                throw new IOException("Command failed, code: " + exitVal + "\n" + nativeCommand.getOutResult());
-            }
-        } catch (InterruptedException e) {
-            throw new IOException("Command was interrupted\n" + nativeCommand.getOutResult(), e);
-        }
+        runNativeCommand(nativeCommand, arguments);
     }
 
     /**
@@ -428,7 +429,7 @@ public class KeyToolUtils {
      */
     private static boolean checkKeytool(String keytoolPath) {
         final SystemCommand nativeCommand = new SystemCommand(null, null);
-        final List<String> arguments = new ArrayList<String>();
+        final List<String> arguments = new ArrayList<>();
         arguments.add(keytoolPath);
         arguments.add("-help"); // $NON-NLS-1$
         try {
@@ -443,8 +444,10 @@ public class KeyToolUtils {
              */
             return status == 0 || status == 1; // TODO this is rather fragile
         } catch (IOException ioe) {
+            log.info("Exception checking for keytool existence, will return false, try another way.");
+            log.debug("Exception is: ", ioe);
             return false;
-        } catch (InterruptedException e) {
+        } catch (InterruptedException e) { // NOSONAR
             log.error("Command was interrupted\n" + nativeCommand.getOutResult(), e);
             return false;
         }

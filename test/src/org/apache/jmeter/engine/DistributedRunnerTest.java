@@ -18,8 +18,12 @@
 
 package org.apache.jmeter.engine;
 
+import static org.junit.Assert.fail;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -31,10 +35,11 @@ import java.util.Properties;
 
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class DistributedRunnerTest extends junit.framework.TestCase {
+public class DistributedRunnerTest {
 
     public static void createJmeterEnv() throws IOException {
         File propsFile;
@@ -48,6 +53,7 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
         JMeterUtils.setLocale(new Locale("ignoreResources"));
     }
 
+    @Test
     public void testSuccess() throws Exception {
         createJmeterEnv();
         JMeterUtils.setProperty(DistributedRunner.RETRIES_NUMBER, "1");
@@ -63,6 +69,7 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
         obj.exit(hosts);
     }
 
+    @Test
     public void testFailure1() throws Exception {
         createJmeterEnv();
         JMeterUtils.setProperty(DistributedRunner.RETRIES_NUMBER, "2");
@@ -70,17 +77,26 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
         JMeterUtils.setProperty(DistributedRunner.CONTINUE_ON_FAIL, "true");
         DistributedRunnerEmul obj = new DistributedRunnerEmul();
         List<String> hosts = Arrays.asList("test1", "test2");
-        try {
-            obj.init(hosts, new HashTree());
-            fail();
-        } catch (RuntimeException ignored) {
-        }
+        initRunner(obj, hosts);
         obj.start();
         obj.shutdown(hosts);
         obj.stop(hosts);
         obj.exit(hosts);
     }
 
+    private void initRunner(DistributedRunnerEmul runner, List<String> hosts) {
+        PrintStream origSystemOut = System.out;
+        ByteArrayOutputStream catchingOut = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(catchingOut));
+        try {
+            runner.init(hosts, new HashTree());
+            fail();
+        } catch (RuntimeException ignored) {
+        }
+        System.setOut(origSystemOut);
+    }
+
+    @Test
     public void testFailure2() throws Exception {
         createJmeterEnv();
         JMeterUtils.setProperty(DistributedRunner.RETRIES_NUMBER, "1");
@@ -88,13 +104,10 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
         JMeterUtils.setProperty(DistributedRunner.CONTINUE_ON_FAIL, "false");
         DistributedRunnerEmul obj = new DistributedRunnerEmul();
         List<String> hosts = Arrays.asList("test1", "test2");
-        try {
-            obj.init(hosts, new HashTree());
-            fail();
-        } catch (RuntimeException ignored) {
-        }
+        initRunner(obj, hosts);
     }
 
+    @Test
     public void testFailure3() throws Exception {
         createJmeterEnv();
         JMeterUtils.setProperty(DistributedRunner.RETRIES_NUMBER, "1");
@@ -102,11 +115,7 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
         JMeterUtils.setProperty(DistributedRunner.CONTINUE_ON_FAIL, "true");
         DistributedRunnerEmul obj = new DistributedRunnerEmul();
         List<String> hosts = Arrays.asList("test1", "test2");
-        try {
-            obj.init(hosts, new HashTree());
-            fail();
-        } catch (RuntimeException ignored) {
-        }
+        initRunner(obj, hosts);
         obj.start(hosts);
         obj.shutdown(hosts);
         obj.stop(hosts);
@@ -114,7 +123,7 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
     }
 
     private static class DistributedRunnerEmul extends DistributedRunner {
-        public List<EmulatorEngine> engines = new LinkedList<EmulatorEngine>();
+        public List<EmulatorEngine> engines = new LinkedList<>();
 
         @Override
         protected JMeterEngine createEngine(String address) throws RemoteException, NotBoundException, MalformedURLException {
@@ -128,46 +137,46 @@ public class DistributedRunnerTest extends junit.framework.TestCase {
     }
 
     private static class EmulatorEngine implements JMeterEngine {
-        private static final Logger log = LoggingManager.getLoggerForClass();
+        private static final Logger log = LoggerFactory.getLogger(EmulatorEngine.class);
         private String host;
 
         public EmulatorEngine() {
-            log.debug("Creating emulator " + host);
+            log.debug("Creating emulator");
         }
 
         @Override
         public void configure(HashTree testPlan) {
-            log.debug("Configuring " + host);
+            log.debug("Configuring {}", host);
         }
 
         @Override
         public void runTest() throws JMeterEngineException {
-            log.debug("Running " + host);
+            log.debug("Running {}", host);
         }
 
         @Override
         public void stopTest(boolean now) {
-            log.debug("Stopping " + host);
+            log.debug("Stopping {}", host);
         }
 
         @Override
         public void reset() {
-            log.debug("Resetting " + host);
+            log.debug("Resetting {}", host);
         }
 
         @Override
         public void setProperties(Properties p) {
-            log.debug("Set properties " + host);
+            log.debug("Set properties {}", host);
         }
 
         @Override
         public void exit() {
-            log.debug("Exitting " + host);
+            log.debug("Exiting {}", host);
         }
 
         @Override
         public boolean isActive() {
-            log.debug("Check if active " + host);
+            log.debug("Check if active {}", host);
             return false;
         }
 

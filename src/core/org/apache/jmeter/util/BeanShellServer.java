@@ -21,8 +21,8 @@ package org.apache.jmeter.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements a BeanShell server to allow access to JMeter variables and
@@ -34,7 +34,7 @@ import org.apache.log.Logger;
  */
 public class BeanShellServer implements Runnable {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(BeanShellServer.class);
 
     private final int serverport;
 
@@ -72,15 +72,15 @@ public class BeanShellServer implements Runnable {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
 
         try {
-            Class<?> Interpreter = loader.loadClass("bsh.Interpreter");//$NON-NLS-1$
-            Object instance = Interpreter.newInstance();
+            Class<?> interpreter = loader.loadClass("bsh.Interpreter");//$NON-NLS-1$
+            Object instance = interpreter.newInstance();
             Class<String> string = String.class;
             Class<Object> object = Object.class;
 
-            Method eval = Interpreter.getMethod("eval", new Class[] { string });//$NON-NLS-1$
-            Method setObj = Interpreter.getMethod("set", new Class[] { string, object });//$NON-NLS-1$
-            Method setInt = Interpreter.getMethod("set", new Class[] { string, int.class });//$NON-NLS-1$
-            Method source = Interpreter.getMethod("source", new Class[] { string });//$NON-NLS-1$
+            Method eval = interpreter.getMethod("eval", new Class[] { string });//$NON-NLS-1$
+            Method setObj = interpreter.getMethod("set", new Class[] { string, object });//$NON-NLS-1$
+            Method setInt = interpreter.getMethod("set", new Class[] { string, int.class });//$NON-NLS-1$
+            Method source = interpreter.getMethod("source", new Class[] { string });//$NON-NLS-1$
 
             setObj.invoke(instance, new Object[] { "t", this });//$NON-NLS-1$
             setInt.invoke(instance, new Object[] { "portnum", Integer.valueOf(serverport) });//$NON-NLS-1$
@@ -88,14 +88,14 @@ public class BeanShellServer implements Runnable {
             if (serverfile.length() > 0) {
                 try {
                     source.invoke(instance, new Object[] { serverfile });
-                } catch (InvocationTargetException e1) {
-                    log.warn("Could not source " + serverfile);
-                    Throwable t= e1.getCause();
-                    if (t != null) {
-                        log.warn(t.toString());
-                        if(t instanceof Error) {
-                            throw (Error)t;
-                        }
+                } catch (InvocationTargetException ite) {
+                    Throwable cause = ite.getCause();
+                    if (log.isWarnEnabled()) {
+                        log.warn("Could not source, {}. {}", serverfile,
+                                (cause != null) ? cause.toString() : ite.toString());
+                    }
+                    if (cause instanceof Error) {
+                        throw (Error) cause;
                     }
                 }
             }
@@ -105,7 +105,7 @@ public class BeanShellServer implements Runnable {
         } catch (ClassNotFoundException e) {
             log.error("Beanshell Interpreter not found");
         } catch (Exception e) {
-            log.error("Problem starting BeanShell server ", e);
+            log.error("Problem starting BeanShell server", e);
         }
     }
 }

@@ -21,12 +21,13 @@ package org.apache.jmeter.protocol.http.parser;
 import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.protocol.http.util.ConversionUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -39,15 +40,10 @@ import org.xml.sax.SAXException;
  *
  */
 class JTidyHTMLParser extends HTMLParser {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(JTidyHTMLParser.class);
 
     protected JTidyHTMLParser() {
         super();
-    }
-
-    @Override
-    protected boolean isReusable() {
-        return true;
     }
 
     /**
@@ -137,12 +133,12 @@ class JTidyHTMLParser extends HTMLParser {
             if (name.equalsIgnoreCase(TAG_INPUT)) {
                 String src = getValue(attrs, ATT_SRC);
                 String typ = getValue(attrs, ATT_TYPE);
-                if ((src != null) && (typ.equalsIgnoreCase(ATT_IS_IMAGE))) {
+                if ((src != null) && ATT_IS_IMAGE.equalsIgnoreCase(typ)) {
                     urls.addURL(src, baseUrl);
                 }
                 break;
             }
-            if (name.equalsIgnoreCase(TAG_LINK) && getValue(attrs, ATT_REL).equalsIgnoreCase(STYLESHEET)) {
+            if (TAG_LINK.equalsIgnoreCase(name) && STYLESHEET.equalsIgnoreCase(getValue(attrs, ATT_REL))) {
                 urls.addURL(getValue(attrs, ATT_HREF), baseUrl);
                 break;
             }
@@ -216,7 +212,7 @@ class JTidyHTMLParser extends HTMLParser {
         log.debug("Start : getParser");
         Tidy tidy = new Tidy();
         tidy.setInputEncoding(encoding);
-        tidy.setOutputEncoding("UTF8");
+        tidy.setOutputEncoding(StandardCharsets.UTF_8.name());
         tidy.setQuiet(true);
         tidy.setShowWarnings(false);
         if (log.isDebugEnabled()) {

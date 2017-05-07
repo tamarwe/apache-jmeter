@@ -23,31 +23,30 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.jorphan.logging.LoggingManager;
+import org.slf4j.LoggerFactory;
 import org.apache.jorphan.reflect.Functor;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
 
 /**
  * The ObjectTableModel is a TableModel whose rows are objects;
  * columns are defined as Functors on the object.
  */
 public class ObjectTableModel extends DefaultTableModel {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(ObjectTableModel.class);
 
     private static final long serialVersionUID = 240L;
 
-    private transient ArrayList<Object> objects = new ArrayList<Object>();
+    private transient ArrayList<Object> objects = new ArrayList<>();
 
-    private transient List<String> headers = new ArrayList<String>();
+    private transient List<String> headers = new ArrayList<>();
 
-    private transient ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+    private transient ArrayList<Class<?>> classes = new ArrayList<>();
 
-    private transient ArrayList<Functor> readFunctors = new ArrayList<Functor>();
+    private transient ArrayList<Functor> readFunctors = new ArrayList<>();
 
-    private transient ArrayList<Functor> writeFunctors = new ArrayList<Functor>();
+    private transient ArrayList<Functor> writeFunctors = new ArrayList<>();
 
     private transient Class<?> objectClass = null; // if provided
     
@@ -98,8 +97,8 @@ public class ObjectTableModel extends DefaultTableModel {
     public ObjectTableModel(String[] headers, Functor[] readFunctors, Functor[] writeFunctors, Class<?>[] editorClasses) {
         this.headers.addAll(Arrays.asList(headers));
         this.classes.addAll(Arrays.asList(editorClasses));
-        this.readFunctors = new ArrayList<Functor>(Arrays.asList(readFunctors));
-        this.writeFunctors = new ArrayList<Functor>(Arrays.asList(writeFunctors));
+        this.readFunctors = new ArrayList<>(Arrays.asList(readFunctors));
+        this.writeFunctors = new ArrayList<>(Arrays.asList(writeFunctors));
 
         int numHeaders = headers.length;
 
@@ -121,11 +120,11 @@ public class ObjectTableModel extends DefaultTableModel {
     }
 
     private Object readResolve() {
-        objects = new ArrayList<Object>();
-        headers = new ArrayList<String>();
-        classes = new ArrayList<Class<?>>();
-        readFunctors = new ArrayList<Functor>();
-        writeFunctors = new ArrayList<Functor>();
+        objects = new ArrayList<>();
+        headers = new ArrayList<>();
+        classes = new ArrayList<>();
+        readFunctors = new ArrayList<>();
+        writeFunctors = new ArrayList<>();
         return this;
     }
 
@@ -134,9 +133,8 @@ public class ObjectTableModel extends DefaultTableModel {
     }
 
     public void clearData() {
-        int size = getRowCount();
         objects.clear();
-        super.fireTableRowsDeleted(0, size);
+        super.fireTableDataChanged();
     }
 
     public void addRow(Object value) {
@@ -149,12 +147,12 @@ public class ObjectTableModel extends DefaultTableModel {
             }
         }
         objects.add(value);
-        super.fireTableRowsInserted(objects.size() - 1, objects.size());
+        super.fireTableRowsInserted(objects.size() - 1, objects.size() - 1);
     }
 
     public void insertRow(Object value, int index) {
         objects.add(index, value);
-        super.fireTableRowsInserted(index, index + 1);
+        super.fireTableRowsInserted(index, index);
     }
 
     /** {@inheritDoc} */
@@ -202,12 +200,11 @@ public class ObjectTableModel extends DefaultTableModel {
     /** {@inheritDoc} */
     @Override
     public void moveRow(int start, int end, int to) {
-        List<Object> subList = new ArrayList<Object>(objects.subList(start, end));
-        for (int x = end - 1; x >= start; x--) {
-            objects.remove(x);
-        }
-        objects.addAll(to, subList);
-        super.fireTableChanged(new TableModelEvent(this));
+        List<Object> subList = objects.subList(start, end);
+        List<Object> backup  = new ArrayList<>(subList);
+        subList.clear();
+        objects.addAll(to, backup);
+        super.fireTableDataChanged();
     }
 
     /** {@inheritDoc} */
@@ -274,25 +271,34 @@ public class ObjectTableModel extends DefaultTableModel {
         boolean status = true;
         for(int i=0;i<getColumnCount();i++){
             Functor setMethod = writeFunctors.get(i);
-            if (setMethod != null) {
-                if (!setMethod.checkMethod(value,getColumnClass(i))){
+            if (setMethod != null
+                 && !setMethod.checkMethod(value,getColumnClass(i))) {
                     status=false;
                     log.warn(caller.getName()+" is attempting to use nonexistent "+setMethod.toString());
-                }
             }
+            
             Functor getMethod = readFunctors.get(i);
-            if (getMethod != null) {
-                if (!getMethod.checkMethod(value)){
+            if (getMethod != null 
+                 && !getMethod.checkMethod(value)) {
                     status=false;
                     log.warn(caller.getName()+" is attempting to use nonexistent "+getMethod.toString());
-                }
             }
 
         }
         return status;
     }
 
+    /**
+     * @return Object (List of Object)
+     */
     public Object getObjectList() { // used by TableEditor
+        return objects;
+    }
+    
+    /**
+     * @return List of Object
+     */
+    public List<Object> getObjectListAsList() { 
         return objects;
     }
 

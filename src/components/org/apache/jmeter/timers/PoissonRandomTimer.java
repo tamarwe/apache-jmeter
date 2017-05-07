@@ -329,7 +329,7 @@ public class PoissonRandomTimer extends RandomTimer implements Serializable {
      * @param lambda Lambda in Poisson
      * @return random
      */
-    private static final int poissonRandomNumberLowEq30(int lambda) {
+    private static int poissonRandomNumberLowEq30(int lambda) {
         double L = Math.exp(-lambda);
         int k = 0;
         double p = 1;
@@ -346,7 +346,7 @@ public class PoissonRandomTimer extends RandomTimer implements Serializable {
      * @param lambda Lambda in Poisson
      * @return random
      */
-    private static final int poissonRandomNumberSup30(int lambda) {
+    private static int poissonRandomNumberSup30(int lambda) {
         double c = 0.767 - 3.36/lambda;
         double beta = Math.PI/Math.sqrt(3.0*lambda);
         double alpha = beta*lambda;
@@ -360,7 +360,7 @@ public class PoissonRandomTimer extends RandomTimer implements Serializable {
             }
             double v = Math.random();
             double y = alpha - beta*x;
-            double lhs = y + Math.log(v/Math.pow((1.0 + Math.exp(y)),2));
+            double lhs = y + Math.log(v/Math.pow(1.0 + Math.exp(y),2));
             double rhs = k + n*Math.log(lambda) -logFactorial(n);
             if (lhs <= rhs) {
                 return n;
@@ -374,13 +374,13 @@ public class PoissonRandomTimer extends RandomTimer implements Serializable {
      * @param n Number for which we want log(n!)
      * @return Log factorial
      */
-    private static final double logFactorial(int n)
+    private static double logFactorial(int n)
     {
         if (n < 0) {
             throw new IllegalArgumentException();
         }
         else if (n > 254) {
-            double x = n + 1;
+            double x = n + 1d;
             return (x - 0.5)*Math.log(x) - x + 0.5*Math.log(2*Math.PI) + 1.0/(12.0*x);
         }
         else {

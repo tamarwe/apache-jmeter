@@ -65,9 +65,9 @@ import org.apache.jmeter.util.LocaleChangeEvent;
 import org.apache.jmeter.util.LocaleChangeListener;
 import org.apache.jmeter.visualizers.Visualizer;
 import org.apache.jmeter.visualizers.gui.AbstractVisualizer;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JMeter GUI element editing for TestBean elements.
@@ -89,9 +89,9 @@ import org.apache.log.Logger;
  *
  */
 public class TestBeanGUI extends AbstractJMeterGuiComponent implements JMeterGUIComponent, LocaleChangeListener{
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(TestBeanGUI.class);
 
     private final Class<?> testBeanClass;
 
@@ -122,7 +122,7 @@ public class TestBeanGUI extends AbstractJMeterGuiComponent implements JMeterGUI
     /**
      * The property name to value map that the active customizer edits:
      */
-    private final Map<String, Object> propertyMap = new HashMap<String, Object>();
+    private final Map<String, Object> propertyMap = new HashMap<>();
 
     /**
      * Whether the GUI components have been created.
@@ -130,7 +130,7 @@ public class TestBeanGUI extends AbstractJMeterGuiComponent implements JMeterGUI
     private boolean initialized = false;
 
     static {
-        List<String> paths = new LinkedList<String>();
+        List<String> paths = new LinkedList<>();
         paths.add("org.apache.jmeter.testbeans.gui");// $NON-NLS-1$
         paths.addAll(Arrays.asList(PropertyEditorManager.getEditorSearchPath()));
         String s = JMeterUtils.getPropDefault("propertyEditorSearchPath", null);// $NON-NLS-1$
@@ -153,7 +153,7 @@ public class TestBeanGUI extends AbstractJMeterGuiComponent implements JMeterGUI
 
     public TestBeanGUI(Class<?> testBeanClass) {
         super();
-        log.debug("testing class: " + testBeanClass.getName());
+        log.debug("testing class: {}", testBeanClass);
         // A quick verification, just in case:
         if (!TestBean.class.isAssignableFrom(testBeanClass)) {
             Error e = new Error();
@@ -167,7 +167,7 @@ public class TestBeanGUI extends AbstractJMeterGuiComponent implements JMeterGUI
         try {
             beanInfo = Introspector.getBeanInfo(testBeanClass);
         } catch (IntrospectionException e) {
-            log.error("Can't get beanInfo for " + testBeanClass.getName(), e);
+            log.error("Can't get beanInfo for {}", testBeanClass, e);
             throw new Error(e.toString()); // Programming error. Don't
                                             // continue.
         }
@@ -187,11 +187,8 @@ public class TestBeanGUI extends AbstractJMeterGuiComponent implements JMeterGUI
     private Customizer createCustomizer() {
         try {
             return (Customizer) customizerClass.newInstance();
-        } catch (InstantiationException e) {
-            log.error("Could not instantiate customizer of class " + customizerClass, e);
-            throw new Error(e.toString());
-        } catch (IllegalAccessException e) {
-            log.error("Could not instantiate customizer of class " + customizerClass, e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            log.error("Could not instantiate customizer of {}", customizerClass, e);
             throw new Error(e.toString());
         }
     }
@@ -226,11 +223,7 @@ public TestElement createTestElement() {
             modifyTestElement(element); // put the default values back into the
             // new element
             return element;
-        } catch (InstantiationException e) {
-            log.error("Can't create test element", e);
-            throw new Error(e.toString()); // Programming error. Don't
-                                            // continue.
-        } catch (IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             log.error("Can't create test element", e);
             throw new Error(e.toString()); // Programming error. Don't
                                             // continue.
@@ -253,15 +246,25 @@ public TestElement createTestElement() {
         for (PropertyDescriptor desc : beanInfo.getPropertyDescriptors()) {
             String name = desc.getName();
             Object value = propertyMap.get(name);
-            log.debug("Modify " + name + " to " + value);
+            log.debug("Modify {} to {}", name, value);
             if (value == null) {
                 if (GenericTestBeanCustomizer.notNull(desc)) { // cannot be null
-                    setPropertyInElement(element, name, desc.getValue(GenericTestBeanCustomizer.DEFAULT));
+                    if (GenericTestBeanCustomizer.noSaveDefault(desc)) {
+                        log.debug("Did not set DEFAULT for {}", name);
+                        element.removeProperty(name);
+                    } else {
+                        setPropertyInElement(element, name, desc.getValue(GenericTestBeanCustomizer.DEFAULT));
+                    }
                 } else {
                     element.removeProperty(name);
                 }
             } else {
-                setPropertyInElement(element, name, value);
+                if (GenericTestBeanCustomizer.noSaveDefault(desc) && value.equals(desc.getValue(GenericTestBeanCustomizer.DEFAULT))) {
+                    log.debug("Did not set {} to the default: {}", name, value);
+                    element.removeProperty(name);
+                } else {
+                    setPropertyInElement(element, name, value);
+                }
             }
         }
     }
@@ -311,7 +314,7 @@ public TestElement createTestElement() {
             return MenuFactory.getDefaultControllerMenu();
         }
         else {
-            log.warn("Cannot determine PopupMenu for "+testBeanClass.getName());
+            log.warn("Cannot determine PopupMenu for {}", testBeanClass);
             return MenuFactory.getDefaultMenu();
         }
     }
@@ -363,7 +366,7 @@ public TestElement createTestElement() {
     /** {@inheritDoc} */
     @Override
     public Collection<String> getMenuCategories() {
-        List<String> menuCategories = new LinkedList<String>();
+        List<String> menuCategories = new LinkedList<>();
         BeanDescriptor bd = beanInfo.getBeanDescriptor();
 
         // We don't want to show expert beans in the menus unless we're
@@ -374,10 +377,10 @@ public TestElement createTestElement() {
 
         int matches = setupGuiClasses(menuCategories);
         if (matches == 0) {
-            log.error("Could not assign GUI class to " + testBeanClass.getName());
+            log.error("Could not assign GUI class to {}", testBeanClass);
         } else if (matches > 1) {// may be impossible, but no harm in
                                     // checking ...
-            log.error("More than 1 GUI class found for " + testBeanClass.getName());
+            log.error("More than 1 GUI class found for {}", testBeanClass);
         }
         return menuCategories;
     }
@@ -501,7 +504,7 @@ public TestElement createTestElement() {
             beanInfo = Introspector.getBeanInfo(testBeanClass);
             setupGuiClasses();
         } catch (IntrospectionException e) {
-            log.error("Can't get beanInfo for " + testBeanClass.getName(), e);
+            log.error("Can't get beanInfo for {}", testBeanClass, e);
             JMeterUtils.reportErrorToUser("Can't get beanInfo for " + testBeanClass.getName());
         }
     }

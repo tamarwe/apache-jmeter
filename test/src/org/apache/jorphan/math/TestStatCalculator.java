@@ -18,44 +18,57 @@
 
 package org.apache.jorphan.math;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Map;
 
-import junit.framework.TestCase;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
-public class TestStatCalculator extends TestCase {
+public class TestStatCalculator {
 
     private StatCalculatorLong calc;
 
-    /**
-     * 
-     */
-    public TestStatCalculator() {
-        super();
-    }
 
-    public TestStatCalculator(String arg0) {
-        super(arg0);
-    }
-
-    @Override
+    @Before
     public void setUp() {
         calc = new StatCalculatorLong();
     }
 
+    @Test
     public void testPercentagePoint() throws Exception {
-        calc.addValue(10);
-        calc.addValue(9);
-        calc.addValue(5);
-        calc.addValue(6);
-        calc.addValue(1);
-        calc.addValue(3);
-        calc.addValue(8);
-        calc.addValue(2);
-        calc.addValue(7);
-        calc.addValue(4);
+        long values[] = new long[] {
+            10L,9L,5L,6L,1L,3L,8L,2L,7L,4L
+        };
+        for (long l : values) {
+            calc.addValue(l);
+        }
         assertEquals(10, calc.getCount());
         assertEquals(9, calc.getPercentPoint(0.8999999).intValue());
     }
+    
+    @Test
+    @Ignore
+    // Disabled due to in progress Bug 61071
+    public void testPercentagePointBug() throws Exception {
+        long values[] = new long[] {
+            10L,9L,5L,6L,1L,3L,8L,2L,7L,4L
+        };
+        DescriptiveStatistics statistics = new DescriptiveStatistics();
+        for (long l : values) {
+            calc.addValue(l);
+            statistics.addValue(l);
+        }
+        assertEquals(9, calc.getPercentPoint(0.8999999).intValue());
+        // 
+        assertEquals(Math.round(statistics.getPercentile(90)), 
+                calc.getPercentPoint(0.9).intValue());
+    }
+    
+    @Test
     public void testCalculation() {
         assertEquals(Long.MIN_VALUE, calc.getMax().longValue());
         assertEquals(Long.MAX_VALUE, calc.getMin().longValue());
@@ -75,6 +88,24 @@ public class TestStatCalculator extends TestCase {
         assertEquals(3, calc.getMin().intValue());
         assertEquals(15, calc.getMedian().intValue());
     }
+
+    @Test
+    @Ignore
+    // Disabled due to in progress Bug 61071 
+    public void testMedianBug61071() {
+        long[] values = new long[] {
+            10L, 20L, 30L, 40L, 50L, 60L, 80L, 90L
+        };
+        DescriptiveStatistics statistics = new DescriptiveStatistics();
+
+        for (long l : values) {
+            calc.addValue(l);
+            statistics.addValue(l);
+        }
+        assertEquals((int) statistics.getPercentile(50), calc.getMedian().intValue());
+    }
+    
+    @Test
     public void testLong(){
         calc.addValue(0L);
         calc.addValue(2L);
@@ -88,6 +119,7 @@ public class TestStatCalculator extends TestCase {
         assertTrue(map.containsKey(long2));
     }
     
+    @Test
     public void testInteger(){
         StatCalculatorInteger calci = new StatCalculatorInteger();
         assertEquals(Integer.MIN_VALUE, calci.getMax().intValue());
@@ -102,7 +134,7 @@ public class TestStatCalculator extends TestCase {
         assertTrue(map.containsKey(Integer.valueOf(2)));
     }
     
-    @SuppressWarnings("boxing")
+    @Test
     public void testBug52125_1(){ // No duplicates when adding
         calc.addValue(1L);
         calc.addValue(2L);
@@ -111,10 +143,11 @@ public class TestStatCalculator extends TestCase {
         calc.addValue(2L);
         calc.addValue(2L);
         assertEquals(6, calc.getCount());
-        assertEquals(12.0, calc.getSum());
-        assertEquals(0.5773502691896255, calc.getStandardDeviation());
+        assertEquals(12.0, calc.getSum(), 0.000000000001);
+        assertEquals(0.5773502691896255, calc.getStandardDeviation(), 0.000000000000001);
     }
 
+    @Test
     @SuppressWarnings("boxing")
     public void testBug52125_2(){ // add duplicates
         calc.addValue(1L);
@@ -122,22 +155,22 @@ public class TestStatCalculator extends TestCase {
         calc.addValue(3L);
         calc.addEachValue(2L, 3);
         assertEquals(6, calc.getCount());
-        assertEquals(12.0, calc.getSum());
-        assertEquals(0.5773502691896255, calc.getStandardDeviation());
+        assertEquals(12.0, calc.getSum(), 0.000000000001);
+        assertEquals(0.5773502691896255, calc.getStandardDeviation(), 0.000000000000001);
     }
 
-    @SuppressWarnings("boxing")
+    @Test
     public void testBug52125_2A(){ // as above, but with aggregate sample instead
         calc.addValue(1L);
         calc.addValue(2L);
         calc.addValue(3L);
         calc.addValue(6L, 3);
         assertEquals(6, calc.getCount());
-        assertEquals(12.0, calc.getSum());
-        assertEquals(0.5773502691896255, calc.getStandardDeviation());
+        assertEquals(12.0, calc.getSum(), 0.00000001);
+        assertEquals(0.5773502691896255, calc.getStandardDeviation(), 0.000000000000001);
     }
 
-    @SuppressWarnings("boxing")
+    @Test
     public void testBug52125_3(){ // add duplicates as per bug
         calc.addValue(1L);
         calc.addValue(2L);
@@ -148,7 +181,7 @@ public class TestStatCalculator extends TestCase {
         calc2.addValue(2L);
         calc.addAll(calc2);
         assertEquals(6, calc.getCount());
-        assertEquals(12.0, calc.getSum());
-        assertEquals(0.5773502691896255, calc.getStandardDeviation());
+        assertEquals(12.0, calc.getSum(), 0.000000000001);
+        assertEquals(0.5773502691896255, calc.getStandardDeviation(), 0.000000000000001);
     }
 }

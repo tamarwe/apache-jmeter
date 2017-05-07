@@ -24,12 +24,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Locale;
 
 import org.apache.jmeter.engine.util.ValueReplacer;
-import org.apache.jmeter.junit.JMeterTestCase;
+import org.apache.jmeter.junit.JMeterTestCaseJUnit;
 import org.apache.jmeter.protocol.http.control.HttpMirrorServer;
 import org.apache.jmeter.protocol.http.control.TestHTTPMirrorThread;
 import org.apache.jmeter.protocol.http.util.EncoderCache;
@@ -47,18 +47,17 @@ import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Perl5Matcher;
 import org.junit.Assert;
 
+import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import junit.extensions.TestSetup;
 
 /**
  * Class for performing actual samples for HTTPSampler and HTTPSampler2.
  * The samples are executed against the HttpMirrorServer, which is 
  * started when the unit tests are executed.
  */
-public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
+public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCaseJUnit {
     private static final int HTTP_SAMPLER = 0;
-    private static final int HTTP_SAMPLER2 = 1;
     private static final int HTTP_SAMPLER3 = 2;
     
     /** The encodings used for http headers and control information */
@@ -90,11 +89,9 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
         // Add parameterised tests. For simplicity we assune each has cases 0-10
         for(int i=0; i<11; i++) {
             testSuite.addTest(new TestHTTPSamplersAgainstHttpMirrorServer("itemised_testGetRequest_Parameters", i));
-            testSuite.addTest(new TestHTTPSamplersAgainstHttpMirrorServer("itemised_testGetRequest_Parameters2", i));
             testSuite.addTest(new TestHTTPSamplersAgainstHttpMirrorServer("itemised_testGetRequest_Parameters3", i));
 
             testSuite.addTest(new TestHTTPSamplersAgainstHttpMirrorServer("itemised_testPostRequest_UrlEncoded", i));
-            testSuite.addTest(new TestHTTPSamplersAgainstHttpMirrorServer("itemised_testPostRequest_UrlEncoded2", i));
             testSuite.addTest(new TestHTTPSamplersAgainstHttpMirrorServer("itemised_testPostRequest_UrlEncoded3", i));
         }
 
@@ -133,10 +130,6 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
         testPostRequest_UrlEncoded(HTTP_SAMPLER, ISO_8859_1, item);
     }
 
-    public void itemised_testPostRequest_UrlEncoded2() throws Exception {
-        testPostRequest_UrlEncoded(HTTP_SAMPLER2, US_ASCII, item);
-    }
-
     public void itemised_testPostRequest_UrlEncoded3() throws Exception {
         testPostRequest_UrlEncoded(HTTP_SAMPLER3, US_ASCII, item);
     }
@@ -145,11 +138,8 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
         testPostRequest_FormMultipart(HTTP_SAMPLER, ISO_8859_1);
     }
 
-    public void testPostRequest_FormMultipart2() throws Exception {
-        testPostRequest_FormMultipart(HTTP_SAMPLER2, US_ASCII);
-    }
-
     public void testPostRequest_FormMultipart3() throws Exception {
+        // see https://issues.apache.org/jira/browse/HTTPCLIENT-1665
         testPostRequest_FormMultipart(HTTP_SAMPLER3, US_ASCII);
     }
 
@@ -157,20 +147,13 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
         testPostRequest_FileUpload(HTTP_SAMPLER, ISO_8859_1);
     }
 
-    public void testPostRequest_FileUpload2() throws Exception {        
-        testPostRequest_FileUpload(HTTP_SAMPLER2, US_ASCII);
-    }
-
     public void testPostRequest_FileUpload3() throws Exception {        
+        // see https://issues.apache.org/jira/browse/HTTPCLIENT-1665
         testPostRequest_FileUpload(HTTP_SAMPLER3, US_ASCII);
     }
 
     public void testPostRequest_BodyFromParameterValues() throws Exception {
         testPostRequest_BodyFromParameterValues(HTTP_SAMPLER, ISO_8859_1);
-    }
-
-    public void testPostRequest_BodyFromParameterValues2() throws Exception {
-        testPostRequest_BodyFromParameterValues(HTTP_SAMPLER2, US_ASCII);
     }
 
     public void testPostRequest_BodyFromParameterValues3() throws Exception {
@@ -181,21 +164,13 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
         testGetRequest(HTTP_SAMPLER);
     }
     
-    public void testGetRequest2() throws Exception {
-        testGetRequest(HTTP_SAMPLER2);
-    }
-    
     public void testGetRequest3() throws Exception {
         testGetRequest(HTTP_SAMPLER3);
     }
     
     public void itemised_testGetRequest_Parameters() throws Exception {
         testGetRequest_Parameters(HTTP_SAMPLER, item);
-    }
-    
-    public void itemised_testGetRequest_Parameters2() throws Exception {
-        testGetRequest_Parameters(HTTP_SAMPLER2, item);
-    }   
+    }  
 
     public void itemised_testGetRequest_Parameters3() throws Exception {
         testGetRequest_Parameters(HTTP_SAMPLER3, item);
@@ -1220,7 +1195,7 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
     }
 
     /**
-     * Check that the the two byte arrays have identical content
+     * Check that the two byte arrays have identical content
      * 
      * @param expected
      * @param actual
@@ -1437,8 +1412,6 @@ public class TestHTTPSamplersAgainstHttpMirrorServer extends JMeterTestCase {
         switch(samplerType) {
             case HTTP_SAMPLER:
                 return new HTTPSampler();
-            case HTTP_SAMPLER2:
-                return new HTTPSampler2();
             case HTTP_SAMPLER3:
                 return new HTTPSampler3();
             default:

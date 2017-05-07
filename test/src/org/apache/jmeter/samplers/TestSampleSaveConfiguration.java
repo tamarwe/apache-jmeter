@@ -18,16 +18,23 @@
 
 package org.apache.jmeter.samplers;
 
-import java.text.SimpleDateFormat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.jmeter.junit.JMeterTestCase;
+import org.junit.Test;
 
 // Extends JMeterTest case because it needs access to JMeter properties
 public class TestSampleSaveConfiguration extends JMeterTestCase {    
-    public TestSampleSaveConfiguration(String name) {
-        super(name);
-    }
 
+    @Test
     public void testClone() throws Exception {
         SampleSaveConfiguration a = new SampleSaveConfiguration();
         a.setUrl(false);
@@ -62,6 +69,7 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
         assertEquals(a.hashCode(), cloneA.hashCode());        
     }
     
+    @Test
     public void testEqualsAndHashCode() throws Exception {
         SampleSaveConfiguration a = new SampleSaveConfiguration();
         a.setUrl(false);
@@ -81,10 +89,10 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
         assertTrue(a.equals(b));
         assertTrue(b.equals(a));
         assertEquals(a.hashCode(), b.hashCode());
-        assertEquals(a.saveUrl(), b.saveUrl());
-        assertEquals(a.saveAssertions(), b.saveAssertions());
+        assertPrimitiveEquals(a.saveUrl(), b.saveUrl());
+        assertPrimitiveEquals(a.saveAssertions(), b.saveAssertions());
         assertEquals(a.getDelimiter(), b.getDelimiter());
-        assertEquals(a.saveDataType(), b.saveDataType());
+        assertPrimitiveEquals(a.saveDataType(), b.saveDataType());
         
         a.setAssertions(false);
         // a and b should not be equal
@@ -94,6 +102,7 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
         assertFalse(a.saveAssertions() == b.saveAssertions());
     }
 
+    @Test
     public void testFalse() throws Exception {
         SampleSaveConfiguration a = new SampleSaveConfiguration(false);
         SampleSaveConfiguration b = new SampleSaveConfiguration(false);
@@ -102,6 +111,7 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
         assertTrue("Objects should be equal",b.equals(a));
     }
 
+    @Test
     public void testTrue() throws Exception {
         SampleSaveConfiguration a = new SampleSaveConfiguration(true);
         SampleSaveConfiguration b = new SampleSaveConfiguration(true);
@@ -109,6 +119,7 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
         assertTrue("Objects should be equal",a.equals(b));
         assertTrue("Objects should be equal",b.equals(a));
     }
+    @Test
     public void testFalseTrue() throws Exception {
         SampleSaveConfiguration a = new SampleSaveConfiguration(false);
         SampleSaveConfiguration b = new SampleSaveConfiguration(true);
@@ -117,22 +128,58 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
         assertFalse("Objects should not be equal",b.equals(a));
     }
 
+    @Test
     public void testFormatter() throws Exception {
         SampleSaveConfiguration a = new SampleSaveConfiguration(false);
         SampleSaveConfiguration b = new SampleSaveConfiguration(false);
-        a.setFormatter(null);
         assertEquals("Hash codes should be equal",a.hashCode(), b.hashCode());
         assertTrue("Objects should be equal",a.equals(b));
         assertTrue("Objects should be equal",b.equals(a));
-        b.setFormatter(null);
+        assertTrue(a.strictDateFormatter() == null);
+        assertTrue(b.strictDateFormatter() == null);
+        assertTrue(a.threadSafeLenientFormatter() == null);
+        assertTrue(b.threadSafeLenientFormatter() == null);
+        a.setDateFormat(null);
+        b.setDateFormat(null);
         assertEquals("Hash codes should be equal",a.hashCode(), b.hashCode());
         assertTrue("Objects should be equal",a.equals(b));
         assertTrue("Objects should be equal",b.equals(a));
-        a.setFormatter(new SimpleDateFormat());
-        b.setFormatter(new SimpleDateFormat());
+        assertTrue(a.strictDateFormatter() == null);
+        assertTrue(b.strictDateFormatter() == null);
+        assertTrue(a.threadSafeLenientFormatter() == null);
+        assertTrue(b.threadSafeLenientFormatter() == null);
+        a.setDateFormat("dd/MM/yyyy");
+        b.setDateFormat("dd/MM/yyyy");
         assertEquals("Hash codes should be equal",a.hashCode(), b.hashCode());
         assertTrue("Objects should be equal",a.equals(b));
         assertTrue("Objects should be equal",b.equals(a));
+        assertTrue("Objects should be equal",a.strictDateFormatter().equals(b.strictDateFormatter()));
+        assertTrue("Objects should be equal",a.threadSafeLenientFormatter().equals(b.threadSafeLenientFormatter()));
+    }
+
+    @Test
+    // Checks that all the saveXX() and setXXX(boolean) methods are in the list
+    public void testSaveConfigNames() throws Exception {
+        List<String> getMethodNames = new ArrayList<>();
+        List<String> setMethodNames = new ArrayList<>();
+        Method[] methods = SampleSaveConfiguration.class.getMethods();
+        for(Method method : methods) {
+            String name = method.getName();
+            if (name.startsWith(SampleSaveConfiguration.CONFIG_GETTER_PREFIX) && method.getParameterTypes().length == 0) {
+                name = name.substring(SampleSaveConfiguration.CONFIG_GETTER_PREFIX.length());
+                getMethodNames.add(name);
+                assertTrue("SAVE_CONFIG_NAMES should contain save" + name, SampleSaveConfiguration.SAVE_CONFIG_NAMES.contains(name));
+            }
+            if (name.startsWith(SampleSaveConfiguration.CONFIG_SETTER_PREFIX) && method.getParameterTypes().length == 1 && boolean.class.equals(method.getParameterTypes()[0])) {
+                name = name.substring(SampleSaveConfiguration.CONFIG_SETTER_PREFIX.length());
+                setMethodNames.add(name);
+                assertTrue("SAVE_CONFIG_NAMES should contain set" + name, SampleSaveConfiguration.SAVE_CONFIG_NAMES.contains(name));
+            }
+        }
+        for (String name : SampleSaveConfiguration.SAVE_CONFIG_NAMES) {
+            assertTrue("SAVE_CONFIG_NAMES should NOT contain save" + name, getMethodNames.contains(name));
+            assertTrue("SAVE_CONFIG_NAMES should NOT contain set" + name, setMethodNames.contains(name));
+        }
     }
 
  }

@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,10 +32,10 @@ import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerFactory;
 import org.apache.jmeter.protocol.http.util.ConversionUtils;
-import org.apache.jmeter.testelement.property.PropertyIterator;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.apache.oro.text.PatternCacheLRU;
 import org.apache.oro.text.regex.MatchResult;
 import org.apache.oro.text.regex.Pattern;
@@ -50,7 +51,7 @@ import org.w3c.tidy.Tidy;
 // For Junit tests @see TestHtmlParsingUtils
 
 public final class HtmlParsingUtils {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HtmlParsingUtils.class);
 
     /**
      * Private constructor to prevent instantiation.
@@ -74,7 +75,7 @@ public final class HtmlParsingUtils {
     {
         String query = null;
         try {
-            query = URLDecoder.decode(newLink.getQueryString(), "UTF-8"); // $NON-NLS-1$
+            query = URLDecoder.decode(newLink.getQueryString(), StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
             // UTF-8 unsupported? You must be joking!
             log.error("UTF-8 encoding not supported!");
@@ -104,11 +105,10 @@ public final class HtmlParsingUtils {
             return false;
         }
 
-        PropertyIterator iter = arguments.iterator();
-        while (iter.hasNext()) {
-            Argument item = (Argument) iter.next().getObjectValue();
+        for (JMeterProperty argument : arguments) {
+            Argument item = (Argument) argument.getObjectValue();
             final String name = item.getName();
-            if (query.indexOf(name + "=") == -1) { // $NON-NLS-1$
+            if (!query.contains(name + "=")) { // $NON-NLS-1$
                 if (!(matcher.contains(query, patternCache.getPattern(name, Perl5Compiler.READ_ONLY_MASK)))) {
                     return false;
                 }
@@ -205,8 +205,8 @@ public final class HtmlParsingUtils {
     public static Tidy getParser() {
         log.debug("Start : getParser1");
         Tidy tidy = new Tidy();
-        tidy.setInputEncoding("UTF8");
-        tidy.setOutputEncoding("UTF8");
+        tidy.setInputEncoding(StandardCharsets.UTF_8.name());
+        tidy.setOutputEncoding(StandardCharsets.UTF_8.name());
         tidy.setQuiet(true);
         tidy.setShowWarnings(false);
 
@@ -229,21 +229,19 @@ public final class HtmlParsingUtils {
     public static Node getDOM(String text) {
         log.debug("Start : getDOM1");
 
-        try {
-            Node node = getParser().parseDOM(new ByteArrayInputStream(text.getBytes("UTF-8")), null);// $NON-NLS-1$
+        Node node = getParser()
+                .parseDOM(
+                        new ByteArrayInputStream(
+                                text.getBytes(StandardCharsets.UTF_8)), null);
 
-            if (log.isDebugEnabled()) {
-                log.debug("node : " + node);
-            }
-
-            log.debug("End : getDOM1");
-
-            return node;
-        } catch (UnsupportedEncodingException e) {
-            log.error("getDOM1 : Unsupported encoding exception - " + e);
-            log.debug("End : getDOM1");
-            throw new RuntimeException("UTF-8 encoding failed", e);
+        if (log.isDebugEnabled()) {
+            log.debug("node : " + node);
         }
+
+        log.debug("End : getDOM1");
+
+        return node;
+
     }
 
     public static Document createEmptyDoc() {
@@ -283,7 +281,7 @@ public final class HtmlParsingUtils {
 
     public static List<HTTPSamplerBase> createURLFromForm(Node doc, URL context) {
         String selectName = null;
-        LinkedList<HTTPSamplerBase> urlConfigs = new LinkedList<HTTPSamplerBase>();
+        LinkedList<HTTPSamplerBase> urlConfigs = new LinkedList<>();
         recurseForm(doc, urlConfigs, context, selectName, false);
         /*
          * NamedNodeMap atts = formNode.getAttributes();
@@ -361,18 +359,18 @@ public final class HtmlParsingUtils {
 
     private static String printNode(Node node) {
         StringBuilder buf = new StringBuilder();
-        buf.append("<"); // $NON-NLS-1$
+        buf.append('<'); // $NON-NLS-1$
         buf.append(node.getNodeName());
         NamedNodeMap atts = node.getAttributes();
         for (int x = 0; x < atts.getLength(); x++) {
-            buf.append(" "); // $NON-NLS-1$
+            buf.append(' '); // $NON-NLS-1$
             buf.append(atts.item(x).getNodeName());
             buf.append("=\""); // $NON-NLS-1$
             buf.append(atts.item(x).getNodeValue());
             buf.append("\""); // $NON-NLS-1$
         }
 
-        buf.append(">"); // $NON-NLS-1$
+        buf.append('>'); // $NON-NLS-1$
 
         return buf.toString();
     }

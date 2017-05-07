@@ -30,9 +30,9 @@ import org.apache.jmeter.gui.GuiPackage;
  * Processes the Collapse All and Expand All options.
  *
  */
-public class CollapseExpand implements Command {
+public class CollapseExpand extends AbstractAction {
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.COLLAPSE_ALL);
@@ -40,13 +40,13 @@ public class CollapseExpand implements Command {
     }
 
     /**
-     * Constructor for the Close object.
+     * Constructor for the CollapseExpand object.
      */
     public CollapseExpand() {
     }
 
     /**
-     * Gets the ActionNames attribute of the Close object.
+     * Gets the ActionNames attribute of the CollapseExpand object.
      *
      * @return the ActionNames value
      */
@@ -66,14 +66,14 @@ public class CollapseExpand implements Command {
         boolean collapse=ActionNames.COLLAPSE_ALL.equals(e.getActionCommand());
         GuiPackage guiInstance = GuiPackage.getInstance();
         JTree jTree = guiInstance.getMainFrame().getTree();
-        if (collapse){
+        if (collapse) {
             for (int i = jTree.getRowCount() - 1; i >= 0; i--) {
-                 jTree.collapseRow(i);
+                jTree.collapseRow(i);
             }
             return;
         }
-       for(int i = 0; i < jTree.getRowCount(); i++) {
-               jTree.expandRow(i);
-       }
+        for(int i = 0; i < jTree.getRowCount(); i++) {
+            jTree.expandRow(i);
+        }
     }
 }

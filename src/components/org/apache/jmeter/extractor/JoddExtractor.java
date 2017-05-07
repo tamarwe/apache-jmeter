@@ -61,7 +61,7 @@ public class JoddExtractor implements Extractor {
     public int extract(String expression, String attribute, int matchNumber,
             String inputString, List<String> result, int found,
             String cacheKey) {
-        NodeSelector nodeSelector = null;
+        NodeSelector nodeSelector;
         if (cacheKey != null) {
             nodeSelector = (NodeSelector) 
                     JMeterContextService.getContext().getSamplerContext().get(CACHE_KEY_PREFIX+cacheKey);
@@ -77,10 +77,8 @@ public class JoddExtractor implements Extractor {
             nodeSelector = new NodeSelector(doc);
         }
         List<Node> elements = nodeSelector.select(expression);
-        int size = elements.size();
-        for (int i = 0; i < size; i++) {
-            Node element = elements.get(i);
-            if (matchNumber <=0 || found != matchNumber) {
+        for (Node element : elements) {
+            if (matchNumber <= 0 || found != matchNumber) {
                 result.add(extractValue(attribute, element));
                 found++;
             } else {

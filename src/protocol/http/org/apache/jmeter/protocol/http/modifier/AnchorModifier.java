@@ -23,7 +23,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.config.Arguments;
@@ -37,10 +37,11 @@ import org.apache.jmeter.protocol.http.util.HTTPConstants;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.testelement.AbstractTestElement;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.threads.JMeterContext;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -49,11 +50,9 @@ import org.w3c.dom.NodeList;
 // For Unit tests, @see TestAnchorModifier
 
 public class AnchorModifier extends AbstractTestElement implements PreProcessor, Serializable {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(AnchorModifier.class);
 
     private static final long serialVersionUID = 240L;
-
-    private static final Random rand = new Random();
 
     public AnchorModifier() {
     }
@@ -66,19 +65,17 @@ public class AnchorModifier extends AbstractTestElement implements PreProcessor,
         JMeterContext context = getThreadContext();
         Sampler sam = context.getCurrentSampler();
         SampleResult res = context.getPreviousResult();
-        HTTPSamplerBase sampler = null;
-        HTTPSampleResult result = null;
-        if (res == null || !(sam instanceof HTTPSamplerBase) || !(res instanceof HTTPSampleResult)) {
+        HTTPSamplerBase sampler;
+        HTTPSampleResult result;
+        if (!(sam instanceof HTTPSamplerBase) || !(res instanceof HTTPSampleResult)) {
             log.info("Can't apply HTML Link Parser when the previous" + " sampler run is not an HTTP Request.");
             return;
         } else {
             sampler = (HTTPSamplerBase) sam;
             result = (HTTPSampleResult) res;
         }
-        List<HTTPSamplerBase> potentialLinks = new ArrayList<HTTPSamplerBase>();
-        String responseText = ""; // $NON-NLS-1$
-        responseText = result.getResponseDataAsString();
-        Document html;
+        List<HTTPSamplerBase> potentialLinks = new ArrayList<>();
+        String responseText = result.getResponseDataAsString();
         int index = responseText.indexOf('<'); // $NON-NLS-1$
         if (index == -1) {
             index = 0;
@@ -86,21 +83,20 @@ public class AnchorModifier extends AbstractTestElement implements PreProcessor,
         if (log.isDebugEnabled()) {
             log.debug("Check for matches against: "+sampler.toString());
         }
-        html = (Document) HtmlParsingUtils.getDOM(responseText.substring(index));
+        Document html = (Document) HtmlParsingUtils.getDOM(responseText.substring(index));
         addAnchorUrls(html, result, sampler, potentialLinks);
         addFormUrls(html, result, sampler, potentialLinks);
         addFramesetUrls(html, result, sampler, potentialLinks);
-        if (potentialLinks.size() > 0) {
-            HTTPSamplerBase url = potentialLinks.get(rand.nextInt(potentialLinks.size()));
+        if (!potentialLinks.isEmpty()) {
+            HTTPSamplerBase url = potentialLinks.get(ThreadLocalRandom.current().nextInt(potentialLinks.size()));
             if (log.isDebugEnabled()) {
                 log.debug("Selected: "+url.toString());
             }
             sampler.setDomain(url.getDomain());
             sampler.setPath(url.getPath());
             if (url.getMethod().equals(HTTPConstants.POST)) {
-                PropertyIterator iter = sampler.getArguments().iterator();
-                while (iter.hasNext()) {
-                    Argument arg = (Argument) iter.next().getObjectValue();
+                for (JMeterProperty jMeterProperty : sampler.getArguments()) {
+                    Argument arg = (Argument) jMeterProperty.getObjectValue();
                     modifyArgument(arg, url.getArguments());
                 }
             } else {
@@ -108,18 +104,16 @@ public class AnchorModifier extends AbstractTestElement implements PreProcessor,
                 // config.parseArguments(url.getQueryString());
             }
             sampler.setProtocol(url.getProtocol());
-            return;
         } else {
             log.debug("No matches found");
         }
-        return;
     }
 
     private void modifyArgument(Argument arg, Arguments args) {
         if (log.isDebugEnabled()) {
             log.debug("Modifying argument: " + arg);
         }
-        List<Argument> possibleReplacements = new ArrayList<Argument>();
+        List<Argument> possibleReplacements = new ArrayList<>();
         PropertyIterator iter = args.iterator();
         Argument replacementArg;
         while (iter.hasNext()) {
@@ -133,8 +127,8 @@ public class AnchorModifier extends AbstractTestElement implements PreProcessor,
             }
         }
 
-        if (possibleReplacements.size() > 0) {
-            replacementArg = possibleReplacements.get(rand.nextInt(possibleReplacements.size()));
+        if (!possibleReplacements.isEmpty()) {
+            replacementArg = possibleReplacements.get(ThreadLocalRandom.current().nextInt(possibleReplacements.size()));
             arg.setName(replacementArg.getName());
             arg.setValue(replacementArg.getValue());
             if (log.isDebugEnabled()) {
@@ -150,7 +144,7 @@ public class AnchorModifier extends AbstractTestElement implements PreProcessor,
     private void addFormUrls(Document html, HTTPSampleResult result, HTTPSamplerBase config, 
             List<HTTPSamplerBase> potentialLinks) {
         NodeList rootList = html.getChildNodes();
-        List<HTTPSamplerBase> urls = new LinkedList<HTTPSamplerBase>();
+        List<HTTPSamplerBase> urls = new LinkedList<>();
         for (int x = 0; x < rootList.getLength(); x++) {
             urls.addAll(HtmlParsingUtils.createURLFromForm(rootList.item(x), result.getURL()));
         }

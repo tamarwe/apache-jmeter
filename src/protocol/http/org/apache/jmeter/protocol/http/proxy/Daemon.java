@@ -28,9 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.jmeter.gui.Stoppable;
-import org.apache.jorphan.logging.LoggingManager;
+import org.slf4j.LoggerFactory;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
 
 /**
  * Web daemon thread. Creates main socket on port 8080 and listens on it
@@ -40,7 +40,7 @@ import org.apache.log.Logger;
  */
 public class Daemon extends Thread implements Stoppable {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(Daemon.class);
 
     /**
      * The time (in milliseconds) to wait when accepting a client connection.
@@ -134,8 +134,7 @@ public class Daemon extends Thread implements Stoppable {
                         thd.configure(clientSocket, target, pageEncodings, formEncodings);
                         thd.start();
                     }
-                } catch (InterruptedIOException e) {
-                    continue;
+                } catch (InterruptedIOException ignored) {
                     // Timeout occurred. Ignore, and keep looping until we're
                     // told to stop running.
                 }

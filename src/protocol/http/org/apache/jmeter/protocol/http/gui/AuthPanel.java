@@ -39,7 +39,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
@@ -53,8 +52,8 @@ import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.GuiUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Handles input for determining if authentication services are required for a
@@ -62,9 +61,9 @@ import org.apache.log.Logger;
  * user selects.
  */
 public class AuthPanel extends AbstractConfigGui implements ActionListener {
-    private static final long serialVersionUID = -378312656300713636L;
+    private static final long serialVersionUID = -378312656300713635L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(AuthPanel.class);
 
     private static final String ADD_COMMAND = "Add"; //$NON-NLS-1$
 
@@ -141,10 +140,7 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
         tableModel.manager.clear();
         tableModel.manager.addTestElement((AuthManager) el.clone());
         clearEachIteration.setSelected(((AuthManager) el).getClearEachIteration());
-        if (tableModel.getRowCount() != 0) {
-            deleteButton.setEnabled(true);
-            saveButton.setEnabled(true);
-        }
+        checkButtonsStatus();
     }
 
     @Override
@@ -178,47 +174,56 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
         add(createAuthTablePanel(), BorderLayout.CENTER);
     }
 
+    /**
+     * Remove the currently selected argument from the table.
+     */
+    protected void deleteRows() {
+        // If a table cell is being edited, we must cancel the editing
+        // before deleting the row.
+        GuiUtils.cancelEditing(authTable);
+
+        int[] rowsSelected = authTable.getSelectedRows();
+        int anchorSelection = authTable.getSelectionModel().getAnchorSelectionIndex();
+        authTable.clearSelection();
+        if (rowsSelected.length > 0) {
+            for (int i = rowsSelected.length - 1; i >= 0; i--) {
+                tableModel.removeRow(rowsSelected[i]);
+            }
+            tableModel.fireTableDataChanged();
+
+            // Table still contains one or more rows, so highlight (select)
+            // the appropriate one.
+            if (tableModel.getRowCount() > 0) {
+                if (anchorSelection >= tableModel.getRowCount()) {
+                    anchorSelection = tableModel.getRowCount() - 1;
+                }
+                authTable.setRowSelectionInterval(anchorSelection, anchorSelection);
+            }
+
+            checkButtonsStatus();
+        }
+    }
+
+
+    private void checkButtonsStatus() {
+        // Disable DELETE if there are no rows in the table to delete.
+        if (tableModel.getRowCount() == 0) {
+            deleteButton.setEnabled(false);
+            saveButton.setEnabled(false);
+        } else {
+            deleteButton.setEnabled(true);
+            saveButton.setEnabled(true);
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String action = e.getActionCommand();
 
         if (action.equals(DELETE_COMMAND)) {
-            if (tableModel.getRowCount() > 0) {
-                // If a table cell is being edited, we must cancel the editing
-                // before deleting the row.
-                if (authTable.isEditing()) {
-                    TableCellEditor cellEditor = authTable.getCellEditor(authTable.getEditingRow(), authTable
-                            .getEditingColumn());
-                    cellEditor.cancelCellEditing();
-                }
-
-                int rowSelected = authTable.getSelectedRow();
-
-                if (rowSelected != -1) {
-                    tableModel.removeRow(rowSelected);
-                    tableModel.fireTableDataChanged();
-
-                    // Disable the DELETE and SAVE buttons if no rows remaining
-                    // after delete.
-                    if (tableModel.getRowCount() == 0) {
-                        deleteButton.setEnabled(false);
-                        saveButton.setEnabled(false);
-                    }
-
-                    // Table still contains one or more rows, so highlight
-                    // (select) the appropriate one.
-                    else {
-                        int rowToSelect = rowSelected;
-
-                        if (rowSelected >= tableModel.getRowCount()) {
-                            rowToSelect = rowSelected - 1;
-                        }
-
-                        authTable.setRowSelectionInterval(rowToSelect, rowToSelect);
-                    }
-                }
-            }
-        } else if (action.equals(ADD_COMMAND)) {
+            deleteRows();
+        }
+        else if (action.equals(ADD_COMMAND)) {
             // If a table cell is being edited, we should accept the current
             // value and stop the editing before adding a new row.
             GuiUtils.stopTableEditing(authTable);
@@ -226,14 +231,7 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
             tableModel.addNewRow();
             tableModel.fireTableDataChanged();
 
-            // Enable the DELETE and SAVE buttons if they are currently
-            // disabled.
-            if (!deleteButton.isEnabled()) {
-                deleteButton.setEnabled(true);
-            }
-            if (!saveButton.isEnabled()) {
-                saveButton.setEnabled(true);
-            }
+            checkButtonsStatus();
 
             // Highlight (select) the appropriate row.
             int rowToSelect = tableModel.getRowCount() - 1;
@@ -246,13 +244,10 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
                     tableModel.manager.addFile(dialog.getSelectedFile().getAbsolutePath());
                     tableModel.fireTableDataChanged();
 
-                    if (tableModel.getRowCount() > 0) {
-                        deleteButton.setEnabled(true);
-                        saveButton.setEnabled(true);
-                    }
+                    checkButtonsStatus();
                 }
             } catch (IOException ex) {
-                log.error("", ex);
+                log.error("Error loading auth data", ex);
             }
         } else if (action.equals(SAVE_COMMAND)) {
             try {
@@ -269,8 +264,9 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
     public JPanel createAuthTablePanel() {
         // create the JTable that holds auth per row
         authTable = new JTable(tableModel);
+        JMeterUtils.applyHiDPI(authTable);
         authTable.getTableHeader().setDefaultRenderer(new HeaderAsPropertyRenderer());
-        authTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        authTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         authTable.setPreferredScrollableViewportSize(new Dimension(100, 70));
 
         TableColumn passwordColumn = authTable.getColumnModel().getColumn(AuthManager.COL_PASSWORD);
@@ -297,7 +293,7 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
     }
 
     private JPanel createButtonPanel() {
-        boolean tableEmpty = (tableModel.getRowCount() == 0);
+        boolean tableEmpty = tableModel.getRowCount() == 0;
 
         addButton = createButton("add", 'A', ADD_COMMAND, true); //$NON-NLS-1$
         deleteButton = createButton("delete", 'D', DELETE_COMMAND, !tableEmpty); //$NON-NLS-1$
@@ -397,7 +393,7 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
         @Override
         public void setValueAt(Object value, int row, int column) {
             Authorization auth = manager.getAuthObjectAt(row);
-            log.debug("Setting auth value: " + value);
+            log.debug("Setting auth value: {}", value);
             switch (column){
                 case AuthManager.COL_URL:
                     auth.setURL((String) value);
@@ -428,7 +424,7 @@ public class AuthPanel extends AbstractConfigGui implements ActionListener {
         private static final long serialVersionUID = 6085773573067229265L;
         
         public MechanismCellEditor() {
-            super(new JComboBox(Mechanism.values()));
+            super(new JComboBox<>(Mechanism.values()));
         }
     }
 

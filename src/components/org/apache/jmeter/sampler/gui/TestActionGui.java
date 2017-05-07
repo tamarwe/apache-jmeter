@@ -18,17 +18,12 @@
 
 package org.apache.jmeter.sampler.gui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.sampler.TestAction;
@@ -41,9 +36,8 @@ public class TestActionGui extends AbstractSamplerGui {
     private static final long serialVersionUID = 240L;
 
     // Gui components
-    private JComboBox targetBox;
+    private JComboBox<String> targetBox;
 
-    // private ButtonGroup actionButtons;
     private JRadioButton pauseButton;
 
     private JRadioButton stopButton;
@@ -155,7 +149,7 @@ public class TestActionGui extends AbstractSamplerGui {
 
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         setLayout(new VerticalLayout(5, VerticalLayout.BOTH, VerticalLayout.TOP));
         setBorder(makeBorder());
         add(makeTitlePanel());
@@ -163,18 +157,15 @@ public class TestActionGui extends AbstractSamplerGui {
         // Target
         HorizontalPanel targetPanel = new HorizontalPanel();
         targetPanel.add(new JLabel(targetLabel));
-        DefaultComboBoxModel targetModel = new DefaultComboBoxModel();
+        DefaultComboBoxModel<String> targetModel = new DefaultComboBoxModel<>();
         targetModel.addElement(threadTarget);
         targetModel.addElement(testTarget);
-        targetBox = new JComboBox(targetModel);
-        targetBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (((String) targetBox.getSelectedItem()).equals(threadTarget)) {
-                    target = TestAction.THREAD;
-                } else {
-                    target = TestAction.TEST;
-                }
+        targetBox = new JComboBox<>(targetModel);
+        targetBox.addActionListener(evt -> {
+            if (((String) targetBox.getSelectedItem()).equals(threadTarget)) {
+                target = TestAction.THREAD;
+            } else {
+                target = TestAction.TEST;
             }
         });
         targetPanel.add(targetBox);
@@ -184,50 +175,37 @@ public class TestActionGui extends AbstractSamplerGui {
         HorizontalPanel actionPanel = new HorizontalPanel();
         ButtonGroup actionButtons = new ButtonGroup();
         pauseButton = new JRadioButton(pauseAction, true);
-        pauseButton.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (pauseButton.isSelected()) {
-                    action = TestAction.PAUSE;
-                    durationField.setEnabled(true);
-                    targetBox.setEnabled(true);
-                }
-
+        pauseButton.addChangeListener(evt -> {
+            if (pauseButton.isSelected()) {
+                action = TestAction.PAUSE;
+                durationField.setEnabled(true);
+                targetBox.setEnabled(true);
             }
         });
         stopButton = new JRadioButton(stopAction, false);
-        stopButton.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (stopButton.isSelected()) {
-                    action = TestAction.STOP;
-                    durationField.setEnabled(false);
-                    targetBox.setEnabled(true);
-                }
+        stopButton.addChangeListener(evt -> {
+            if (stopButton.isSelected()) {
+                action = TestAction.STOP;
+                durationField.setEnabled(false);
+                targetBox.setEnabled(true);
             }
         });
         stopNowButton = new JRadioButton(stopNowAction, false);
-        stopNowButton.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (stopNowButton.isSelected()) {
-                    action = TestAction.STOP_NOW;
-                    durationField.setEnabled(false);
-                    targetBox.setEnabled(true);
-                }
+        stopNowButton.addChangeListener(evt -> {
+            if (stopNowButton.isSelected()) {
+                action = TestAction.STOP_NOW;
+                durationField.setEnabled(false);
+                targetBox.setEnabled(true);
             }
         });
         
         restartNextLoopButton = new JRadioButton(restartNextLoopAction, false);
-        restartNextLoopButton.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (restartNextLoopButton.isSelected()) {
-                    action = TestAction.RESTART_NEXT_LOOP;
-                    durationField.setEnabled(false);
-                    targetBox.setSelectedIndex(TestAction.THREAD);
-                    targetBox.setEnabled(false);
-                }
+        restartNextLoopButton.addChangeListener(evt -> {
+            if (restartNextLoopButton.isSelected()) {
+                action = TestAction.RESTART_NEXT_LOOP;
+                durationField.setEnabled(false);
+                targetBox.setSelectedIndex(TestAction.THREAD);
+                targetBox.setEnabled(false);
             }
         });
         

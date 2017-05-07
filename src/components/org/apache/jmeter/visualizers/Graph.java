@@ -31,17 +31,17 @@ import javax.swing.SwingUtilities;
 
 import org.apache.jmeter.gui.util.JMeterColor;
 import org.apache.jmeter.samplers.Clearable;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements a simple graph for displaying performance results.
  *
  */
 public class Graph extends JComponent implements Scrollable, Clearable {
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(Graph.class);
 
     private boolean wantData = true;
 
@@ -55,7 +55,7 @@ public class Graph extends JComponent implements Scrollable, Clearable {
 
     private CachingStatCalculator model;
 
-    private static final int width = 2000;
+    private static final int WIDTH = 2000;
 
     private long graphMax = 1;
 
@@ -65,7 +65,7 @@ public class Graph extends JComponent implements Scrollable, Clearable {
      * Constructor for the Graph object.
      */
     public Graph() {
-        this.setPreferredSize(new Dimension(width, 100));
+        this.setPreferredSize(new Dimension(WIDTH, 100));
     }
 
     /**
@@ -85,7 +85,6 @@ public class Graph extends JComponent implements Scrollable, Clearable {
     @Override
     public Dimension getPreferredScrollableViewportSize() {
         return this.getPreferredSize();
-        // return new Dimension(width, 400);
     }
 
     /**
@@ -208,10 +207,9 @@ public class Graph extends JComponent implements Scrollable, Clearable {
     }
 
     private void drawSample(long x, Sample oneSample, Graphics g) {
-        // int width = getWidth();
         int height = getHeight();
-        log.debug("Drawing a sample at " + x);
-        int adjustedWidth = (int)(x % width); // will always be within range of an int: as must be < width
+        log.debug("Drawing a sample at {}", x);
+        int adjustedWidth = (int)(x % WIDTH); // will always be within range of an int: as must be < width
         if (wantData) {
             int data = (int) (oneSample.getData() * height / graphMax);
 
@@ -222,7 +220,7 @@ public class Graph extends JComponent implements Scrollable, Clearable {
             }
             g.drawLine(adjustedWidth, height - data, adjustedWidth, height - data - 1);
             if (log.isDebugEnabled()) {
-                log.debug("Drawing coords = " + adjustedWidth + "," + (height - data));
+                log.debug("Drawing coords = {}, {}", adjustedWidth, (height - data));
             }
         }
 
@@ -230,27 +228,27 @@ public class Graph extends JComponent implements Scrollable, Clearable {
             int average = (int) (oneSample.getAverage() * height / graphMax);
 
             g.setColor(Color.blue);
-            g.drawLine(adjustedWidth, height - average, adjustedWidth, (height - average - 1));
+            g.drawLine(adjustedWidth, height - average, adjustedWidth, height - average - 1);
         }
 
         if (wantMedian) {
             int median = (int) (oneSample.getMedian() * height / graphMax);
 
-            g.setColor(JMeterColor.purple);
-            g.drawLine(adjustedWidth, height - median, adjustedWidth, (height - median - 1));
+            g.setColor(JMeterColor.PURPLE);
+            g.drawLine(adjustedWidth, height - median, adjustedWidth, height - median - 1);
         }
 
         if (wantDeviation) {
             int deviation = (int) (oneSample.getDeviation() * height / graphMax);
 
             g.setColor(Color.red);
-            g.drawLine(adjustedWidth, height - deviation, adjustedWidth, (height - deviation - 1));
+            g.drawLine(adjustedWidth, height - deviation, adjustedWidth, height - deviation - 1);
         }
         if (wantThroughput) {
             int throughput = (int) (oneSample.getThroughput() * height / throughputMax);
 
-            g.setColor(JMeterColor.dark_green);
-            g.drawLine(adjustedWidth, height - throughput, adjustedWidth, (height - throughput - 1));
+            g.setColor(JMeterColor.DARK_GREEN);
+            g.drawLine(adjustedWidth, height - throughput, adjustedWidth, height - throughput - 1);
         }
     }
 

@@ -39,8 +39,8 @@ import org.apache.jmeter.protocol.http.util.ConversionUtils;
 import org.apache.jmeter.protocol.http.util.HTTPConstants;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 //For unit tests, @see TestHttpRequestHdr
 
@@ -49,7 +49,7 @@ import org.apache.log.Logger;
  *
  */
 public class HttpRequestHdr {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HttpRequestHdr.class);
 
     private static final String HTTP = "http"; // $NON-NLS-1$
     private static final String HTTPS = "https"; // $NON-NLS-1$
@@ -79,7 +79,7 @@ public class HttpRequestHdr {
 
     private byte[] rawPostData;
 
-    private final Map<String, Header> headers = new HashMap<String, Header>();
+    private final Map<String, Header> headers = new HashMap<>();
 
     private final String httpSamplerName;
 
@@ -390,24 +390,6 @@ public class HttpRequestHdr {
         return "";// $NON-NLS-1$
     }
 
-//    /**
-//     * Returns the remainder of a tokenized string.
-//     *
-//     * @param tk
-//     *            String that is partially tokenized.
-//     * @return The remainder
-//     */
-//    private String getRemainder(StringTokenizer tk) {
-//        StringBuilder strBuff = new StringBuilder();
-//        if (tk.hasMoreTokens()) {
-//            strBuff.append(tk.nextToken());
-//        }
-//        while (tk.hasMoreTokens()) {
-//            strBuff.append(" "); // $NON-NLS-1$
-//            strBuff.append(tk.nextToken());
-//        }
-//        return strBuff.toString();
-//    }
 
     public String getUrlWithoutQuery(URL _url) {
         String fullUrl = _url.toString();
@@ -439,7 +421,7 @@ public class HttpRequestHdr {
      * @return String Protocol (http or https)
      */
     public String getProtocol(HTTPSamplerBase sampler) {
-        if (url.indexOf("//") > -1) {
+        if (url.contains("//")) {
             String protocol = url.substring(0, url.indexOf(':'));
             if (log.isDebugEnabled()) {
                 log.debug("Proxy: setting protocol to : " + protocol);

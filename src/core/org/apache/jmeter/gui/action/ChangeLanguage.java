@@ -25,27 +25,27 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JMeterError;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @version $Revision: 1413956 $
+ * Change language
  */
-public class ChangeLanguage implements Command {
-    private static final Set<String> commands = new HashSet<String>();
+public class ChangeLanguage extends AbstractActionWithNoRunningTest {
+    private static final Set<String> commands = new HashSet<>();
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(ChangeLanguage.class);
 
     static {
         commands.add(ActionNames.CHANGE_LANGUAGE);
     }
 
     /**
-     * @see org.apache.jmeter.gui.action.Command#doAction(ActionEvent)
+     * @see org.apache.jmeter.gui.action.AbstractActionWithNoRunningTest#doActionAfterCheck(ActionEvent)
      */
     @Override
-    public void doAction(ActionEvent e) {
+    public void doActionAfterCheck(ActionEvent e) {
         String locale = ((Component) e.getSource()).getName();
         Locale loc;
 
@@ -55,7 +55,7 @@ public class ChangeLanguage implements Command {
         } else {
             loc = new Locale(locale, "");
         }
-        log.debug("Changing locale to " + loc.toString());
+        log.debug("Changing locale to {}", loc);
         try {
             JMeterUtils.setLocale(loc);
         } catch (JMeterError err) {

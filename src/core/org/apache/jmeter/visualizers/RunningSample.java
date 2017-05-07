@@ -46,7 +46,9 @@ public class RunningSample {
 
     private long runningSum;
 
-    private long max, min;
+    private long max;
+    
+    private long min;
 
     private long errorCount;
 
@@ -88,7 +90,7 @@ public class RunningSample {
         this.runningSum = src.runningSum;
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         counter = 0L;
         runningSum = 0L;
         max = Long.MIN_VALUE;
@@ -176,7 +178,7 @@ public class RunningSample {
     public String getRateString() {
         double rate = getRate();
 
-        if (rate == Double.MAX_VALUE) {
+        if (Double.compare(rate, Double.MAX_VALUE) == 0) {
             return "N/A";
         }
 

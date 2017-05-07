@@ -20,8 +20,8 @@ package org.apache.jmeter.visualizers;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -37,11 +37,9 @@ import org.xml.sax.SAXException;
  *
  */
 public class XMLDefaultMutableTreeNode extends DefaultMutableTreeNode {
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
-    // private static final int LIMIT_STR_SIZE = 100;
-    // private boolean isRoot;
+    private static final Logger log = LoggerFactory.getLogger(XMLDefaultMutableTreeNode.class);
     private transient Node xmlNode;
 
     /**
@@ -68,7 +66,7 @@ public class XMLDefaultMutableTreeNode extends DefaultMutableTreeNode {
     /**
      * init root
      *
-     * @param root
+     * @param xmlRoot
      * @throws SAXException
      */
     private void initRoot(Node xmlRoot) throws SAXException {

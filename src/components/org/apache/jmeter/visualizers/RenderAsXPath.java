@@ -25,7 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,9 +50,9 @@ import org.apache.jmeter.util.TidyException;
 import org.apache.jmeter.util.XPathUtil;
 import org.apache.jorphan.gui.GuiUtils;
 import org.apache.jorphan.gui.JLabeledTextField;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -62,7 +62,7 @@ import org.xml.sax.SAXException;
  */
 public class RenderAsXPath implements ResultRenderer, ActionListener {
 
-    private static final Logger logger = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(RenderAsXPath.class);
 
     private static final String XPATH_TESTER_COMMAND = "xpath_tester"; // $NON-NLS-1$
 
@@ -135,7 +135,7 @@ public class RenderAsXPath implements ResultRenderer, ActionListener {
     private String process(String textToParse, XPathExtractor extractor) {
         try {
             Document doc = parseResponse(textToParse, extractor);
-            List<String> matchStrings = new ArrayList<String>();
+            List<String> matchStrings = new ArrayList<>();
             XPathUtil.putValuesForXPathInList(doc, xpathExpressionField.getText(),
                     matchStrings, extractor.getFragment());
             StringBuilder builder = new StringBuilder();
@@ -155,11 +155,12 @@ public class RenderAsXPath implements ResultRenderer, ActionListener {
      * Converts (X)HTML response to DOM object Tree.
      * This version cares of charset of response.
      * @param unicodeData
-     * @return
+     * @param extractor
+     * @return Document
      *
      */
     private Document parseResponse(String unicodeData, XPathExtractor extractor)
-      throws UnsupportedEncodingException, IOException, ParserConfigurationException,SAXException,TidyException
+      throws IOException, ParserConfigurationException,SAXException,TidyException
     {
       //TODO: validate contentType for reasonable types?
 
@@ -167,7 +168,7 @@ public class RenderAsXPath implements ResultRenderer, ActionListener {
       //       Therefore we do byte -> unicode -> byte conversion
       //       to ensure UTF-8 encoding as required by XPathUtil
       // convert unicode String -> UTF-8 bytes
-      byte[] utf8data = unicodeData.getBytes("UTF-8"); // $NON-NLS-1$
+      byte[] utf8data = unicodeData.getBytes(StandardCharsets.UTF_8);
       ByteArrayInputStream in = new ByteArrayInputStream(utf8data);
       boolean isXML = JOrphanUtils.isXML(utf8data);
       // this method assumes UTF-8 input data
@@ -185,7 +186,7 @@ public class RenderAsXPath implements ResultRenderer, ActionListener {
             xmlDataField.setText(response == null ? "" : response);
             xmlDataField.setCaretPosition(0);
         } catch (Exception e) {
-            logger.error("Exception converting to XML:"+response+ ", message:"+e.getMessage(),e);
+            log.error("Exception converting to XML: {}, message: {}", response, e.getMessage(), e);
             xmlDataField.setText("Exception converting to XML:"+response+ ", message:"+e.getMessage());
             xmlDataField.setCaretPosition(0);
         }
@@ -219,13 +220,14 @@ public class RenderAsXPath implements ResultRenderer, ActionListener {
         xmlDataField.setWrapStyleWord(true);
 
         this.xmlDataPane = GuiUtils.makeScrollPane(xmlDataField);
-        xmlDataPane.setMinimumSize(new Dimension(0, 400));
+        xmlDataPane.setPreferredSize(new Dimension(0, 200));
 
         JPanel pane = new JPanel(new BorderLayout(0, 5));
 
         JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 xmlDataPane, createXpathExtractorTasksPanel());
-        mainSplit.setDividerLocation(400);
+        mainSplit.setDividerLocation(0.6d);
+        mainSplit.setOneTouchExpandable(true);
         pane.add(mainSplit, BorderLayout.CENTER);
         return pane;
     }

@@ -22,21 +22,18 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.jmeter.assertions.AssertionResult;
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.SampleSaveConfiguration;
 import org.apache.jmeter.save.SaveService;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.Converter;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -49,7 +46,7 @@ import com.thoughtworks.xstream.mapper.Mapper;
  * XStream Converter for the SampleResult class
  */
 public class SampleResultConverter extends AbstractCollectionConverter {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(SampleResultConverter.class);
 
     private static final String JAVA_LANG_STRING = "java.lang.String"; //$NON-NLS-1$
     private static final String ATT_CLASS = "class"; //$NON-NLS-1$
@@ -71,6 +68,7 @@ public class SampleResultConverter extends AbstractCollectionConverter {
     // samplerData attributes. Must be unique. Keep sorted by string value.
     // Ensure the Listener documentation is updated when new attributes are added
     private static final String ATT_BYTES             = "by"; //$NON-NLS-1$
+    private static final String ATT_SENT_BYTES        = "sby"; //$NON-NLS-1$
     private static final String ATT_DATA_ENCODING     = "de"; //$NON-NLS-1$
     private static final String ATT_DATA_TYPE         = "dt"; //$NON-NLS-1$
     private static final String ATT_ERROR_COUNT       = "ec"; //$NON-NLS-1$
@@ -103,7 +101,7 @@ public class SampleResultConverter extends AbstractCollectionConverter {
      * @return the version of this converter
      */
     public static String getVersion() {
-        return "$Revision: 1649629 $"; //$NON-NLS-1$
+        return "$Revision$"; //$NON-NLS-1$
     }
 
     /** {@inheritDoc} */
@@ -171,10 +169,12 @@ public class SampleResultConverter extends AbstractCollectionConverter {
             try {
                 if (SampleResult.TEXT.equals(res.getDataType())){
                     writer.setValue(new String(res.getResponseData(), res.getDataEncodingWithDefault()));
+                } else {
+                    writer.setValue("Non-TEXT response data, cannot record: (" + res.getDataType() + ")");                    
                 }
                 // Otherwise don't save anything - no point
             } catch (UnsupportedEncodingException e) {
-                writer.setValue("Unsupported encoding in response data, can't record.");
+                writer.setValue("Unsupported encoding in response data, cannot record: " + e);
             }
             writer.endNode();
         }
@@ -240,9 +240,9 @@ public class SampleResultConverter extends AbstractCollectionConverter {
             SampleSaveConfiguration save) {
         if (save.saveSubresults()) {
             SampleResult[] subResults = res.getSubResults();
-            for (int i = 0; i < subResults.length; i++) {
-                subResults[i].setSaveConfig(save);
-                writeItem(subResults[i], context, writer);
+            for (SampleResult subResult : subResults) {
+                subResult.setSaveConfig(save);
+                writeItem(subResult, context, writer);
             }
         }
     }
@@ -263,8 +263,8 @@ public class SampleResultConverter extends AbstractCollectionConverter {
             SampleSaveConfiguration save) {
         if (save.saveAssertions()) {
             AssertionResult[] assertionResults = res.getAssertionResults();
-            for (int i = 0; i < assertionResults.length; i++) {
-                writeItem(assertionResults[i], context, writer);
+            for (AssertionResult assertionResult : assertionResults) {
+                writeItem(assertionResult, context, writer);
             }
         }
     }
@@ -320,7 +320,10 @@ public class SampleResultConverter extends AbstractCollectionConverter {
             writer.addAttribute(ATT_DATA_ENCODING, ConversionHelp.encode(res.getDataEncodingNoDefault()));
         }
         if (save.saveBytes()) {
-            writer.addAttribute(ATT_BYTES, String.valueOf(res.getBytes()));
+            writer.addAttribute(ATT_BYTES, String.valueOf(res.getBytesAsLong()));
+        }
+        if (save.saveSentBytes()) {
+            writer.addAttribute(ATT_SENT_BYTES, String.valueOf(res.getSentBytes()));
         }
         if (save.saveSampleCount()){
             writer.addAttribute(ATT_SAMPLE_COUNT, String.valueOf(res.getSampleCount()));
@@ -342,7 +345,7 @@ public class SampleResultConverter extends AbstractCollectionConverter {
     }
 
     /**
-     * Write a tag with with a content of <code>value</code> to the
+     * Write a tag with a content of <code>value</code> to the
      * <code>writer</code>
      * 
      * @param writer
@@ -408,7 +411,7 @@ public class SampleResultConverter extends AbstractCollectionConverter {
                 try {
                     res.setResponseData(responseData.getBytes(dataEncoding));
                 } catch (UnsupportedEncodingException e) {
-                    res.setResponseData(("Can't support the char set: " + dataEncoding), null);
+                    res.setResponseData("Can't support the char set: " + dataEncoding, null);
                     res.setDataType(SampleResult.TEXT);
                 }
             }
@@ -446,7 +449,8 @@ public class SampleResultConverter extends AbstractCollectionConverter {
         res.setIdleTime(Converter.getLong(reader.getAttribute(ATT_IDLETIME)));
         res.setLatency(Converter.getLong(reader.getAttribute(ATT_LATENCY)));
         res.setConnectTime(Converter.getLong(reader.getAttribute(ATT_CONNECT_TIME)));
-        res.setBytes(Converter.getInt(reader.getAttribute(ATT_BYTES)));
+        res.setBytes(Converter.getLong(reader.getAttribute(ATT_BYTES)));
+        res.setSentBytes(Converter.getLong(reader.getAttribute(ATT_SENT_BYTES)));
         res.setSampleCount(Converter.getInt(reader.getAttribute(ATT_SAMPLE_COUNT),1)); // default is 1
         res.setErrorCount(Converter.getInt(reader.getAttribute(ATT_ERROR_COUNT),0)); // default is 0
         res.setGroupThreads(Converter.getInt(reader.getAttribute(ATT_GRP_THRDS)));
@@ -454,28 +458,21 @@ public class SampleResultConverter extends AbstractCollectionConverter {
     }
 
     protected void readFile(String resultFileName, SampleResult res) {
-        File in = null;
-        InputStream fis = null;
-        try {
-            in = new File(resultFileName);
-            fis = new BufferedInputStream(new FileInputStream(in));
-            ByteArrayOutputStream outstream = new ByteArrayOutputStream(res.getBytes());
+        File in = new File(resultFileName);
+        try (FileInputStream fis = new FileInputStream(in);
+                BufferedInputStream bis = new BufferedInputStream(fis)){
+            ByteArrayOutputStream outstream = new ByteArrayOutputStream(4096);
             byte[] buffer = new byte[4096];
             int len;
-            while ((len = fis.read(buffer)) > 0) {
+            while ((len = bis.read(buffer)) > 0) {
                 outstream.write(buffer, 0, len);
             }
             outstream.close();
             res.setResponseData(outstream.toByteArray());
-        } catch (FileNotFoundException e) {
-            log.warn(e.getLocalizedMessage());
         } catch (IOException e) {
-            log.warn(e.getLocalizedMessage());
-        } finally {
-            IOUtils.closeQuietly(fis);
-        }
+            log.warn("Failed to read result file.", e);
+        } 
     }
-
 
     /**
      * @param arg0 the mapper

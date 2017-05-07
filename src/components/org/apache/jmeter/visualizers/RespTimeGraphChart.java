@@ -34,8 +34,6 @@ import java.math.BigDecimal;
 import javax.swing.JPanel;
 
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
 import org.jCharts.axisChart.AxisChart;
 import org.jCharts.chartData.AxisChartDataSet;
 import org.jCharts.chartData.ChartDataException;
@@ -51,12 +49,14 @@ import org.jCharts.properties.PointChartProperties;
 import org.jCharts.properties.PropertyException;
 import org.jCharts.properties.util.ChartFont;
 import org.jCharts.types.ChartType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RespTimeGraphChart extends JPanel {
 
-    private static final long serialVersionUID = 280L;
+    private static final long serialVersionUID = 281L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(RespTimeGraphChart.class);
 
     protected double[][] data;
     
@@ -342,7 +342,7 @@ public class RespTimeGraphChart extends JPanel {
                 yaxis.setNumItems((int)(max / incrTopValue) + 1);
                 yaxis.setShowGridLines(1);
             } catch (PropertyException e) {
-                log.warn("",e);
+                log.warn("Exception while setting Y axis properties.", e);
             }
 
             AxisProperties axisProperties= new AxisProperties(xaxis, yaxis);
@@ -365,10 +365,8 @@ public class RespTimeGraphChart extends JPanel {
                     legendProperties, _width, _height );
             axisChart.setGraphics2D((Graphics2D) g);
             axisChart.render();
-        } catch (ChartDataException e) {
-            log.warn("", e);
-        } catch (PropertyException e) {
-            log.warn("", e);
+        } catch (ChartDataException | PropertyException e) {
+            log.warn("Exception while rendering axis chart.", e);
         }
     }
 
@@ -380,7 +378,7 @@ public class RespTimeGraphChart extends JPanel {
             divValueStr.append("0"); //$NON-NLS-1$
         }
         int divValueInt = Integer.parseInt(divValueStr.toString());
-        BigDecimal round = new BigDecimal(value / divValueInt);
+        BigDecimal round = BigDecimal.valueOf(value / divValueInt);
         round = round.setScale(0, roundMode);
         int topValue = round.intValue() * divValueInt;
         return topValue;
@@ -402,11 +400,10 @@ public class RespTimeGraphChart extends JPanel {
      * @param datas array of positive or NaN doubles
      * @return double
      */
-    private double findMax(double datas[][]) {
+    private double findMax(double[][] datas) {
         double max = 0;
-        for (int i = 0; i < datas.length; i++) {
-            for (int j = 0; j < datas[i].length; j++) {
-                final double value = datas[i][j]; 
+        for (double[] data : datas) {
+            for (final double value : data) {
                 if ((!Double.isNaN(value)) && (value > max)) {
                     max = value;
                 }

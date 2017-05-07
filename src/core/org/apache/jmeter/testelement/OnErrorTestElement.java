@@ -25,7 +25,6 @@ package org.apache.jmeter.testelement;
 import org.apache.jmeter.testelement.property.IntegerProperty;
 
 /**
- * @version $Revision: 1413358 $
  */
 public abstract class OnErrorTestElement extends AbstractTestElement {
     private static final long serialVersionUID = 240L;

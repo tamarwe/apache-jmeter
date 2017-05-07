@@ -23,15 +23,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.jmeter.engine.util.CompoundVariable;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
 import org.apache.oro.text.MalformedCachePatternException;
 import org.apache.oro.text.regex.MatchResult;
 import org.apache.oro.text.regex.Pattern;
@@ -39,6 +37,8 @@ import org.apache.oro.text.regex.PatternMatcher;
 import org.apache.oro.text.regex.PatternMatcherInput;
 import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Implements regular expression parsing of sample results and variables
  * @since 1.X
@@ -47,7 +47,7 @@ import org.apache.oro.text.regex.Util;
 // @see TestRegexFunction for unit tests
 
 public class RegexFunction extends AbstractFunction {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(RegexFunction.class);
 
     public static final String ALL = "ALL"; //$NON-NLS-1$
 
@@ -57,11 +57,7 @@ public class RegexFunction extends AbstractFunction {
 
     private Object[] values;// Parameters are stored here
 
-    // Using the same Random across threads might result in pool performance
-    // It might make sense to use ThreadLocalRandom or ThreadLocal<Random>
-    private static final Random rand = new Random();
-
-    private static final List<String> desc = new LinkedList<String>();
+    private static final List<String> desc = new LinkedList<>();
 
     private static final String TEMPLATE_PATTERN = "\\$(\\d+)\\$";  //$NON-NLS-1$
     /** initialised to the regex \$(\d+)\$ */
@@ -155,13 +151,15 @@ public class RegexFunction extends AbstractFunction {
             return defaultValue;
         }
 
-        List<MatchResult> collectAllMatches = new ArrayList<MatchResult>();
+        List<MatchResult> collectAllMatches = new ArrayList<>();
         try {
             PatternMatcher matcher = JMeterUtils.getMatcher();
             PatternMatcherInput input = new PatternMatcherInput(textToMatch);
             while (matcher.contains(input, searchPattern)) {
                 MatchResult match = matcher.getMatch();
-                collectAllMatches.add(match);
+                if(match != null) {
+                    collectAllMatches.add(match);
+                } 
             }
         } finally {
             if (name.length() > 0){
@@ -169,7 +167,7 @@ public class RegexFunction extends AbstractFunction {
             }
         }
 
-        if (collectAllMatches.size() == 0) {
+        if (collectAllMatches.isEmpty()) {
             return defaultValue;
         }
 
@@ -187,11 +185,14 @@ public class RegexFunction extends AbstractFunction {
             }
             return value.toString();
         } else if (valueIndex.equals(RAND)) {
-            MatchResult result = collectAllMatches.get(rand.nextInt(collectAllMatches.size()));
+            MatchResult result = collectAllMatches.get(ThreadLocalRandom.current().nextInt(collectAllMatches.size()));
             return generateResult(result, name, tmplt, vars);
         } else {
             try {
                 int index = Integer.parseInt(valueIndex) - 1;
+                if(index >= collectAllMatches.size()) {
+                    return defaultValue;
+                }
                 MatchResult result = collectAllMatches.get(index);
                 return generateResult(result, name, tmplt, vars);
             } catch (NumberFormatException e) {
@@ -199,18 +200,14 @@ public class RegexFunction extends AbstractFunction {
                 MatchResult result = collectAllMatches
                         .get((int) (collectAllMatches.size() * ratio + .5) - 1);
                 return generateResult(result, name, tmplt, vars);
-            } catch (IndexOutOfBoundsException e) {
-                return defaultValue;
             }
         }
 
     }
 
     private void saveGroups(MatchResult result, String namep, JMeterVariables vars) {
-        if (result != null) {
-            for (int x = 0; x < result.groups(); x++) {
-                vars.put(namep + "_g" + x, result.group(x)); //$NON-NLS-1$
-            }
+        for (int x = 0; x < result.groups(); x++) {
+            vars.put(namep + "_g" + x, result.group(x)); //$NON-NLS-1$
         }
     }
 
@@ -223,11 +220,11 @@ public class RegexFunction extends AbstractFunction {
     private String generateResult(MatchResult match, String namep, Object[] template, JMeterVariables vars) {
         saveGroups(match, namep, vars);
         StringBuilder result = new StringBuilder();
-        for (int a = 0; a < template.length; a++) {
-            if (template[a] instanceof String) {
-                result.append(template[a]);
+        for (Object t : template) {
+            if (t instanceof String) {
+                result.append(t);
             } else {
-                result.append(match.group(((Integer) template[a]).intValue()));
+                result.append(match.group(((Integer) t).intValue()));
             }
         }
         if (namep.length() > 0){
@@ -250,9 +247,9 @@ public class RegexFunction extends AbstractFunction {
     }
 
     private Object[] generateTemplate(String rawTemplate) {
-        List<String> pieces = new ArrayList<String>();
+        List<String> pieces = new ArrayList<>();
         // String or Integer
-        List<Object> combined = new LinkedList<Object>();
+        List<Object> combined = new LinkedList<>();
         PatternMatcher matcher = JMeterUtils.getMatcher();
         Util.split(pieces, matcher, templatePattern, rawTemplate);
         PatternMatcherInput input = new PatternMatcherInput(rawTemplate);

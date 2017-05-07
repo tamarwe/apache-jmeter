@@ -20,9 +20,8 @@ package org.apache.jmeter.sampler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,9 +42,8 @@ public class DebugSampler extends AbstractSampler implements TestBean {
 
     private static final long serialVersionUID = 232L;
 
-    private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<String>(
-            Arrays.asList(new String[]{
-                    "org.apache.jmeter.config.gui.SimpleConfigGui"}));
+    private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<>(
+            Arrays.asList("org.apache.jmeter.config.gui.SimpleConfigGui"));
 
     private boolean displayJMeterVariables;
 
@@ -91,22 +89,13 @@ public class DebugSampler extends AbstractSampler implements TestBean {
 
     private void formatSet(StringBuilder sb, @SuppressWarnings("rawtypes") Set s) {
         @SuppressWarnings("unchecked")
-        ArrayList<Map.Entry<Object, Object>> al = new ArrayList<Map.Entry<Object, Object>>(s);
-        Collections.sort(al, new Comparator<Map.Entry<Object, Object>>(){
-            @Override
-            public int compare(Map.Entry<Object, Object> o1, Map.Entry<Object, Object> o2) {
-                String m1,m2;
-                m1=(String)o1.getKey();
-                m2=(String)o2.getKey();
+        List<Map.Entry<Object, Object>> al = new ArrayList<>(s);
+        al.sort((Map.Entry<Object, Object> o1, Map.Entry<Object, Object> o2) -> {
+                String m1 = (String)o1.getKey();
+                String m2 = (String)o2.getKey();
                 return m1.compareTo(m2);
-            }
         });
-        for(Map.Entry<Object, Object> me : al){
-            sb.append(me.getKey());
-            sb.append("=");
-            sb.append(me.getValue());
-            sb.append("\n");
-        }
+        al.forEach(me -> sb.append(me.getKey()).append("=").append(me.getValue()).append("\n"));
     }
 
     public boolean isDisplayJMeterVariables() {

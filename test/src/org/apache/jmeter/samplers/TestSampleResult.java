@@ -18,23 +18,23 @@
 
 package org.apache.jmeter.samplers;
 
-import java.io.StringWriter;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import junit.framework.TestCase;
-
+import org.apache.jmeter.junit.JMeterTestCase;
 import org.apache.jmeter.util.Calculator;
-import org.apache.log.LogTarget;
-import org.apache.log.format.Formatter;
-import org.apache.log.format.RawFormatter;
-import org.apache.log.output.io.WriterTarget;
+import org.apache.jmeter.util.LogRecordingDelegatingLogger;
+import org.junit.Test;
 
 // TODO need more tests - particularly for the new functions
 
-public class TestSampleResult extends TestCase {
-        public TestSampleResult(String name) {
-            super(name);
-        }
+public class TestSampleResult {
 
+        @Test
         public void testElapsedTrue() throws Exception {
             SampleResult res = new SampleResult(true);
 
@@ -48,6 +48,7 @@ public class TestSampleResult extends TestCase {
             }
         }
 
+        @Test
         public void testElapsedFalse() throws Exception {
             SampleResult res = new SampleResult(false);
 
@@ -61,113 +62,124 @@ public class TestSampleResult extends TestCase {
             }
         }
 
+        @Test
         public void testPauseFalse() throws Exception {
             SampleResult res = new SampleResult(false);
             // Check sample increments OK
             res.sampleStart();
-            Thread.sleep(100);
+            long totalSampleTime = sleep(100); // accumulate the time spent 'sampling'
             res.samplePause();
 
-            Thread.sleep(200);
+            Thread.sleep(200); // This should be ignored 
 
             // Re-increment
             res.sampleResume();
-            Thread.sleep(100);
+            totalSampleTime += sleep(100);
             res.sampleEnd();
             long sampleTime = res.getTime();
-            if ((sampleTime < 180) || (sampleTime > 290)) {
-                fail("Accumulated time (" + sampleTime + ") was not between 180 and 290 ms");
-            }
+            assertEquals("Accumulated sample time", totalSampleTime, sampleTime, 50);
         }
 
+        @Test
         public void testPauseTrue() throws Exception {
             SampleResult res = new SampleResult(true);
             // Check sample increments OK
             res.sampleStart();
-            Thread.sleep(100);
+            long totalSampleTime = sleep(100); // accumulate the time spent 'sampling'
             res.samplePause();
 
-            Thread.sleep(200);
+            Thread.sleep(200); // this should be ignored
 
             // Re-increment
             res.sampleResume();
-            Thread.sleep(100);
+            totalSampleTime += sleep(100);
             res.sampleEnd();
             long sampleTime = res.getTime();
-            if ((sampleTime < 180) || (sampleTime > 290)) {
-                fail("Accumulated time (" + sampleTime + ") was not between 180 and 290 ms");
-            }
+            assertEquals("Accumulated sample time", totalSampleTime, sampleTime, 50);
         }
 
-        private static final Formatter fmt = new RawFormatter();
-
-        private StringWriter wr = null;
+        private LogRecordingDelegatingLogger recordLogger;
 
         private void divertLog() {// N.B. This needs to divert the log for SampleResult
-            wr = new StringWriter(1000);
-            LogTarget[] lt = { new WriterTarget(wr, fmt) };
-            SampleResult.log.setLogTargets(lt);
+            if (SampleResult.log instanceof LogRecordingDelegatingLogger) {
+                recordLogger = (LogRecordingDelegatingLogger) SampleResult.log;
+            } else {
+                recordLogger = new LogRecordingDelegatingLogger(SampleResult.log);
+                SampleResult.log = recordLogger;
+            }
+            recordLogger.clearLogRecords();
         }
 
+        @Test
         public void testPause2True() throws Exception {
             divertLog();
             SampleResult res = new SampleResult(true);
             res.sampleStart();
             res.samplePause();
-            assertEquals(0, wr.toString().length());
+            assertEquals(0, recordLogger.getLogRecordCount());
             res.samplePause();
-            assertFalse(wr.toString().length() == 0);
+            assertNotEquals(0, recordLogger.getLogRecordCount());
         }
 
+        @Test
         public void testPause2False() throws Exception {
             divertLog();
             SampleResult res = new SampleResult(false);
             res.sampleStart();
             res.samplePause();
-            assertEquals(0, wr.toString().length());
+            assertEquals(0, recordLogger.getLogRecordCount());
             res.samplePause();
-            assertFalse(wr.toString().length() == 0);
+            assertNotEquals(0, recordLogger.getLogRecordCount());
         }
         
+        @Test
         public void testByteCount() throws Exception {
             SampleResult res = new SampleResult();
             
             res.sampleStart();
-            res.setBytes(100);
+            res.setBytes(100L);
             res.setSampleLabel("sample of size 100 bytes");
             res.sampleEnd();
-            assertEquals(100, res.getBytes());
+            assertEquals(100, res.getBytesAsLong());
             assertEquals("sample of size 100 bytes", res.getSampleLabel());
         }
 
+        @Test
         public void testSubResultsTrue() throws Exception {
             testSubResults(true, 0);
         }
 
+        @Test
         public void testSubResultsTrueThread() throws Exception {
             testSubResults(true, 500L, 0);
         }
 
+        @Test
         public void testSubResultsFalse() throws Exception {
             testSubResults(false, 0);
         }
 
+        @Test
         public void testSubResultsFalseThread() throws Exception {
             testSubResults(false, 500L, 0);
         }
 
+        @Test
         public void testSubResultsTruePause() throws Exception {
             testSubResults(true, 100);
         }
 
+        @Test
         public void testSubResultsTruePauseThread() throws Exception {
             testSubResults(true, 500L, 100);
         }
 
+        @Test
         public void testSubResultsFalsePause() throws Exception {
             testSubResults(false, 100);
         }
 
+        @Test
         public void testSubResultsFalsePauseThread() throws Exception {
             testSubResults(false, 500L, 100);
         }
@@ -192,14 +204,14 @@ public class TestSampleResult extends TestCase {
             // Sample that will get two sub results, simulates a web page load 
             SampleResult parent = new SampleResult(nanoTime, nanoThreadSleep);            
 
-            assertEquals(nanoTime, parent.useNanoTime);
+            JMeterTestCase.assertPrimitiveEquals(nanoTime, parent.useNanoTime);
             assertEquals(nanoThreadSleep, parent.nanoThreadSleep);
 
             long beginTest = parent.currentTimeInMillis();
 
             parent.sampleStart();
             Thread.sleep(100);
-            parent.setBytes(300);
+            parent.setBytes(300L);
             parent.setSampleLabel("Parent Sample");
             parent.setSuccessful(true);
             parent.sampleEnd();
@@ -209,14 +221,14 @@ public class TestSampleResult extends TestCase {
             SampleResult child1 = new SampleResult(nanoTime);            
             child1.sampleStart();
             Thread.sleep(100);
-            child1.setBytes(100);
+            child1.setBytes(100L);
             child1.setSampleLabel("Child1 Sample");
             child1.setSuccessful(true);
             child1.sampleEnd();
             long child1Elapsed = child1.getTime();
 
             assertTrue(child1.isSuccessful());
-            assertEquals(100, child1.getBytes());
+            assertEquals(100, child1.getBytesAsLong());
             assertEquals("Child1 Sample", child1.getSampleLabel());
             assertEquals(1, child1.getSampleCount());
             assertEquals(0, child1.getSubResults().length);
@@ -232,14 +244,14 @@ public class TestSampleResult extends TestCase {
             SampleResult child2 = new SampleResult(nanoTime);            
             child2.sampleStart();
             Thread.sleep(100);
-            child2.setBytes(200);
+            child2.setBytes(200L);
             child2.setSampleLabel("Child2 Sample");
             child2.setSuccessful(true);
             child2.sampleEnd();
             long child2Elapsed = child2.getTime();
 
             assertTrue(child2.isSuccessful());
-            assertEquals(200, child2.getBytes());
+            assertEquals(200, child2.getBytesAsLong());
             assertEquals("Child2 Sample", child2.getSampleLabel());
             assertEquals(1, child2.getSampleCount());
             assertEquals(0, child2.getSubResults().length);
@@ -248,7 +260,7 @@ public class TestSampleResult extends TestCase {
             parent.addSubResult(child1);
             parent.addSubResult(child2);
             assertTrue(parent.isSuccessful());
-            assertEquals(600, parent.getBytes());
+            assertEquals(600, parent.getBytesAsLong());
             assertEquals("Parent Sample", parent.getSampleLabel());
             assertEquals(1, parent.getSampleCount());
             assertEquals(2, parent.getSubResults().length);
@@ -264,7 +276,7 @@ public class TestSampleResult extends TestCase {
              */
             
             long diff = parentElapsedTotal - sumSamplesTimes;
-            long maxDiff = nanoTime ? 2 : 16; // TimeMillis has granularity of 10-20
+            long maxDiff = nanoTime ? 3 : 16; // TimeMillis has granularity of 10-20
             if (diff < 0 || diff > maxDiff) {
                 fail("ParentElapsed: " + parentElapsedTotal + " - " + " sum(samples): " + sumSamplesTimes
                         + " = " + diff + " not in [0," + maxDiff + "]; nanotime=" + nanoTime);
@@ -293,6 +305,7 @@ public class TestSampleResult extends TestCase {
 
         // TODO some more invalid sequence tests needed
         
+        @Test
         public void testEncodingAndType() throws Exception {
             // check default
             SampleResult res = new SampleResult();
@@ -323,6 +336,14 @@ public class TestSampleResult extends TestCase {
             assertEquals("aBCd",res.getDataEncodingWithDefault());
             assertEquals("aBCd",res.getDataEncodingNoDefault());
             assertEquals("text",res.getDataType());         
+        }
+
+        // sleep and return how long we actually slept
+        // may be rather longer if the system is busy
+        private long sleep(long ms) throws InterruptedException {
+            long start = System.currentTimeMillis();
+            Thread.sleep(ms);
+            return System.currentTimeMillis() - start;
         }
 }
 

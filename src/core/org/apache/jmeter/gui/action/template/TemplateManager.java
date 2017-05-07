@@ -22,12 +22,16 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
 /**
@@ -41,12 +45,12 @@ public class TemplateManager {
          * N.B. Must use LinkedHashMap for field type
          * XStream creates a plain HashMap if one uses Map as the field type.
          */
-        private final LinkedHashMap<String, Template> templates = new LinkedHashMap<String, Template>();
+        private final LinkedHashMap<String, Template> templates = new LinkedHashMap<>();
     }
     private static final String TEMPLATE_FILES = JMeterUtils.getPropDefault("template.files", // $NON-NLS-1$
             "/bin/templates/templates.xml");
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(TemplateManager.class);
     
     private static final TemplateManager SINGLETON = new TemplateManager();
     
@@ -54,7 +58,7 @@ public class TemplateManager {
 
     private final XStream xstream = initXStream();
 
-    public static final TemplateManager getInstance() {
+    public static TemplateManager getInstance() {
         return SINGLETON;
     }
     
@@ -63,7 +67,26 @@ public class TemplateManager {
     }
     
     private XStream initXStream() {
-        XStream xstream = new XStream(new DomDriver());
+        XStream xstream = new XStream(new DomDriver(){
+            /**
+             * Create the DocumentBuilderFactory instance.
+             * See https://blog.compass-security.com/2012/08/secure-xml-parser-configuration/
+             * See https://github.com/x-stream/xstream/issues/25
+             * @return the new instance
+             */
+            @Override
+            protected DocumentBuilderFactory createDocumentBuilderFactory() {
+                final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                try {
+                    factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                } catch (ParserConfigurationException e) {
+                    throw new StreamException(e);
+                }
+                factory.setExpandEntityReferences(false);
+                return factory;
+            }
+        });
         xstream.alias("template", Template.class);
         xstream.alias("templates", Templates.class);
         xstream.useAttributeFor(Template.class, "isTestPlan");
@@ -103,7 +126,7 @@ public class TemplateManager {
     }
 
     private Map<String, Template> readTemplates() {
-        final Map<String, Template> temps = new LinkedHashMap<String, Template>();
+        final Map<String, Template> temps = new LinkedHashMap<>();
        
         final String[] templateFiles = TEMPLATE_FILES.split(",");
         for (String templateFile : templateFiles) {
@@ -111,7 +134,9 @@ public class TemplateManager {
                 final File f = new File(JMeterUtils.getJMeterHome(), templateFile); 
                 try {
                     if(f.exists() && f.canRead()) {
-                        log.info("Reading templates from:"+f.getAbsolutePath());
+                        if (log.isInfoEnabled()) {
+                            log.info("Reading templates from: {}", f.getAbsolutePath());
+                        }
                         final File parent = f.getParentFile();
                         final LinkedHashMap<String, Template> templates = ((Templates) xstream.fromXML(f)).templates;
                         for(Template t : templates.values()) {
@@ -121,10 +146,16 @@ public class TemplateManager {
                         }
                         temps.putAll(templates);
                     } else {
-                        log.warn("Ignoring template file:'"+f.getAbsolutePath()+"' as it does not exist or is not readable");
+                        if (log.isWarnEnabled()) {
+                            log.warn("Ignoring template file:'{}' as it does not exist or is not readable",
+                                    f.getAbsolutePath());
+                        }
                     }
-                } catch(Exception ex) {                    
-                    log.warn("Ignoring template file:'"+f.getAbsolutePath()+"', an error occured parsing the file", ex);
+                } catch(Exception ex) {
+                    if (log.isWarnEnabled()) {
+                        log.warn("Ignoring template file:'{}', an error occurred parsing the file", f.getAbsolutePath(),
+                                ex);
+                    }
                 } 
             }
         }

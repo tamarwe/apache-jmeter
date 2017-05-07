@@ -27,10 +27,9 @@ import java.awt.Paint;
 import java.math.BigDecimal;
 
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
 import org.jCharts.axisChart.AxisChart;
 import org.jCharts.axisChart.customRenderers.axisValue.renderers.ValueLabelPosition;
 import org.jCharts.axisChart.customRenderers.axisValue.renderers.ValueLabelRenderer;
@@ -47,6 +46,8 @@ import org.jCharts.properties.LegendProperties;
 import org.jCharts.properties.PropertyException;
 import org.jCharts.properties.util.ChartFont;
 import org.jCharts.types.ChartType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -55,9 +56,9 @@ import org.jCharts.types.ChartType;
  */
 public class AxisGraph extends JPanel {
 
-    private static final long serialVersionUID = 240L;
+    private static final long serialVersionUID = 241L;
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(AxisGraph.class);
 
     private static final String ELLIPSIS = "..."; //$NON-NLS-1$
     private static final int ELLIPSIS_LEN = ELLIPSIS.length();
@@ -69,7 +70,8 @@ public class AxisGraph extends JPanel {
     protected String yAxisLabel;
     protected int maxLength;
     protected String[] xAxisLabels;
-    protected int width, height;
+    protected int width;
+    protected int height;
     
     protected String[] legendLabels = { JMeterUtils.getResString("aggregate_graph_legend") }; // $NON-NLS-1$
     
@@ -79,7 +81,9 @@ public class AxisGraph extends JPanel {
 
     protected Font legendFont;
 
-    protected Font valueFont = new Font("SansSerif", Font.PLAIN, 8);
+    private static final Font FONT_DEFAULT = UIManager.getDefaults().getFont("TextField.font");
+
+    protected Font valueFont = new Font("SansSerif", Font.PLAIN, (int) Math.round(FONT_DEFAULT.getSize() * 0.6));
 
     protected Color[] color = { Color.YELLOW };
 
@@ -315,13 +319,12 @@ public class AxisGraph extends JPanel {
         }
     }
 
-    private double findMax(double _data[][]) {
-        double max = 0;
-        max = _data[0][0];
-        for (int i = 0; i < _data.length; i++) {
-            for (int j = 0; j < _data[i].length; j++) {
-                if (_data[i][j] > max) {
-                    max = _data[i][j];
+    private double findMax(double[][] _data) {
+        double max = _data[0][0];
+        for (double[] dArray : _data) {
+            for (double d : dArray) {
+                if (d > max) {
+                    max = d;
                 }
             }
         }
@@ -399,14 +402,14 @@ public class AxisGraph extends JPanel {
 
             // Y Axis
             try {
-                BigDecimal round = new BigDecimal(max / 1000d);
+                BigDecimal round = BigDecimal.valueOf(max / 1000d);
                 round = round.setScale(0, BigDecimal.ROUND_UP);
                 double topValue = round.doubleValue() * 1000;
                 yaxis.setUserDefinedScale(0, 500);
                 yaxis.setNumItems((int) (topValue / 500)+1);
                 yaxis.setShowGridLines(1);
             } catch (PropertyException e) {
-                log.warn("",e);
+                log.warn("Chart property exception occurred.", e);
             }
 
             AxisProperties axisProperties= new AxisProperties(xaxis, yaxis);
@@ -426,10 +429,8 @@ public class AxisGraph extends JPanel {
                     legendProperties, _width, _height );
             axisChart.setGraphics2D((Graphics2D) g);
             axisChart.render();
-        } catch (ChartDataException e) {
-            log.warn("",e);
-        } catch (PropertyException e) {
-            log.warn("",e);
+        } catch (ChartDataException | PropertyException e) {
+            log.warn("Exception occurred while rendering chart.", e);
         }
     }
 

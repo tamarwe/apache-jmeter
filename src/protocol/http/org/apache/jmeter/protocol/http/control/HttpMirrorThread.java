@@ -25,14 +25,16 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.jmeter.protocol.http.util.HTTPConstants;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
+import org.slf4j.LoggerFactory;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
 import org.apache.oro.text.regex.MatchResult;
 import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.PatternMatcherInput;
@@ -55,9 +57,10 @@ import org.apache.oro.text.regex.Perl5Matcher;
  * v - verbose, i.e. print some details to stdout
  */
 public class HttpMirrorThread implements Runnable {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HttpMirrorThread.class);
 
-    private static final String ISO_8859_1 = "ISO-8859-1"; //$NON-NLS-1$
+    private static final Charset ISO_8859_1 = StandardCharsets.ISO_8859_1;
+
     private static final byte[] CRLF = { 0x0d, 0x0a };
 
     private static final String REDIRECT = "redirect"; //$NON-NLS-1$
@@ -107,11 +110,15 @@ public class HttpMirrorThread implements Runnable {
 
             baos.close();
             final String headerString = headers.toString();
+            if(headerString.length() == 0 || headerString.indexOf('\r') < 0) {
+                log.error("Invalid request received:'{}'", headerString);
+                return;
+            }
             final String firstLine = headerString.substring(0, headerString.indexOf('\r'));
             final String[] requestParts = firstLine.split("\\s+");
             final String requestMethod = requestParts[0];
             final String requestPath = requestParts[1];
-            final HashMap<String, String> parameters = new HashMap<String, String>();
+            final HashMap<String, String> parameters = new HashMap<>();
             if (HTTPConstants.GET.equals(requestMethod)) {
                 int querypos = requestPath.indexOf('?');
                 if (querypos >= 0) {
@@ -124,9 +131,9 @@ public class HttpMirrorThread implements Runnable {
                         query=requestPath.substring(querypos+1);
                     }
                     if (query != null) {
-                        String params[] = query.split("&");
+                        String[] params = query.split("&");
                         for(String param : params) {
-                            String parts[] = param.split("=",2);
+                            String[] parts = param.split("=",2);
                             if (parts.length==2) {
                                 parameters.put(parts[0], parts[1]);
                             } else { // allow for parameter name only
@@ -273,9 +280,7 @@ public class HttpMirrorThread implements Runnable {
             }
             log.debug("Flush");
             out.flush();
-        } catch (IOException e) {
-            log.error("", e);
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             log.error("", e);
         } finally {
             JOrphanUtils.closeQuietly(out);

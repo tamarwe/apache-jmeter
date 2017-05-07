@@ -22,6 +22,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.swing.JOptionPane;
 
 import org.apache.jmeter.gui.GuiPackage;
@@ -31,8 +32,8 @@ import org.apache.jmeter.util.JMeterUtils;
  * Handles the Revert Project command.
  *
  */
-public class RevertProject implements Command {
-    private static final Set<String> commands = new HashSet<String>();
+public class RevertProject extends AbstractActionWithNoRunningTest {
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.REVERT_PROJECT);
@@ -48,7 +49,7 @@ public class RevertProject implements Command {
     }
 
     @Override
-    public void doAction(ActionEvent e) {
+    public void doActionAfterCheck(ActionEvent e) {
         // Get the file name of the current project
         String projectFile = GuiPackage.getInstance().getTestPlanFile();
         // Check if the user has loaded any file

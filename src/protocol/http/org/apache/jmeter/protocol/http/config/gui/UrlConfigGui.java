@@ -20,19 +20,17 @@ package org.apache.jmeter.protocol.http.config.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -42,17 +40,18 @@ import org.apache.jmeter.config.ConfigTestElement;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.gui.util.JTextScrollPane;
-import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.protocol.http.gui.HTTPArgumentsPanel;
+import org.apache.jmeter.protocol.http.gui.HTTPFileArgsPanel;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
-import org.apache.jmeter.protocol.http.sampler.HTTPSamplerFactory;
 import org.apache.jmeter.protocol.http.util.HTTPArgument;
+import org.apache.jmeter.protocol.http.util.HTTPConstants;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.property.BooleanProperty;
-import org.apache.jmeter.testelement.property.PropertyIterator;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.JLabeledChoice;
+import org.apache.jorphan.gui.JLabeledTextField;
 
 /**
  * Basic URL / HTTP Request configuration:
@@ -69,33 +68,27 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
 
     private static final int TAB_PARAMETERS = 0;
     
-    private static final int TAB_RAW_BODY = 1;
+    private int tabRawBodyIndex = 1;
     
-    private static final Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 12);
+    private int tabFileUploadIndex = 2;
+
+    private static final Font FONT_DEFAULT = UIManager.getDefaults().getFont("TextField.font");
+    
+    private static final Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, (int) Math.round(FONT_DEFAULT.getSize() * 0.8));
 
     private HTTPArgumentsPanel argsPanel;
+    
+    private HTTPFileArgsPanel filesPanel;
 
-    private JTextField domain;
+    private JLabeledTextField domain;
 
-    private JTextField port;
+    private JLabeledTextField port;
 
-    private JTextField proxyHost;
+    private JLabeledTextField protocol;
 
-    private JTextField proxyPort;
+    private JLabeledTextField contentEncoding;
 
-    private JTextField proxyUser;
-
-    private JPasswordField proxyPass;
-
-    private JTextField connectTimeOut;
-
-    private JTextField responseTimeOut;
-
-    private JTextField protocol;
-
-    private JTextField contentEncoding;
-
-    private JTextField path;
+    private JLabeledTextField path;
 
     private JCheckBox followRedirects;
 
@@ -109,13 +102,9 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
 
     private JLabeledChoice method;
     
-    private JLabeledChoice httpImplementation;
-
-    private final boolean notConfigOnly;
     // set this false to suppress some items for use in HTTP Request defaults
+    private final boolean notConfigOnly;
     
-    private final boolean showImplementation; // Set false for AJP
-
     // Body data
     private JSyntaxTextArea postBodyContent;
 
@@ -123,6 +112,7 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
     private ValidationTabbedPane postContentTabbedPane;
 
     private boolean showRawBodyPane;
+    private boolean showFileUploadPane;
 
     /**
      * Constructor which is setup to show HTTP implementation, raw body pane and
@@ -139,21 +129,30 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
      *            flag whether sampler fields should be shown.
      */
     public UrlConfigGui(boolean showSamplerFields) {
-        this(showSamplerFields, true, true);
+        this(showSamplerFields, true);
     }
 
     /**
      * @param showSamplerFields
      *            flag whether sampler fields should be shown
-     * @param showImplementation
-     *            Show HTTP Implementation
      * @param showRawBodyPane
      *            flag whether the raw body pane should be shown
      */
-    public UrlConfigGui(boolean showSamplerFields, boolean showImplementation, boolean showRawBodyPane) {
-        notConfigOnly=showSamplerFields;
-        this.showImplementation = showImplementation;
+    public UrlConfigGui(boolean showSamplerFields, boolean showRawBodyPane) {
+        this(showSamplerFields, showRawBodyPane, false);
+    }
+    
+    /**
+     * @param showSamplerFields
+     *            flag whether sampler fields should be shown
+     * @param showRawBodyPane
+     *            flag whether the raw body pane should be shown
+     * @param showFileUploadPane flag whether the file upload pane should be shown
+     */
+    public UrlConfigGui(boolean showSamplerFields, boolean showRawBodyPane, boolean showFileUploadPane) {
+        this.notConfigOnly = showSamplerFields;
         this.showRawBodyPane = showRawBodyPane;
+        this.showFileUploadPane = showFileUploadPane;
         init();
     }
 
@@ -167,20 +166,14 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
             useMultipartForPost.setSelected(false);
             useBrowserCompatibleMultipartMode.setSelected(HTTPSamplerBase.BROWSER_COMPATIBLE_MULTIPART_MODE_DEFAULT);
         }
-        if (showImplementation) {
-            httpImplementation.setText(""); // $NON-NLS-1$
-        }
         path.setText(""); // $NON-NLS-1$
         port.setText(""); // $NON-NLS-1$
-        proxyHost.setText(""); // $NON-NLS-1$
-        proxyPort.setText(""); // $NON-NLS-1$
-        proxyUser.setText(""); // $NON-NLS-1$
-        proxyPass.setText(""); // $NON-NLS-1$
-        connectTimeOut.setText(""); // $NON-NLS-1$
-        responseTimeOut.setText(""); // $NON-NLS-1$
         protocol.setText(""); // $NON-NLS-1$
         contentEncoding.setText(""); // $NON-NLS-1$
         argsPanel.clear();
+        if(showFileUploadPane) {
+            filesPanel.clear();
+        }
         if(showRawBodyPane) {
             postBodyContent.setInitialText("");// $NON-NLS-1$
         }
@@ -203,7 +196,7 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
      * @param element {@link TestElement} to modify
      */
     public void modifyTestElement(TestElement element) {
-        boolean useRaw = postContentTabbedPane.getSelectedIndex()==TAB_RAW_BODY;
+        boolean useRaw = postContentTabbedPane.getSelectedIndex()==tabRawBodyIndex;
         Arguments args;
         if(useRaw) {
             args = new Arguments();
@@ -221,17 +214,14 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
         } else {
             args = (Arguments) argsPanel.createTestElement();
             HTTPArgument.convertArgumentsToHTTP(args);
+            if(showFileUploadPane) {
+                filesPanel.modifyTestElement(element);
+            }
         }
         element.setProperty(HTTPSamplerBase.POST_BODY_RAW, useRaw, HTTPSamplerBase.POST_BODY_RAW_DEFAULT);
         element.setProperty(new TestElementProperty(HTTPSamplerBase.ARGUMENTS, args));
         element.setProperty(HTTPSamplerBase.DOMAIN, domain.getText());
         element.setProperty(HTTPSamplerBase.PORT, port.getText());
-        element.setProperty(HTTPSamplerBase.PROXYHOST, proxyHost.getText(),"");
-        element.setProperty(HTTPSamplerBase.PROXYPORT, proxyPort.getText(),"");
-        element.setProperty(HTTPSamplerBase.PROXYUSER, proxyUser.getText(),"");
-        element.setProperty(HTTPSamplerBase.PROXYPASS, String.valueOf(proxyPass.getPassword()),"");
-        element.setProperty(HTTPSamplerBase.CONNECT_TIMEOUT, connectTimeOut.getText());
-        element.setProperty(HTTPSamplerBase.RESPONSE_TIMEOUT, responseTimeOut.getText());
         element.setProperty(HTTPSamplerBase.PROTOCOL, protocol.getText());
         element.setProperty(HTTPSamplerBase.CONTENT_ENCODING, contentEncoding.getText());
         element.setProperty(HTTPSamplerBase.PATH, path.getText());
@@ -243,9 +233,6 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
             element.setProperty(new BooleanProperty(HTTPSamplerBase.DO_MULTIPART_POST, useMultipartForPost.isSelected()));
             element.setProperty(HTTPSamplerBase.BROWSER_COMPATIBLE_MULTIPART, useBrowserCompatibleMultipartMode.isSelected(),HTTPSamplerBase.BROWSER_COMPATIBLE_MULTIPART_MODE_DEFAULT);
         }
-        if (showImplementation) {
-            element.setProperty(HTTPSamplerBase.IMPLEMENTATION, httpImplementation.getText(),"");
-        }
     }
 
     // FIXME FACTOR WITH HTTPHC4Impl, HTTPHC3Impl
@@ -255,7 +242,7 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
      * @param arguments {@link Arguments}
      * @return {@link String}
      */
-    private static final String computePostBody(Arguments arguments) {
+    private static String computePostBody(Arguments arguments) {
         return computePostBody(arguments, false);
     }
 
@@ -265,14 +252,13 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
      * @param crlfToLF whether to convert CRLF to LF
      * @return {@link String}
      */
-    private static final String computePostBody(Arguments arguments, boolean crlfToLF) {
+    private static String computePostBody(Arguments arguments, boolean crlfToLF) {
         StringBuilder postBody = new StringBuilder();
-        PropertyIterator args = arguments.iterator();
-        while (args.hasNext()) {
-            HTTPArgument arg = (HTTPArgument) args.next().getObjectValue();
+        for (JMeterProperty argument : arguments) {
+            HTTPArgument arg = (HTTPArgument) argument.getObjectValue();
             String value = arg.getValue();
             if (crlfToLF) {
-                value=value.replaceAll("\r\n", "\n"); // See modifyTestElement
+                value = value.replaceAll("\r\n", "\n"); // See modifyTestElement
             }
             postBody.append(value);
         }
@@ -294,10 +280,13 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
             String postBody = computePostBody(arguments, true); // Convert CRLF to CR, see modifyTestElement
             postBodyContent.setInitialText(postBody); 
             postBodyContent.setCaretPosition(0);
-            postContentTabbedPane.setSelectedIndex(TAB_RAW_BODY, false);
+            postContentTabbedPane.setSelectedIndex(tabRawBodyIndex, false);
         } else {
             argsPanel.configure(arguments);
             postContentTabbedPane.setSelectedIndex(TAB_PARAMETERS, false);
+            if(showFileUploadPane) {
+                filesPanel.configure(el);                
+            }
         }
 
         domain.setText(el.getPropertyAsString(HTTPSamplerBase.DOMAIN));
@@ -310,12 +299,6 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
         } else {
             port.setText(portString);
         }
-        proxyHost.setText(el.getPropertyAsString(HTTPSamplerBase.PROXYHOST));
-        proxyPort.setText(el.getPropertyAsString(HTTPSamplerBase.PROXYPORT));
-        proxyUser.setText(el.getPropertyAsString(HTTPSamplerBase.PROXYUSER));
-        proxyPass.setText(el.getPropertyAsString(HTTPSamplerBase.PROXYPASS));
-        connectTimeOut.setText(el.getPropertyAsString(HTTPSamplerBase.CONNECT_TIMEOUT));
-        responseTimeOut.setText(el.getPropertyAsString(HTTPSamplerBase.RESPONSE_TIMEOUT));
         protocol.setText(el.getPropertyAsString(HTTPSamplerBase.PROTOCOL));
         contentEncoding.setText(el.getPropertyAsString(HTTPSamplerBase.CONTENT_ENCODING));
         path.setText(el.getPropertyAsString(HTTPSamplerBase.PATH));
@@ -328,9 +311,6 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
             useBrowserCompatibleMultipartMode.setSelected(el.getPropertyAsBoolean(
                     HTTPSamplerBase.BROWSER_COMPATIBLE_MULTIPART, HTTPSamplerBase.BROWSER_COMPATIBLE_MULTIPART_MODE_DEFAULT));
         }
-        if (showImplementation) {
-            httpImplementation.setText(el.getPropertyAsString(HTTPSamplerBase.IMPLEMENTATION));
-        }
     }
 
     private void init() {// called from ctor, so must not be overridable
@@ -342,190 +322,52 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
         webRequestPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
                 JMeterUtils.getResString("web_request"))); // $NON-NLS-1$
 
-        JPanel northPanel = new JPanel();
-        northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
-        northPanel.add(getProtocolAndMethodPanel());
-        northPanel.add(getPathPanel());
-
-        webRequestPanel.add(northPanel, BorderLayout.NORTH);
+        webRequestPanel.add(getPathPanel(), BorderLayout.NORTH);
         webRequestPanel.add(getParameterPanel(), BorderLayout.CENTER);
 
-        this.add(getWebServerTimeoutPanel(), BorderLayout.NORTH);
+        this.add(getWebServerPanel(), BorderLayout.NORTH);
         this.add(webRequestPanel, BorderLayout.CENTER);
-        this.add(getProxyServerPanel(), BorderLayout.SOUTH); 
     }
 
     /**
-     * Create a panel containing the webserver (domain+port) and timeouts (connect+request).
+     * Create a panel containing the webserver (domain+port) and scheme.
      *
      * @return the panel
      */
-    protected final JPanel getWebServerTimeoutPanel() {
-        // WEB SERVER PANEL
+    protected final JPanel getWebServerPanel() {        
+        // PROTOCOL
+        protocol = new JLabeledTextField(JMeterUtils.getResString("protocol"), 4); // $NON-NLS-1$
+        port = new JLabeledTextField(JMeterUtils.getResString("web_server_port"), 7); // $NON-NLS-1$
+        domain = new JLabeledTextField(JMeterUtils.getResString("web_server_domain"), 40); // $NON-NLS-1$
+
         JPanel webServerPanel = new HorizontalPanel();
         webServerPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
                 JMeterUtils.getResString("web_server"))); // $NON-NLS-1$
-        final JPanel domainPanel = getDomainPanel();
-        final JPanel portPanel = getPortPanel();
-        webServerPanel.add(domainPanel, BorderLayout.CENTER);
-        webServerPanel.add(portPanel, BorderLayout.EAST);
-
-        JPanel timeOut = new HorizontalPanel();
-        timeOut.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-                JMeterUtils.getResString("web_server_timeout_title"))); // $NON-NLS-1$
-        final JPanel connPanel = getConnectTimeOutPanel();
-        final JPanel reqPanel = getResponseTimeOutPanel();
-        timeOut.add(connPanel);
-        timeOut.add(reqPanel);
-
-        JPanel webServerTimeoutPanel = new VerticalPanel();
-        webServerTimeoutPanel.add(webServerPanel, BorderLayout.CENTER);
-        webServerTimeoutPanel.add(timeOut, BorderLayout.EAST);
-
-        JPanel bigPanel = new VerticalPanel();
-        bigPanel.add(webServerTimeoutPanel);
-        return bigPanel;
+        webServerPanel.add(protocol);
+        webServerPanel.add(domain);
+        webServerPanel.add(port);
+        return webServerPanel;
     }
+
 
     /**
-     * Create a panel containing the proxy server details
-     *
-     * @return the panel
-     */
-    protected final JPanel getProxyServerPanel(){
-        JPanel proxyServer = new HorizontalPanel();
-        proxyServer.add(getProxyHostPanel(), BorderLayout.CENTER);
-        proxyServer.add(getProxyPortPanel(), BorderLayout.EAST);
-
-        JPanel proxyLogin = new HorizontalPanel();
-        proxyLogin.add(getProxyUserPanel());
-        proxyLogin.add(getProxyPassPanel());
-
-        JPanel proxyServerPanel = new HorizontalPanel();
-        proxyServerPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
-                JMeterUtils.getResString("web_proxy_server_title"))); // $NON-NLS-1$
-        proxyServerPanel.add(proxyServer);
-        proxyServerPanel.add(proxyLogin);
-
-        return proxyServerPanel;
-    }
-
-    private JPanel getPortPanel() {
-        port = new JTextField(10);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("web_server_port")); // $NON-NLS-1$
-        label.setLabelFor(port);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(port, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel getProxyPortPanel() {
-        proxyPort = new JTextField(10);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("web_server_port")); // $NON-NLS-1$
-        label.setLabelFor(proxyPort);
-        label.setFont(FONT_SMALL);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(proxyPort, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel getConnectTimeOutPanel() {
-        connectTimeOut = new JTextField(10);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("web_server_timeout_connect")); // $NON-NLS-1$
-        label.setLabelFor(connectTimeOut);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(connectTimeOut, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel getResponseTimeOutPanel() {
-        responseTimeOut = new JTextField(10);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("web_server_timeout_response")); // $NON-NLS-1$
-        label.setLabelFor(responseTimeOut);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(responseTimeOut, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel getDomainPanel() {
-        domain = new JTextField(20);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("web_server_domain")); // $NON-NLS-1$
-        label.setLabelFor(domain);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(domain, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel getProxyHostPanel() {
-        proxyHost = new JTextField(10);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("web_server_domain")); // $NON-NLS-1$
-        label.setLabelFor(proxyHost);
-        label.setFont(FONT_SMALL);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(proxyHost, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel getProxyUserPanel() {
-        proxyUser = new JTextField(5);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("username")); // $NON-NLS-1$
-        label.setLabelFor(proxyUser);
-        label.setFont(FONT_SMALL);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(proxyUser, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel getProxyPassPanel() {
-        proxyPass = new JPasswordField(5);
-
-        JLabel label = new JLabel(JMeterUtils.getResString("password")); // $NON-NLS-1$
-        label.setLabelFor(proxyPass);
-        label.setFont(FONT_SMALL);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.WEST);
-        panel.add(proxyPass, BorderLayout.CENTER);
-        return panel;
-    }
-
-    /**
-     * This method defines the Panel for the HTTP path, 'Follow Redirects'
-     * 'Use KeepAlive', and 'Use multipart for HTTP POST' elements.
+     * This method defines the Panel for:
+     *  the HTTP path, Method and Content Encoding
+     *  'Follow Redirects', 'Use KeepAlive', and 'Use multipart for HTTP POST' elements.
      *
      * @return JPanel The Panel for the path, 'Follow Redirects' and 'Use
      *         KeepAlive' elements.
      */
     protected Component getPathPanel() {
-        path = new JTextField(15);
+        path = new JLabeledTextField(JMeterUtils.getResString("path"), 80); //$NON-NLS-1$
+        // CONTENT_ENCODING
+        contentEncoding = new JLabeledTextField(JMeterUtils.getResString("content_encoding"), 7); // $NON-NLS-1$
 
-        JLabel label = new JLabel(JMeterUtils.getResString("path")); //$NON-NLS-1$
-        label.setLabelFor(path);
+        if (notConfigOnly){
+            method = new JLabeledChoice(JMeterUtils.getResString("method"), // $NON-NLS-1$
+                    HTTPSamplerBase.getValidMethodsAsArray(), true, false);
+            method.addChangeListener(this);
+        }
 
         if (notConfigOnly){
             followRedirects = new JCheckBox(JMeterUtils.getResString("follow_redirects")); // $NON-NLS-1$
@@ -552,10 +394,13 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
 
         }
 
-        JPanel pathPanel = new HorizontalPanel();
-        pathPanel.add(label);
+        JPanel pathPanel =  new HorizontalPanel();
+        pathPanel.setPreferredSize(new Dimension(80,30));
+        if (notConfigOnly){
+            pathPanel.add(method);
+        }
         pathPanel.add(path);
-
+        pathPanel.add(contentEncoding);
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(pathPanel);
@@ -574,58 +419,22 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
         return panel;
     }
 
-    protected JPanel getProtocolAndMethodPanel() {
-
-        // Implementation
-        
-        if (showImplementation) {
-            httpImplementation = new JLabeledChoice(JMeterUtils.getResString("http_implementation"), // $NON-NLS-1$
-                    HTTPSamplerFactory.getImplementations());
-            httpImplementation.addValue("");
-        }
-        // PROTOCOL
-        protocol = new JTextField(4);
-        JLabel protocolLabel = new JLabel(JMeterUtils.getResString("protocol")); // $NON-NLS-1$
-        protocolLabel.setLabelFor(protocol);        
-        
-        // CONTENT_ENCODING
-        contentEncoding = new JTextField(10);
-        JLabel contentEncodingLabel = new JLabel(JMeterUtils.getResString("content_encoding")); // $NON-NLS-1$
-        contentEncodingLabel.setLabelFor(contentEncoding);
-
-        if (notConfigOnly){
-            method = new JLabeledChoice(JMeterUtils.getResString("method"), // $NON-NLS-1$
-                    HTTPSamplerBase.getValidMethodsAsArray());
-        }
-
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-        if (showImplementation) {
-            panel.add(httpImplementation);
-        }
-        panel.add(protocolLabel);
-        panel.add(protocol);
-        panel.add(Box.createHorizontalStrut(5));
-
-        if (notConfigOnly){
-            panel.add(method);
-        }
-        panel.setMinimumSize(panel.getPreferredSize());
-        panel.add(Box.createHorizontalStrut(5));
-
-        panel.add(contentEncodingLabel);
-        panel.add(contentEncoding);
-        panel.setMinimumSize(panel.getPreferredSize());
-        return panel;
-    }
-
     protected JTabbedPane getParameterPanel() {
         postContentTabbedPane = new ValidationTabbedPane();
         argsPanel = new HTTPArgumentsPanel();
         postContentTabbedPane.add(JMeterUtils.getResString("post_as_parameters"), argsPanel);// $NON-NLS-1$
+        
+        int indx = TAB_PARAMETERS;
         if(showRawBodyPane) {
-            postBodyContent = new JSyntaxTextArea(30, 50);// $NON-NLS-1$
-            postContentTabbedPane.add(JMeterUtils.getResString("post_body"), new JTextScrollPane(postBodyContent));// $NON-NLS-1$
+            tabRawBodyIndex = ++indx;
+            postBodyContent = JSyntaxTextArea.getInstance(30, 50);// $NON-NLS-1$
+            postContentTabbedPane.add(JMeterUtils.getResString("post_body"), JTextScrollPane.getInstance(postBodyContent));// $NON-NLS-1$
+        }
+        
+        if(showFileUploadPane) {
+            tabFileUploadIndex = ++indx;
+            filesPanel = new HTTPFileArgsPanel();
+            postContentTabbedPane.add(JMeterUtils.getResString("post_files_upload"), filesPanel);            
         }
         return postContentTabbedPane;
     }
@@ -633,16 +442,14 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
     /**
      * 
      */
-    class ValidationTabbedPane extends JTabbedPane{
+    class ValidationTabbedPane extends JTabbedPane {
 
         /**
          * 
          */
         private static final long serialVersionUID = 7014311238367882880L;
 
-        /* (non-Javadoc)
-         * @see javax.swing.JTabbedPane#setSelectedIndex(int)
-         */
+        
         @Override
         public void setSelectedIndex(int index) {
             setSelectedIndex(index, true);
@@ -658,23 +465,32 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
          *            index
          */
         public void setSelectedIndex(int index, boolean check) {
-            int oldSelectedIndex = getSelectedIndex();
-            if(!check || oldSelectedIndex==-1) {
+            int oldSelectedIndex = this.getSelectedIndex();
+            if(!check || oldSelectedIndex == -1) {
                 super.setSelectedIndex(index);
             }
-            else if(index != this.getSelectedIndex())
+            else if(index != oldSelectedIndex)
             {
-                if(noData(getSelectedIndex())) {
-                    // If there is no data, then switching between Parameters and Raw should be
-                    // allowed with no further user interaction.
+                // If there is no data, then switching between Parameters/file upload and Raw should be
+                // allowed with no further user interaction.
+                if(noData(oldSelectedIndex)) {
                     argsPanel.clear();
                     postBodyContent.setInitialText("");
+                    if(showFileUploadPane) {
+                        filesPanel.clear();
+                    }
                     super.setSelectedIndex(index);
                 }
-                else { 
-                    if(oldSelectedIndex == TAB_RAW_BODY) {
+                else {
+                    boolean filePanelHasData = false;
+                    if(showFileUploadPane) {
+                        filePanelHasData = filesPanel.hasData();
+                    }
+                    
+                    if(oldSelectedIndex == tabRawBodyIndex) {
+                        
                         // If RAW data and Parameters match we allow switching
-                        if(postBodyContent.getText().equals(computePostBody((Arguments)argsPanel.createTestElement()).trim())) {
+                        if(index == TAB_PARAMETERS && postBodyContent.getText().equals(computePostBody((Arguments)argsPanel.createTestElement()).trim())) {
                             super.setSelectedIndex(index);
                         }
                         else {
@@ -689,9 +505,18 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
                         }
                     }
                     else {
-                        // If the Parameter data can be converted (i.e. no names), we 
-                        // warn the user that the Parameter data will be lost.
-                        if(canConvertParameters()) {
+                        // can switch from parameter to fileupload
+                        if((oldSelectedIndex == TAB_PARAMETERS
+                                && index == tabFileUploadIndex)
+                             || (oldSelectedIndex == tabFileUploadIndex
+                                     && index == TAB_PARAMETERS)) {
+                            super.setSelectedIndex(index);
+                            return;
+                        }
+                        
+                        // If the Parameter data can be converted (i.e. no names) and there is no data in file upload
+                        // we warn the user that the Parameter data will be lost.
+                        if(oldSelectedIndex == TAB_PARAMETERS && !filePanelHasData && canConvertParameters()) {
                             Object[] options = {
                                     JMeterUtils.getResString("confirm"), // $NON-NLS-1$
                                     JMeterUtils.getResString("cancel")}; // $NON-NLS-1$
@@ -714,8 +539,9 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
                         else {
                             // If the Parameter data cannot be converted to Raw, then the user should be
                             // prevented from doing so raise an error dialog
+                            String messageKey = filePanelHasData?"web_cannot_switch_tab":"web_cannot_convert_parameters_to_raw";
                             JOptionPane.showConfirmDialog(this,
-                                    JMeterUtils.getResString("web_cannot_convert_parameters_to_raw"), // $NON-NLS-1$
+                                    JMeterUtils.getResString(messageKey), // $NON-NLS-1$
                                     JMeterUtils.getResString("warning"), // $NON-NLS-1$
                                     JOptionPane.DEFAULT_OPTION, 
                                     JOptionPane.ERROR_MESSAGE);
@@ -734,10 +560,15 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
                 followRedirects.setSelected(false);
             }
         }
-        if (e.getSource() == followRedirects){
+        else if (e.getSource() == followRedirects){
             if (followRedirects.isSelected()) {
                 autoRedirects.setSelected(false);
             }
+        }
+        // disable the multi-part if not a post request
+        else if(e.getSource() == method) {
+            boolean isPostMethod = HTTPConstants.POST.equals(method.getText());
+            useMultipartForPost.setEnabled(isPostMethod);    
         }
     }
 
@@ -755,7 +586,7 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
      * @return true if no argument has a name
      */
     boolean canConvertParameters() {
-        Arguments arguments = (Arguments)argsPanel.createTestElement();
+        Arguments arguments = (Arguments) argsPanel.createTestElement();
         for (int i = 0; i < arguments.getArgumentCount(); i++) {
             if(!StringUtils.isEmpty(arguments.getArgument(i).getName())) {
                 return false;
@@ -767,17 +598,22 @@ public class UrlConfigGui extends JPanel implements ChangeListener {
     /**
      * Checks if no data is available in the selected tab
      *
-     * @param oldSelectedIndex
-     *            the tab to check for data
+     * @param oldSelectedIndex the tab to check for data
      * @return true if neither Parameters tab nor Raw Body tab contain data
      */
     boolean noData(int oldSelectedIndex) {
-        if(oldSelectedIndex == TAB_RAW_BODY) {
+        if(oldSelectedIndex == tabRawBodyIndex) {
             return StringUtils.isEmpty(postBodyContent.getText().trim());
         }
         else {
-            Arguments element = (Arguments)argsPanel.createTestElement();
-            return StringUtils.isEmpty(computePostBody(element));
+            boolean noData = true;
+            Arguments element = (Arguments) argsPanel.createTestElement();
+            
+            if(showFileUploadPane) {
+                noData &= !filesPanel.hasData();
+            }
+            
+            return noData && StringUtils.isEmpty(computePostBody(element));
         }
     }
 }

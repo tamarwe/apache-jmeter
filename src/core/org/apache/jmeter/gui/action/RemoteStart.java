@@ -32,20 +32,16 @@ import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.threads.RemoteThreadsListenerTestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
 
 public class RemoteStart extends AbstractAction {
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
-
-    private static final String LOCAL_HOST = "127.0.0.1"; // $NON-NLS-1$
+    private static final String LOCAL_HOST = "127.0.0.1"; // NOSONAR $NON-NLS-1$
 
     private static final String REMOTE_HOSTS = "remote_hosts"; // $NON-NLS-1$ jmeter.properties
 
     private static final String REMOTE_HOSTS_SEPARATOR = ","; // $NON-NLS-1$
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.REMOTE_START);
@@ -78,12 +74,18 @@ public class RemoteStart extends AbstractAction {
             distributedRunner.shutdown(Arrays.asList(name));
         } else if (action.equals(ActionNames.REMOTE_START)) {
             popupShouldSave(e);
-            distributedRunner.init(Arrays.asList(name), getTestTree());
-            distributedRunner.start(Arrays.asList(name));
+            HashTree testTree = getTestTree();
+            if ( popupCheckExistingFileListener(testTree) ) {
+                distributedRunner.init(Arrays.asList(name), testTree);
+                distributedRunner.start(Arrays.asList(name));
+            }
         } else if (action.equals(ActionNames.REMOTE_START_ALL)) {
             popupShouldSave(e);
-            distributedRunner.init(getRemoteHosts(), getTestTree());
-            distributedRunner.start();
+            HashTree testTree = getTestTree();
+            if ( popupCheckExistingFileListener(testTree) ) {
+                distributedRunner.init(getRemoteHosts(), testTree);
+                distributedRunner.start();
+            }
         } else if (action.equals(ActionNames.REMOTE_STOP_ALL)) {
             distributedRunner.stop(getRemoteHosts());
         } else if (action.equals(ActionNames.REMOTE_SHUT_ALL)) {
@@ -96,11 +98,12 @@ public class RemoteStart extends AbstractAction {
     }
 
     private List<String> getRemoteHosts() {
-        String remote_hosts_string = JMeterUtils.getPropDefault(REMOTE_HOSTS, LOCAL_HOST);
-        StringTokenizer st = new StringTokenizer(remote_hosts_string, REMOTE_HOSTS_SEPARATOR);
-        List<String> list = new LinkedList<String>();
-        while (st.hasMoreElements())
+        String remoteHostsString = JMeterUtils.getPropDefault(REMOTE_HOSTS, LOCAL_HOST);
+        StringTokenizer st = new StringTokenizer(remoteHostsString, REMOTE_HOSTS_SEPARATOR);
+        List<String> list = new LinkedList<>();
+        while (st.hasMoreElements()) {
             list.add((String) st.nextElement());
+        }
         return list;
     }
 

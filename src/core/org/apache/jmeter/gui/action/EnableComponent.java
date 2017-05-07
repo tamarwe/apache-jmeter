@@ -24,16 +24,16 @@ import java.util.Set;
 
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the Enable menu item.
  */
-public class EnableComponent implements Command {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+public class EnableComponent extends AbstractAction {
+    private static final Logger log = LoggerFactory.getLogger(EnableComponent.class);
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.ENABLE);
@@ -70,10 +70,10 @@ public class EnableComponent implements Command {
 
     private void toggleComponents(JMeterTreeNode[] nodes) {
         GuiPackage pack = GuiPackage.getInstance();
-        for (int i = 0; i < nodes.length; i++) {
-            boolean enable = !nodes[i].isEnabled();
-            nodes[i].setEnabled(enable);
-            pack.getGui(nodes[i].getTestElement()).setEnabled(enable);
+        for (JMeterTreeNode node : nodes) {
+            boolean enable = !node.isEnabled();
+            node.setEnabled(enable);
+            pack.getGui(node.getTestElement()).setEnabled(enable);
         }
     }
 

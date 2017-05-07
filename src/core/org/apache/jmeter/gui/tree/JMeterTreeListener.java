@@ -18,7 +18,6 @@
 
 package org.apache.jmeter.gui.tree;
 
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -38,11 +37,11 @@ import org.apache.jmeter.gui.MainFrame;
 import org.apache.jmeter.gui.action.ActionNames;
 import org.apache.jmeter.gui.action.ActionRouter;
 import org.apache.jmeter.gui.action.KeyStrokes;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JMeterTreeListener implements TreeSelectionListener, MouseListener, KeyListener {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(JMeterTreeListener.class);
 
     private TreePath currentPath;
 
@@ -97,16 +96,6 @@ public class JMeterTreeListener implements TreeSelectionListener, MouseListener,
     }
 
     /**
-     * Sets the EndWindow attribute of the JMeterTreeListener object.
-     *
-     * @param window
-     *            the new EndWindow value
-     */
-    public void setEndWindow(Container window) {
-        // endWindow = window;
-    }
-
-    /**
      * Gets the JTree attribute of the JMeterTreeListener object.
      *
      * @return tree the current JTree value.
@@ -154,8 +143,8 @@ public class JMeterTreeListener implements TreeSelectionListener, MouseListener,
         currentPath = e.getNewLeadSelectionPath();
         // Call requestFocusInWindow to ensure current component loses focus and
         // all values are correctly saved
-        // see https://issues.apache.org/bugzilla/show_bug.cgi?id=55103
-        // see https://issues.apache.org/bugzilla/show_bug.cgi?id=55459
+        // see https://bz.apache.org/bugzilla/show_bug.cgi?id=55103
+        // see https://bz.apache.org/bugzilla/show_bug.cgi?id=55459
         tree.requestFocusInWindow();
         actionHandler.actionPerformed(new ActionEvent(this, 3333, ActionNames.EDIT)); // $NON-NLS-1$
     }
@@ -219,6 +208,10 @@ public class JMeterTreeListener implements TreeSelectionListener, MouseListener,
             actionName = ActionNames.MOVE_LEFT;
         } else if (KeyStrokes.matches(e, KeyStrokes.ALT_RIGHT_ARROW)) {
             actionName = ActionNames.MOVE_RIGHT;
+        } else if (KeyStrokes.matches(e, KeyStrokes.SHIFT_LEFT_ARROW)) {
+            actionName = ActionNames.COLLAPSE;
+        } else if (KeyStrokes.matches(e, KeyStrokes.SHIFT_RIGHT_ARROW)) {
+            actionName = ActionNames.EXPAND;
         } 
         
         if (actionName != null) {

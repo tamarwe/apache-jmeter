@@ -24,9 +24,8 @@ import org.apache.jmeter.testelement.TestElement;
  * For JMeterProperties that hold multiple properties within, provides a simple
  * interface for retrieving a property iterator for the sub values.
  *
- * @version $Revision: 1647786 $
  */
-public abstract class MultiProperty extends AbstractProperty {
+public abstract class MultiProperty extends AbstractProperty implements Iterable<JMeterProperty> {
     private static final long serialVersionUID = 240L;
 
     public MultiProperty() {
@@ -43,6 +42,7 @@ public abstract class MultiProperty extends AbstractProperty {
      *
      * @return an iterator for the sub-values of this property
      */
+    @Override
     public abstract PropertyIterator iterator();
 
     /**
@@ -60,9 +60,8 @@ public abstract class MultiProperty extends AbstractProperty {
     @Override
     public void setRunningVersion(boolean running) {
         super.setRunningVersion(running);
-        PropertyIterator iter = iterator();
-        while (iter.hasNext()) {
-            iter.next().setRunningVersion(running);
+        for (JMeterProperty jMeterProperty : this) {
+            jMeterProperty.setRunningVersion(running);
         }
     }
 
@@ -85,9 +84,7 @@ public abstract class MultiProperty extends AbstractProperty {
         }
         log.debug("merging in " + prop.getClass());
         if (prop instanceof MultiProperty) {
-            PropertyIterator iter = ((MultiProperty) prop).iterator();
-            while (iter.hasNext()) {
-                JMeterProperty item = iter.next();
+            for (JMeterProperty item : (MultiProperty) prop) {
                 addProperty(item);
             }
         } else {

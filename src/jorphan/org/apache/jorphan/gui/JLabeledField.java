@@ -24,7 +24,6 @@ import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
 
 /**
- * @version $Revision: 1595401 $
  */
 public interface JLabeledField {
     String getText();

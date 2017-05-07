@@ -87,15 +87,22 @@ public abstract class SamplerResultTab implements ResultRenderer {
 
     private JTextPane stats;
 
-    private JPanel resultsPane; /** Response Data pane */
-    protected JScrollPane resultsScrollPane; /** Contains results; contained in resultsPane */
-    protected JEditorPane results; /** Response Data shown here */
+    /** Response Data pane */
+    private JPanel resultsPane;
+    
+    /** Contains results; contained in resultsPane */
+    protected JScrollPane resultsScrollPane;
+    
+    /** Response Data shown here */
+    protected JEditorPane results;
 
     private JLabel imageLabel;
 
-    private RequestPanel requestPanel; /** request pane content */
+    /** request pane content */
+    private RequestPanel requestPanel;
 
-    protected JTabbedPane rightSide; /** holds the tabbed panes */
+    /** holds the tabbed panes */
+    protected JTabbedPane rightSide;
 
     private int lastSelectedTab;
 
@@ -125,11 +132,11 @@ public abstract class SamplerResultTab implements ResultRenderer {
             "view_results_table_fields_key", // $NON-NLS-1$
             "view_results_table_fields_value" }; // $NON-NLS-1$
 
-    private ObjectTableModel resultModel = null;
+    private final ObjectTableModel resultModel;
 
-    private ObjectTableModel resHeadersModel = null;
+    private final ObjectTableModel resHeadersModel;
 
-    private ObjectTableModel resFieldsModel = null;
+    private final ObjectTableModel resFieldsModel;
 
     private JTable tableResult = null;
 
@@ -231,11 +238,13 @@ public abstract class SamplerResultTab implements ResultRenderer {
                 statsBuff.append(JMeterUtils.getResString("view_results_load_time")).append(sampleResult.getTime()).append(NL); //$NON-NLS-1$
                 statsBuff.append(JMeterUtils.getResString("view_results_connect_time")).append(sampleResult.getConnectTime()).append(NL); //$NON-NLS-1$
                 statsBuff.append(JMeterUtils.getResString("view_results_latency")).append(sampleResult.getLatency()).append(NL); //$NON-NLS-1$
-                statsBuff.append(JMeterUtils.getResString("view_results_size_in_bytes")).append(sampleResult.getBytes()).append(NL); //$NON-NLS-1$
+                statsBuff.append(JMeterUtils.getResString("view_results_size_in_bytes")).append(sampleResult.getBytesAsLong()).append(NL); //$NON-NLS-1$
+                statsBuff.append(JMeterUtils.getResString("view_results_sent_bytes")).append(sampleResult.getSentBytes()).append(NL); //$NON-NLS-1$
                 statsBuff.append(JMeterUtils.getResString("view_results_size_headers_in_bytes")).append(sampleResult.getHeadersSize()).append(NL); //$NON-NLS-1$
-                statsBuff.append(JMeterUtils.getResString("view_results_size_body_in_bytes")).append(sampleResult.getBodySize()).append(NL); //$NON-NLS-1$
+                statsBuff.append(JMeterUtils.getResString("view_results_size_body_in_bytes")).append(sampleResult.getBodySizeAsLong()).append(NL); //$NON-NLS-1$
                 statsBuff.append(JMeterUtils.getResString("view_results_sample_count")).append(sampleResult.getSampleCount()).append(NL); //$NON-NLS-1$
                 statsBuff.append(JMeterUtils.getResString("view_results_error_count")).append(sampleResult.getErrorCount()).append(NL); //$NON-NLS-1$
+                statsBuff.append(JMeterUtils.getResString("view_results_datatype")).append(sampleResult.getDataType()).append(NL); //$NON-NLS-1$
                 statsDoc.insertString(statsDoc.getLength(), statsBuff.toString(), null);
                 statsBuff.setLength(0); // reset for reuse
 
@@ -281,16 +290,18 @@ public abstract class SamplerResultTab implements ResultRenderer {
                 statsBuff.append("ContentType: ").append(sampleResult.getContentType()).append(NL); //$NON-NLS-1$
                 statsBuff.append("DataEncoding: ").append(sampleResult.getDataEncodingNoDefault()).append(NL); //$NON-NLS-1$
                 statsDoc.insertString(statsDoc.getLength(), statsBuff.toString(), null);
-                statsBuff = null; // Done
+                statsBuff = null; // NOSONAR Help gc
                 
                 // Tabbed results: fill table
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_thread_name"), sampleResult.getThreadName())); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_sample_start"), startTime)); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_load_time"), sampleResult.getTime())); //$NON-NLS-1$
+                resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_connect_time"), sampleResult.getConnectTime())); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_latency"), sampleResult.getLatency())); //$NON-NLS-1$
-                resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_size_in_bytes"), sampleResult.getBytes())); //$NON-NLS-1$
+                resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_size_in_bytes"), sampleResult.getBytesAsLong())); //$NON-NLS-1$
+                resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_sent_bytes"),sampleResult.getSentBytes())); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_size_headers_in_bytes"), sampleResult.getHeadersSize())); //$NON-NLS-1$
-                resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_size_body_in_bytes"), sampleResult.getBodySize())); //$NON-NLS-1$
+                resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_size_body_in_bytes"), sampleResult.getBodySizeAsLong())); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_sample_count"), sampleResult.getSampleCount())); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_error_count"), sampleResult.getErrorCount())); //$NON-NLS-1$
                 resultModel.addRow(new RowResult(JMeterUtils.getParsedLabel("view_results_response_code"), responseCode)); //$NON-NLS-1$
@@ -326,6 +337,7 @@ public abstract class SamplerResultTab implements ResultRenderer {
                 statsBuff.append(JMeterUtils.getResString("view_results_assertion_failure_message")).append(assertionResult.getFailureMessage()).append(NL); //$NON-NLS-1$
                 statsDoc.insertString(statsDoc.getLength(), statsBuff.toString(), null);
             }
+            stats.setCaretPosition(1);
         } catch (BadLocationException exc) {
             stats.setText(exc.getLocalizedMessage());
         }
@@ -395,7 +407,8 @@ public abstract class SamplerResultTab implements ResultRenderer {
         paneRaw.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
         // Set up the 1st table Result with empty headers
-        tableResult = new JTable(resultModel);     
+        tableResult = new JTable(resultModel);
+        JMeterUtils.applyHiDPI(tableResult);
         tableResult.setToolTipText(JMeterUtils.getResString("textbox_tooltip_cell")); // $NON-NLS-1$
         tableResult.addMouseListener(new TextBoxDoubleClick(tableResult));
         setFirstColumnPreferredSize(tableResult);
@@ -403,6 +416,7 @@ public abstract class SamplerResultTab implements ResultRenderer {
 
         // Set up the 2nd table 
         tableResHeaders = new JTable(resHeadersModel);
+        JMeterUtils.applyHiDPI(tableResHeaders);
         tableResHeaders.setToolTipText(JMeterUtils.getResString("textbox_tooltip_cell")); // $NON-NLS-1$
         tableResHeaders.addMouseListener(new TextBoxDoubleClick(tableResHeaders));
         setFirstColumnPreferredSize(tableResHeaders);
@@ -412,6 +426,7 @@ public abstract class SamplerResultTab implements ResultRenderer {
 
         // Set up the 3rd table 
         tableResFields = new JTable(resFieldsModel);
+        JMeterUtils.applyHiDPI(tableResFields);
         tableResFields.setToolTipText(JMeterUtils.getResString("textbox_tooltip_cell")); // $NON-NLS-1$
         tableResFields.addMouseListener(new TextBoxDoubleClick(tableResFields));
         setFirstColumnPreferredSize(tableResFields);

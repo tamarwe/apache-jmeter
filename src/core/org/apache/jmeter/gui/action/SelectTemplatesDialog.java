@@ -39,6 +39,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
@@ -51,8 +52,8 @@ import org.apache.jmeter.swing.HtmlPane;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.ComponentUtil;
 import org.apache.jorphan.gui.JLabeledChoice;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Dialog used for Templates selection
@@ -60,25 +61,27 @@ import org.apache.log.Logger;
  */
 public class SelectTemplatesDialog extends JDialog implements ChangeListener, ActionListener, HyperlinkListener {
 
-    private static final long serialVersionUID = -4436834972710248247L;
+    private static final long serialVersionUID = 1;
     
     // Minimal dimensions for dialog box
     private static final int MINIMAL_BOX_WIDTH = 500;
     private static final int MINIMAL_BOX_HEIGHT = 300;
     
-    private Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10); // $NON-NLS-1$
+    private static final Font FONT_DEFAULT = UIManager.getDefaults().getFont("TextField.font"); //$NON-NLS-1$
 
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, (int) Math.round(FONT_DEFAULT.getSize() * 0.8)); //$NON-NLS-1$
 
-    private final JLabeledChoice templateList = new JLabeledChoice(JMeterUtils.getResString("template_choose"), false); //$NON-NLS-1$;
+    private static final Logger log = LoggerFactory.getLogger(SelectTemplatesDialog.class);
+
+    private final JLabeledChoice templateList = new JLabeledChoice(JMeterUtils.getResString("template_choose"), false); //$NON-NLS-1$
 
     private final HtmlPane helpDoc = new HtmlPane();
 
-    private final JButton reloadTemplateButton = new JButton(JMeterUtils.getResString("template_reload")); //$NON-NLS-1$;
+    private final JButton reloadTemplateButton = new JButton(JMeterUtils.getResString("template_reload")); //$NON-NLS-1$
 
     private final JButton applyTemplateButton = new JButton();
 
-    private final JButton cancelButton = new JButton(JMeterUtils.getResString("cancel")); //$NON-NLS-1$;
+    private final JButton cancelButton = new JButton(JMeterUtils.getResString("cancel")); //$NON-NLS-1$
     
     private final JScrollPane scroller = new JScrollPane(helpDoc);
 
@@ -163,7 +166,7 @@ public class SelectTemplatesDialog extends JDialog implements ChangeListener, Ac
         this.setVisible(false);
     }
 
-    private void init() {
+    private void init() { // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
         templateList.setValues(TemplateManager.getInstance().getTemplateNames());            
         templateList.addChangeListener(this);
         reloadTemplateButton.addActionListener(this);
@@ -234,7 +237,7 @@ public class SelectTemplatesDialog extends JDialog implements ChangeListener, Ac
                 try {
                     java.awt.Desktop.getDesktop().browse(e.getURL().toURI());
                 } catch (Exception ex) {
-                    log.error("Error opening URL in browser:"+e.getURL());
+                    log.error("Error opening URL in browser: {}", e.getURL());
                 } 
             }
         }

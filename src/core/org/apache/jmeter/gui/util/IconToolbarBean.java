@@ -20,12 +20,12 @@
 package org.apache.jmeter.gui.util;
 
 import org.apache.jmeter.gui.action.ActionNames;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class IconToolbarBean {
     
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(IconToolbarBean.class);
 
     private static final String ICON_FIELD_SEP = ",";  //$NON-NLS-1$
 
@@ -40,13 +40,13 @@ public final class IconToolbarBean {
     /**
      * Constructor to transform a line value (from icon set file) to a icon bean for toolbar.
      * @param strToSplit - the line value (i18n key, ActionNames ID, icon path, optional icon pressed path)
-     * @throws JMeterException if error in parsing.
+     * @throws IllegalArgumentException if error in parsing.
      */
     IconToolbarBean(final String strToSplit, final String iconSize) throws IllegalArgumentException {
         if (strToSplit == null) {
             throw new IllegalArgumentException("Icon definition must not be null"); //$NON-NLS-1$
         }
-        final String tmp[] = strToSplit.split(ICON_FIELD_SEP);
+        final String[] tmp = strToSplit.split(ICON_FIELD_SEP);
         if (tmp.length > 2) {
             this.i18nKey = tmp[0];
             this.actionName = tmp[1];
@@ -66,7 +66,7 @@ public final class IconToolbarBean {
         try {
             aName = (String) (ActionNames.class.getField(this.actionName).get(null));
         } catch (Exception e) {
-            log.warn("Toolbar icon Action names error: " + this.actionName + ", use unknown action."); //$NON-NLS-1$
+            log.warn("Toolbar icon Action names error: {}, use unknown action.", this.actionName); //$NON-NLS-1$
             return this.actionName; // return unknown action names for display error msg
         }
         return aName;

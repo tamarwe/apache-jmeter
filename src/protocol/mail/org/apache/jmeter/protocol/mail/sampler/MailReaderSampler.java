@@ -54,27 +54,26 @@ import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.property.BooleanProperty;
 import org.apache.jmeter.testelement.property.IntegerProperty;
 import org.apache.jmeter.testelement.property.StringProperty;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sampler that can read from POP3 and IMAP mail servers
  */
 public class MailReaderSampler extends AbstractSampler implements Interruptible {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(MailReaderSampler.class);
 
     private static final long serialVersionUID = 240L;
 
-    private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<String>(
-            Arrays.asList(new String[]{
-                    "org.apache.jmeter.config.gui.SimpleConfigGui"}));
+    private static final Set<String> APPLIABLE_CONFIG_CLASSES = new HashSet<>(
+            Arrays.asList("org.apache.jmeter.config.gui.SimpleConfigGui"));
 
     //+ JMX attributes - do not change the values
     private static final String SERVER_TYPE = "host_type"; // $NON-NLS-1$
     private static final String SERVER = "host"; // $NON-NLS-1$
     private static final String PORT = "port"; // $NON-NLS-1$
     private static final String USERNAME = "username"; // $NON-NLS-1$
-    private static final String PASSWORD = "password"; // $NON-NLS-1$
+    private static final String PASSWORD = "password"; // $NON-NLS-1$ NOSONAR not a hardcoded password
     private static final String FOLDER = "folder"; // $NON-NLS-1$
     private static final String DELETE = "delete"; // $NON-NLS-1$
     private static final String NUM_MESSAGES = "num_messages"; // $NON-NLS-1$
@@ -221,7 +220,7 @@ public class MailReaderSampler extends AbstractSampler implements Interruptible 
             }
 
             // Get directory
-            Message messages[] = folder.getMessages(1,n);
+            Message[] messages = folder.getMessages(1,n);
             StringBuilder pdata = new StringBuilder();
             pdata.append(messages.length);
             pdata.append(" messages found\n");
@@ -290,7 +289,7 @@ public class MailReaderSampler extends AbstractSampler implements Interruptible 
             parent.setResponseCodeOK();
             parent.setResponseMessageOK();
             isOK = true;
-        } catch (NoClassDefFoundError ex) {
+        } catch (NoClassDefFoundError | IOException ex) {
             log.debug("",ex);// No need to log normally, as we set the status
             parent.setResponseCode("500"); // $NON-NLS-1$
             parent.setResponseMessage(ex.toString());
@@ -298,10 +297,6 @@ public class MailReaderSampler extends AbstractSampler implements Interruptible 
             log.debug("", ex);// No need to log normally, as we set the status
             parent.setResponseCode("500"); // $NON-NLS-1$
             parent.setResponseMessage(ex.toString() + "\n" + samplerString); // $NON-NLS-1$
-        } catch (IOException ex) {
-            log.debug("", ex);// No need to log normally, as we set the status
-            parent.setResponseCode("500"); // $NON-NLS-1$
-            parent.setResponseMessage(ex.toString());
         } finally {
             busy = false;
         }
@@ -484,21 +479,21 @@ public class MailReaderSampler extends AbstractSampler implements Interruptible 
     }
 
     /**
-     * @param num_messages -
+     * @param numMessages -
      *            The number of messages to retrieve from the mail server. Set
      *            this value to -1 to retrieve all messages.
      */
-    public void setNumMessages(int num_messages) {
-        setProperty(new IntegerProperty(NUM_MESSAGES, num_messages));
+    public void setNumMessages(int numMessages) {
+        setProperty(new IntegerProperty(NUM_MESSAGES, numMessages));
     }
 
     /**
-     * @param num_messages -
+     * @param numMessages -
      *            The number of messages to retrieve from the mail server. Set
      *            this value to -1 to retrieve all messages.
      */
-    public void setNumMessages(String num_messages) {
-        setProperty(new StringProperty(NUM_MESSAGES, num_messages));
+    public void setNumMessages(String numMessages) {
+        setProperty(new StringProperty(NUM_MESSAGES, numMessages));
     }
 
     /**

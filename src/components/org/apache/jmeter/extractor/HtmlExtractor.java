@@ -31,34 +31,23 @@ import org.apache.jmeter.testelement.property.IntegerProperty;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
  */
 public class HtmlExtractor extends AbstractScopedTestElement implements PostProcessor, Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     public static final String EXTRACTOR_JSOUP = "JSOUP"; //$NON-NLS-1$
 
     public static final String EXTRACTOR_JODD = "JODD"; //$NON-NLS-1$
 
-    /**
-     * Get the possible extractor implementations
-     * @return Array containing the names of the possible extractors.
-     */
-    public static String[] getImplementations(){
-        return new String[]{EXTRACTOR_JSOUP,EXTRACTOR_JODD};
-    }
-
     public static final String DEFAULT_EXTRACTOR = ""; // $NON-NLS-1$
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 3978073849365558131L;
-
-    private static final Logger log = LoggingManager.getLoggerForClass();
+    private static final Logger log = LoggerFactory.getLogger(HtmlExtractor.class);
 
     private static final String EXPRESSION = "HtmlExtractor.expr"; // $NON-NLS-1$
 
@@ -76,7 +65,18 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
     
     private static final String UNDERSCORE = "_";  // $NON-NLS-1$
     
+    private static final String DEFAULT_EMPTY_VALUE = "HtmlExtractor.default_empty_value"; // $NON-NLS-1$
+
     private Extractor extractor;
+    
+    /**
+     * Get the possible extractor implementations
+     * @return Array containing the names of the possible extractors.
+     */
+    public static String[] getImplementations(){
+        return new String[]{EXTRACTOR_JSOUP,EXTRACTOR_JODD};
+    }
+
 
     /**
      * Parses the response data using CSS/JQuery expressions and saving the results
@@ -91,8 +91,9 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
         if (previousResult == null) {
             return;
         }
-        log.debug("HtmlExtractor processing result");
-
+        if(log.isDebugEnabled()) {
+            log.debug("HtmlExtractor {}: processing result", getName());
+        }
         // Fetch some variables
         JMeterVariables vars = context.getVariables();
         
@@ -102,7 +103,7 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
         int matchNumber = getMatchNumber();
         final String defaultValue = getDefaultValue();
         
-        if (defaultValue.length() > 0){// Only replace default if it is provided
+        if (defaultValue.length() > 0  || isEmptyDefaultValue()){// Only replace default if it is provided or empty default value is explicitly requested
             vars.put(refName, defaultValue);
         }
         
@@ -115,41 +116,40 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
                 vars.remove(refName + REF_MATCH_NR);// ensure old value is not left defined
                 try {
                     prevCount = Integer.parseInt(prevString);
-                } catch (NumberFormatException e1) {
-                    log.warn("Could not parse "+prevString+" "+e1);
+                } catch (NumberFormatException nfe) {
+                    if (log.isWarnEnabled()) {
+                        log.warn("{}: Could not parse number: '{}'.", getName(), prevString);
+                    }
                 }
             }
             int matchCount=0;// Number of refName_n variable sets to keep
-            try {
-                String match;
-                if (matchNumber >= 0) {// Original match behaviour
-                    match = getCorrectMatch(matches, matchNumber);
+            String match;
+            if (matchNumber >= 0) {// Original match behaviour
+                match = getCorrectMatch(matches, matchNumber);
+                if (match != null) {
+                    vars.put(refName, match);
+                } 
+            } else // < 0 means we save all the matches
+            {
+                matchCount = matches.size();
+                vars.put(refName + REF_MATCH_NR, Integer.toString(matchCount));// Save the count
+                for (int i = 1; i <= matchCount; i++) {
+                    match = getCorrectMatch(matches, i);
                     if (match != null) {
-                        vars.put(refName, match);
-                    } 
-                } else // < 0 means we save all the matches
-                {
-                    matchCount = matches.size();
-                    vars.put(refName + REF_MATCH_NR, Integer.toString(matchCount));// Save the count
-                    for (int i = 1; i <= matchCount; i++) {
-                        match = getCorrectMatch(matches, i);
-                        if (match != null) {
-                            final String refName_n = new StringBuilder(refName).append(UNDERSCORE).append(i).toString();
-                            vars.put(refName_n, match);
-                        }
+                        final String refNameN = new StringBuilder(refName).append(UNDERSCORE).append(i).toString();
+                        vars.put(refNameN, match);
                     }
                 }
-                // Remove any left-over variables
-                for (int i = matchCount + 1; i <= prevCount; i++) {
-                    final String refName_n = new StringBuilder(refName).append(UNDERSCORE).append(i).toString();
-                    vars.remove(refName_n);
-                }
-            } catch (RuntimeException e) {
-                log.warn("Error while generating result");
             }
-
+            // Remove any left-over variables
+            for (int i = matchCount + 1; i <= prevCount; i++) {
+                final String refNameN = new StringBuilder(refName).append(UNDERSCORE).append(i).toString();
+                vars.remove(refNameN);
+            }
         } catch (RuntimeException e) {
-            log.warn("Error while generating result");
+            if (log.isWarnEnabled()) {
+                log.warn("{}: Error while generating result. {}", getName(), e.toString());
+            }
         }
 
     }
@@ -182,14 +182,17 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
             String expression, String attribute, int matchNumber,
             SampleResult previousResult) {
         int found = 0;
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         if (isScopeVariable()){
             String inputString=vars.get(getVariableName());
             if(!StringUtils.isEmpty(inputString)) {
                 getExtractorImpl().extract(expression, attribute, matchNumber, inputString, result, found, "-1");
             } else {
                 if(inputString==null) {
-                    log.warn("No variable '"+getVariableName()+"' found to process by Css/JQuery Extractor '"+getName()+"', skipping processing");
+                    if (log.isWarnEnabled()) {
+                        log.warn("No variable '{}' found to process by CSS/JQuery Extractor '{}', skipping processing",
+                                getVariableName(), getName());
+                    }
                 }
                 return Collections.emptyList();
             } 
@@ -213,7 +216,7 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
      * @param impl Extractor implementation
      * @return Extractor
      */
-    public static final Extractor getExtractorImpl(String impl) {
+    public static Extractor getExtractorImpl(String impl) {
         boolean useDefaultExtractor = DEFAULT_EXTRACTOR.equals(impl);
         if (useDefaultExtractor || EXTRACTOR_JSOUP.equals(impl)) {
             return new JSoupExtractor();
@@ -312,10 +315,24 @@ public class HtmlExtractor extends AbstractScopedTestElement implements PostProc
     }
 
     /**
+     * @param defaultEmptyValue boolean set value to "" if not found
+     */
+    public void setDefaultEmptyValue(boolean defaultEmptyValue) {
+        setProperty(DEFAULT_EMPTY_VALUE, defaultEmptyValue);
+    }
+    
+    /**
      * Get the default value for the variable if no matches are found
      * @return The default value for the variable
      */
     public String getDefaultValue() {
         return getPropertyAsString(DEFAULT);
+    }
+    
+    /**
+     * @return boolean set value to "" if not found
+     */
+    public boolean isEmptyDefaultValue() {
+        return getPropertyAsBoolean(DEFAULT_EMPTY_VALUE);
     }
 }

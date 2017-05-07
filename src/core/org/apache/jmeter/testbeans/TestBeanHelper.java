@@ -32,12 +32,11 @@ import org.apache.jmeter.testelement.property.CollectionProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.MultiProperty;
 import org.apache.jmeter.testelement.property.NullProperty;
-import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.Converter;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is an experimental class. An attempt to address the complexity of
@@ -50,7 +49,7 @@ import org.apache.log.Logger;
  *
  */
 public class TestBeanHelper {
-    protected static final Logger log = LoggingManager.getLoggerForClass();
+    protected static final Logger log = LoggerFactory.getLogger(TestBeanHelper.class);
 
     /**
      * Prepare the bean for work by populating the bean's properties from the
@@ -58,9 +57,7 @@ public class TestBeanHelper {
      * <p>
      *
      * @param el the TestElement to be prepared
-     * @deprecated to limit it's usage in expectation of moving it elsewhere.
      */
-    @Deprecated
     public static void prepare(TestElement el) {
         if (!(el instanceof TestBean)) {
             return;
@@ -70,13 +67,13 @@ public class TestBeanHelper {
             PropertyDescriptor[] descs = beanInfo.getPropertyDescriptors();
 
             if (log.isDebugEnabled()) {
-                log.debug("Preparing " + el.getClass());
+                log.debug("Preparing {}", el.getClass());
             }
 
             for (PropertyDescriptor desc : descs) {
                 if (isDescriptorIgnored(desc)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Ignoring property '" + desc.getName() + "' in " + el.getClass().getCanonicalName());
+                        log.debug("Ignoring property '{}' in {}", desc.getName(), el.getClass().getCanonicalName());
                     }
                     continue;
                 }
@@ -86,7 +83,7 @@ public class TestBeanHelper {
                 Object value = unwrapProperty(desc, jprop, type);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Setting " + jprop.getName() + "=" + value);
+                    log.debug("Setting {}={}", jprop.getName(), value);
                 }
 
                 // Set the bean's property to the value we just obtained:
@@ -100,9 +97,9 @@ public class TestBeanHelper {
                 }
             }
         } catch (IntrospectionException e) {
-            log.error("Couldn't set properties for " + el.getClass().getName(), e);
+            log.error("Couldn't set properties for {}", el.getClass(), e);
         } catch (UnsatisfiedLinkError ule) { // Can occur running headless on Jenkins
-            log.error("Couldn't set properties for " + el.getClass().getName());
+            log.error("Couldn't set properties for {}", el.getClass());
             throw ule;
         }
     }
@@ -133,21 +130,17 @@ public class TestBeanHelper {
         return value;
     }
 
-    private static Object unwrapCollection(MultiProperty prop,String type)
+    private static Object unwrapCollection(MultiProperty prop, String type)
     {
         if(prop instanceof CollectionProperty)
         {
-            Collection<Object> values = new LinkedList<Object>();
-            PropertyIterator iter = prop.iterator();
-            while(iter.hasNext())
-            {
-                try
-                {
-                    values.add(unwrapProperty(null,iter.next(),Class.forName(type)));
+            Collection<Object> values = new LinkedList<>();
+            for (JMeterProperty jMeterProperty : prop) {
+                try {
+                    values.add(unwrapProperty(null, jMeterProperty, Class.forName(type)));
                 }
-                catch(Exception e)
-                {
-                    log.error("Couldn't convert object: " + prop.getObjectValue() + " to " + type,e);
+                catch(Exception e) {
+                    log.error("Couldn't convert object: {} to {}", prop.getObjectValue(), type, e);
                 }
             }
             return values;
@@ -170,11 +163,7 @@ public class TestBeanHelper {
     private static Object invokeOrBailOut(Object invokee, Method method, Object[] params) {
         try {
             return method.invoke(invokee, params);
-        } catch (IllegalArgumentException e) {
-            throw new Error(createMessage(invokee, method, params), e);
-        } catch (IllegalAccessException e) {
-            throw new Error(createMessage(invokee, method, params), e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
             throw new Error(createMessage(invokee, method, params), e);
         }
     }

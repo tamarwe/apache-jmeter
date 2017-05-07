@@ -26,16 +26,16 @@ import java.util.Set;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jorphan.logging.LoggingManager;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the Add Parent menu command
  */
-public class AddParent implements Command {
-    private static final Logger log = LoggingManager.getLoggerForClass();
+public class AddParent extends AbstractAction {
+    private static final Logger log = LoggerFactory.getLogger(AddParent.class);
 
-    private static final Set<String> commands = new HashSet<String>();
+    private static final Set<String> commands = new HashSet<>();
 
     static {
         commands.add(ActionNames.ADD_PARENT);
@@ -53,7 +53,7 @@ public class AddParent implements Command {
             TestElement controller = guiPackage.createTestElement(name);
             addParentToTree(controller);
         } catch (Exception err) {
-            log.error("", err);
+            log.error("Exception while adding a TestElement.", err);
         }
 
     }

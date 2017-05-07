@@ -57,7 +57,7 @@ public class SharedTCLogParser extends TCLogParser implements TestCloneable {
         } catch (Exception exception) {
             log.error("Problem creating samples", exception);
         }
-        return -1;// indicate that an error occured
+        return -1;// indicate that an error occurred
     }
 
     /**
@@ -95,9 +95,6 @@ public class SharedTCLogParser extends TCLogParser implements TestCloneable {
             }
             if (line == null) {
                 breader.closeFile(FILENAME);
-                // this.READER = new BufferedReader(new
-                // FileReader(this.SOURCE));
-                // parse(this.READER,el);
             }
         } catch (IOException ioe) {
             log.error("Error reading log file", ioe);

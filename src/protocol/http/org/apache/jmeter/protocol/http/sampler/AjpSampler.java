@@ -35,13 +35,11 @@ import org.apache.jmeter.protocol.http.control.HeaderManager;
 import org.apache.jmeter.protocol.http.util.HTTPConstants;
 import org.apache.jmeter.protocol.http.util.HTTPFileArg;
 import org.apache.jmeter.samplers.Interruptible;
-import org.apache.jmeter.testelement.property.CollectionProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
-import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.apache.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Selector for the AJP/1.3 protocol
@@ -52,9 +50,9 @@ import org.apache.log.Logger;
  */
 public class AjpSampler extends HTTPSamplerBase implements Interruptible {
 
-    private static final long serialVersionUID = 233L;
+    private static final long serialVersionUID = 234L;
 
-    private static final Logger log= LoggingManager.getLoggerForClass();
+    private static final Logger log= LoggerFactory.getLogger(AjpSampler.class);
 
     private static final char NEWLINE = '\n';
     private static final String COLON_SPACE = ": ";//$NON-NLS-1$
@@ -62,7 +60,7 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
     /**
      *  Translates integer codes to request header names
      */
-    private static final String []headerTransArray = {
+    private static final String[] HEADER_TRANS_ARRAY = {
         "accept",               //$NON-NLS-1$
         "accept-charset",       //$NON-NLS-1$
         "accept-encoding",      //$NON-NLS-1$
@@ -109,7 +107,6 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
                        boolean frd,
                        int fd) {
         HTTPSampleResult res = new HTTPSampleResult();
-        res.setMonitor(false);
         res.setSampleLabel(url.toExternalForm());
         res.sampleStart();
         try {
@@ -241,10 +238,8 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
         setInt(0xA00b); //Host
         setString(host);
         if(headers != null) {
-            CollectionProperty coll = headers.getHeaders();
-            PropertyIterator i = coll.iterator();
-            while(i.hasNext()) {
-                Header header = (Header)i.next().getObjectValue();
+            for (JMeterProperty jMeterProperty : headers.getHeaders()) {
+                Header header = (Header) jMeterProperty.getObjectValue();
                 String n = header.getName();
                 String v = header.getValue();
                 hbuf.append(n).append(COLON_SPACE).append(v).append(NEWLINE);
@@ -283,10 +278,8 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
                 setString(HTTPConstants.APPLICATION_X_WWW_FORM_URLENCODED);
                 StringBuilder sb = new StringBuilder();
                 boolean first = true;
-                PropertyIterator args = getArguments().iterator();
-                while(args.hasNext()) {
-                    JMeterProperty arg = args.next();
-                    if(first) {
+                for (JMeterProperty arg : getArguments()) {
+                    if (first) {
                         first = false;
                     } else {
                         sb.append('&');
@@ -316,15 +309,12 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
     private String encode(String value)  {
         StringBuilder newValue = new StringBuilder();
         char[] chars = value.toCharArray();
-        for (int i = 0; i < chars.length; i++)
-        {
-            if (chars[i] == '\\')//$NON-NLS-1$
+        for (char c : chars) {
+            if (c == '\\')//$NON-NLS-1$
             {
                 newValue.append("\\\\");//$NON-NLS-1$
-            }
-            else
-            {
-                newValue.append(chars[i]);
+            } else {
+                newValue.append(c);
             }
         }
         return newValue.toString();
@@ -334,10 +324,8 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
         String cookieHeader = null;
         if(cookies != null) {
             cookieHeader = cookies.getCookieHeaderForURL(url);
-            CollectionProperty coll = cookies.getCookies();
-            PropertyIterator i = coll.iterator();
-            while(i.hasNext()) {
-                Cookie cookie = (Cookie)(i.next().getObjectValue());
+            for (JMeterProperty jMeterProperty : cookies.getCookies()) {
+                Cookie cookie = (Cookie)(jMeterProperty.getObjectValue());
                 setInt(0xA009); // Cookie
                 setString(cookie.getName()+"="+cookie.getValue());//$NON-NLS-1$
             }
@@ -346,8 +334,8 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
     }
 
     private int translateHeader(String n) {
-        for(int i=0; i < headerTransArray.length; i++) {
-            if(headerTransArray[i].equalsIgnoreCase(n)) {
+        for(int i=0; i < HEADER_TRANS_ARRAY.length; i++) {
+            if(HEADER_TRANS_ARRAY[i].equalsIgnoreCase(n)) {
                 return i+1;
             }
         }
@@ -453,7 +441,7 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
             String name;
             int thn = peekInt();
             if((thn & 0xff00) == AJP_HEADER_BASE) {
-                name = headerTransArray[(thn&0xff)-1];
+                name = HEADER_TRANS_ARRAY[(thn&0xff)-1];
                 getInt(); // we need to use up the int now
             } else {
                 name = getString();
@@ -483,7 +471,6 @@ public class AjpSampler extends HTTPSamplerBase implements Interruptible {
             channel = null;
             throw new IOException("Connection Closed: "+nr);
         }
-    //int mark =
         getInt();
         int len = getInt();
         int toRead = len;
