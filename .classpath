@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_131x64_sun">
-		<accessrules>
-			<accessrule kind="accessible" pattern="javafx/**"/>
-		</accessrules>
-	</classpathentry>
+	<classpathentry kind="src" output="build/test" path="test/resources"/>	
 	<classpathentry kind="src" output="build/components" path="src/components"/>
 	<classpathentry kind="src" output="build/core" path="src/core"/>
 	<classpathentry kind="src" output="build/examples" path="src/examples"/>
@@ -22,6 +18,11 @@
 	<classpathentry kind="src" output="build/protocol/native" path="src/protocol/native"/>
 	<classpathentry kind="src" output="build/protocol/tcp" path="src/protocol/tcp"/>
 	<classpathentry kind="src" output="build/test" path="test/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_131x64_sun">
+		<accessrules>
+			<accessrule kind="accessible" pattern="javafx/**"/>
+		</accessrules>
+	</classpathentry>	
 	<classpathentry kind="lib" path="lib/accessors-smart-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/asm-5.2.jar"/>
 	<classpathentry kind="lib" path="lib/bsf-2.4.0.jar"/>
@@ -84,7 +85,6 @@
 	<classpathentry kind="lib" path="lib/xstream-1.4.9.jar"/>
 	<classpathentry kind="lib" path="lib/api/bcmail-jdk15on-1.49.jar"/>
 	<classpathentry kind="lib" path="lib/api/bcprov-jdk15on-1.49.jar"/>
-	<classpathentry kind="lib" path="lib/api/bcpkix-jdk15on-1.49.jar"/>
-	<classpathentry kind="src" output="build/test" path="test/resources"/>
+	<classpathentry kind="lib" path="lib/api/bcpkix-jdk15on-1.49.jar"/>	
 	<classpathentry kind="output" path="classes"/>
 </classpath>
