@@ -17,6 +17,7 @@
 	<classpathentry kind="src" output="build/protocol/mongodb" path="src/protocol/mongodb"/>
 	<classpathentry kind="src" output="build/protocol/native" path="src/protocol/native"/>
 	<classpathentry kind="src" output="build/protocol/tcp" path="src/protocol/tcp"/>
+	<classpathentry kind="src" output="build/odc" path="src/odc"/>
 	<classpathentry kind="src" output="build/test" path="test/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_131x64_sun">
 		<accessrules>
