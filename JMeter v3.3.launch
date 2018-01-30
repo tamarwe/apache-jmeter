@@ -16,5 +16,4 @@
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-t HiringSample.jmx"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="apache-jmeter"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-XX:+HeapDumpOnOutOfMemoryError -Xms512m -Xmx2048m -XX:NewSize=128m -XX:MaxNewSize=128m -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=50 -XX:MaxTenuringThreshold=2  -XX:+CMSClassUnloadingEnabled -Djmeter.home=C:/gitbash/opt/eclipse/workspace/apache-jmeter"/>
-<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc}/apache-jmeter/bin"/>
 </launchConfiguration>
