@@ -1,0 +1,14 @@
+##E:\IBM\WebSphere\AppServer\bin>wsadmin.bat -lang jacl -f createusers.jacl -user bpmadmin -password bpmadmin
+set a 1
+set userid lswbenchmark
+while {$a < 21} {
+  append userid $a
+  puts "Creating $userid...."
+  set str "-uid $userid -password password -confirmPassword password -cn lswbenchmark -sn lswbenchmark"
+  $AdminTask createUser $str
+  unset userid
+  set userid lswbenchmark
+  incr a
+}
+$AdminConfig save
+puts "all done"

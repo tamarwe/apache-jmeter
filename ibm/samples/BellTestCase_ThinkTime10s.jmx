@@ -1,0 +1,1549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="2.7" jmeter="2.12 r1636949">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Blueprints BPM Performance Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+    </TestPlan>
+    <hashTree>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="UsersAmount" elementType="Argument">
+            <stringProp name="Argument.name">UsersAmount</stringProp>
+            <stringProp name="Argument.value">${__property(users)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="rampUP" elementType="Argument">
+            <stringProp name="Argument.name">rampUP</stringProp>
+            <stringProp name="Argument.value">${__property(rampup)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Comprehensive Flow BPD Bench" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${UsersAmount}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${rampUP}</stringProp>
+        <longProp name="ThreadGroup.start_time">1422995461000</longProp>
+        <longProp name="ThreadGroup.end_time">1422995461000</longProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Thread Group Variables" enabled="true">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="ServerIP" elementType="Argument">
+              <stringProp name="Argument.metadata">=</stringProp>
+              <stringProp name="Argument.value">bp-staging-appserv.int.bell.ca</stringProp>
+              <stringProp name="Argument.name">ServerIP</stringProp>
+              <stringProp name="Argument.desc">Runtime server </stringProp>
+            </elementProp>
+            <elementProp name="ServerPort" elementType="Argument">
+              <stringProp name="Argument.metadata">=</stringProp>
+              <stringProp name="Argument.value">8443</stringProp>
+              <stringProp name="Argument.name">ServerPort</stringProp>
+            </elementProp>
+            <elementProp name="BPDPath" elementType="Argument">
+              <stringProp name="Argument.name">BPDPath</stringProp>
+              <stringProp name="Argument.value">/rest/bpm/wle/v1/process</stringProp>
+              <stringProp name="Argument.desc">Path of BPD</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="BPDID" elementType="Argument">
+              <stringProp name="Argument.name">BPDID</stringProp>
+              <stringProp name="Argument.value">25.fde8eb37-9bae-4696-8e13-8ee7ca0e3497</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="BPDSnapshotID" elementType="Argument">
+              <stringProp name="Argument.name">BPDSnapshotID</stringProp>
+              <stringProp name="Argument.value">2064.71e1bd88-56da-42c0-924d-31ce339d8a2f</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="MultiSelectBPDID" elementType="Argument">
+              <stringProp name="Argument.name">MultiSelectBPDID</stringProp>
+              <stringProp name="Argument.value">bpdid:6fe49a42dc8d1a72:-5b8eaf5b:14b2e798ee0:-7f63</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="YesNoBPDID" elementType="Argument">
+              <stringProp name="Argument.name">YesNoBPDID</stringProp>
+              <stringProp name="Argument.value">bpdid:6fe49a42dc8d1a72:-5b8eaf5b:14b2e798ee0:-7e57</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="FinishBPDID" elementType="Argument">
+              <stringProp name="Argument.name">FinishBPDID</stringProp>
+              <stringProp name="Argument.value">bpdid:6fe49a42dc8d1a72:-5b8eaf5b:14b2e798ee0:-7e35</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="WrapUpBPDID" elementType="Argument">
+              <stringProp name="Argument.name">WrapUpBPDID</stringProp>
+              <stringProp name="Argument.value">bpdid:6fe49a42dc8d1a72:-5b8eaf5b:14b2e798ee0:-7f97</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="BPDStartAction" elementType="Argument">
+              <stringProp name="Argument.name">BPDStartAction</stringProp>
+              <stringProp name="Argument.value">start</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="TaskPath" elementType="Argument">
+              <stringProp name="Argument.name">TaskPath</stringProp>
+              <stringProp name="Argument.value">/rest/bpm/wle/v1/task</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="ServicePath" elementType="Argument">
+              <stringProp name="Argument.name">ServicePath</stringProp>
+              <stringProp name="Argument.value">/rest/bpm/wle/v1/service</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="BPDName" elementType="Argument">
+              <stringProp name="Argument.name">BPDName</stringProp>
+              <stringProp name="Argument.value">Comprehensive Flow</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="ThinkTime" elementType="Argument">
+              <stringProp name="Argument.metadata">=</stringProp>
+              <stringProp name="Argument.value">10000</stringProp>
+              <stringProp name="Argument.name">ThinkTime</stringProp>
+            </elementProp>
+            <elementProp name="LoopNumber" elementType="Argument">
+              <stringProp name="Argument.metadata">=</stringProp>
+              <stringProp name="Argument.value">1</stringProp>
+              <stringProp name="Argument.name">LoopNumber</stringProp>
+              <stringProp name="Argument.desc">Number of cycles</stringProp>
+            </elementProp>
+          </collectionProp>
+        </Arguments>
+        <hashTree/>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Users CSV Data Set Config" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding"></stringProp>
+          <stringProp name="filename">users.txt</stringProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">UserName</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Process Data CSV Data Set Config" enabled="true">
+          <stringProp name="filename">data.txt</stringProp>
+          <stringProp name="fileEncoding"></stringProp>
+          <stringProp name="variableNames">personName,yesNo</stringProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
+          <collectionProp name="CookieManager.cookies"/>
+          <boolProp name="CookieManager.clearEachIteration">true</boolProp>
+        </CookieManager>
+        <hashTree/>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">agentID</stringProp>
+              <stringProp name="Header.value">${UserName}</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Content-type</stringProp>
+              <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="keepFetchingTask" elementType="Argument">
+              <stringProp name="Argument.name">keepFetchingTask</stringProp>
+              <stringProp name="Argument.value">TRUE</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="keepProcessing" elementType="Argument">
+              <stringProp name="Argument.name">keepProcessing</stringProp>
+              <stringProp name="Argument.value">TRUE</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="taskCount" elementType="Argument">
+              <stringProp name="Argument.name">taskCount</stringProp>
+              <stringProp name="Argument.value">0</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="taskStarted" elementType="Argument">
+              <stringProp name="Argument.name">taskStarted</stringProp>
+              <stringProp name="Argument.value">0</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="getTaskID" elementType="Argument">
+              <stringProp name="Argument.name">getTaskID</stringProp>
+              <stringProp name="Argument.value">0</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </Arguments>
+        <hashTree/>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Main Loop" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <stringProp name="LoopController.loops">${LoopNumber}</stringProp>
+        </LoopController>
+        <hashTree>
+          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="Start Business Process" enabled="true"/>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start BPD" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="action" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">${BPDStartAction}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">action</stringProp>
+                  </elementProp>
+                  <elementProp name="bpdId" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">${BPDID}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">bpdId</stringProp>
+                  </elementProp>
+                  <elementProp name="snapshotId" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">${BPDSnapshotID}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">snapshotId</stringProp>
+                  </elementProp>
+                  <elementProp name="params" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">{ &quot;customerSession&quot;:{                                &quot;oneBillIndicator&quot;: &quot;&quot;,                 &quot;oneBillBO&quot;: {                                 &quot;atlanticIndicator&quot;: &quot;&quot;,                                 &quot;militaryExmeption&quot;: &quot;&quot;,                                 &quot;taxExmeption&quot;: &quot;&quot;,                                 &quot;languagePref&quot;: &quot;&quot;,                                 &quot;accountType&quot;: &quot;&quot;,                                 &quot;oneBillDate&quot;: null,                                 &quot;eBillIndicator&quot;: &quot;&quot;,                                 &quot;accountStatus&quot;: &quot;&quot;,                                 &quot;privilege&quot;: &quot;&quot;,                                 &quot;oneBillId&quot;: &quot;&quot;,                                 &quot;LOBBO&quot;: {                                                 &quot;homePhone&quot;: [{                                                                 &quot;dryLoopIndicator&quot;: &quot;&quot;,                                                                 &quot;BAN&quot;: &quot;&quot;,                                                                 &quot;TN&quot;: &quot;&quot;,                                                                 &quot;contactInfo&quot;: [{                                                                                 &quot;contactInfo&quot;: {                                                                                                 &quot;primary&quot;: &quot;&quot;,                                                                                                 &quot;workPhone&quot;: &quot;&quot;,                                                                                                 &quot;faxNumber&quot;: &quot;&quot;,                                                                                                 &quot;email&quot;: &quot;&quot;,                                                                                                 &quot;cellPhone&quot;: &quot;&quot;,                                                                                                 &quot;mainPhone&quot;: &quot;&quot;,                                                                                                 &quot;lastName&quot;: &quot;&quot;,                                                                                                 &quot;firstName&quot;: &quot;&quot;                                                                                 },                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 }],                                                                 &quot;serviceInfo&quot;: {                                                                                 &quot;serviceStatus&quot;: &quot;&quot;,                                                                                 &quot;footPrint&quot;: &quot;&quot;,                                                                                 &quot;iQualified&quot;: &quot;&quot;,                                                                                 &quot;TN&quot;: &quot;&quot;,                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 }                                                 }],                                                 &quot;internet&quot;: [{                                                                 &quot;b1Id&quot;: &quot;&quot;,                                                                 &quot;customerInfo&quot;: {                                                                                 &quot;contactInfo&quot;: {                                                                                                 &quot;primary&quot;: &quot;&quot;,                                                                                                 &quot;workPhone&quot;: &quot;&quot;,                                                                                                 &quot;faxNumber&quot;: &quot;&quot;,                                                                                                 &quot;email&quot;: &quot;&quot;,                                                                                                 &quot;cellPhone&quot;: &quot;&quot;,                                                                                                 &quot;mainPhone&quot;: &quot;&quot;,                                                                                                 &quot;lastName&quot;: &quot;&quot;,                                                                                                 &quot;firstName&quot;: &quot;&quot;                                                                                 },                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;serviceInfo&quot;: {                                                                                 &quot;serviceStatus&quot;: &quot;&quot;,                                                                                 &quot;footPrint&quot;: &quot;&quot;,                                                                                 &quot;iQualified&quot;: &quot;&quot;,                                                                                 &quot;TN&quot;: &quot;&quot;,                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;modem&quot;: {                                                                                 &quot;SN&quot;: &quot;&quot;,                                                                                 &quot;MAC&quot;: &quot;&quot;,                                                                                 &quot;model&quot;: &quot;&quot;,                                                                                 &quot;manufacturerName&quot;: &quot;&quot;                                                                 }                                                 }],                                                 &quot;fibeTV&quot;: [{                                                                 &quot;darkFibe&quot;: &quot;&quot;,                                                                 &quot;accountNumber&quot;: &quot;&quot;,                                                                 &quot;B1Id&quot;: &quot;&quot;,                                                                 &quot;customerInfo&quot;: {                                                                                 &quot;contactInfo&quot;: {                                                                                                 &quot;primary&quot;: &quot;&quot;,                                                                                                 &quot;workPhone&quot;: &quot;&quot;,                                                                                                 &quot;faxNumber&quot;: &quot;&quot;,                                                                                                 &quot;email&quot;: &quot;&quot;,                                                                                                 &quot;cellPhone&quot;: &quot;&quot;,                                                                                                 &quot;mainPhone&quot;: &quot;&quot;,                                                                                                 &quot;lastName&quot;: &quot;&quot;,                                                                                                 &quot;firstName&quot;: &quot;&quot;                                                                                 },                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;serviceInfo&quot;: {                                                                                 &quot;serviceStatus&quot;: &quot;&quot;,                                                                                 &quot;footPrint&quot;: &quot;&quot;,                                                                                 &quot;iQualified&quot;: &quot;&quot;,                                                                                 &quot;TN&quot;: &quot;&quot;,                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;STB&quot;: [{                                                                                 &quot;SN&quot;: &quot;&quot;,                                                                                 &quot;model&quot;: &quot;&quot;,                                                                                 &quot;manufacturerName&quot;: &quot;&quot;                                                                 }]                                                 }],                                                 &quot;bellMobility&quot;: [{                                                                 &quot;TN&quot;: &quot;&quot;,                                                                 &quot;customerInfo&quot;: {                                                                                 &quot;contactInfo&quot;: {                                                                                                 &quot;primary&quot;: &quot;&quot;,                                                                                                 &quot;workPhone&quot;: &quot;&quot;,                                                                                                 &quot;faxNumber&quot;: &quot;&quot;,                                                                                                 &quot;email&quot;: &quot;&quot;,                                                                                                 &quot;cellPhone&quot;: &quot;&quot;,                                                                                                 &quot;mainPhone&quot;: &quot;&quot;,                                                                                                 &quot;lastName&quot;: &quot;&quot;,                                                                                                 &quot;firstName&quot;: &quot;&quot;                                                                                 },                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;serviceInfo&quot;: {                                                                                 &quot;serviceStatus&quot;: &quot;&quot;,                                                                                 &quot;footPrint&quot;: &quot;&quot;,                                                                                 &quot;iQualified&quot;: &quot;&quot;,                                                                                 &quot;TN&quot;: &quot;&quot;,                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;device&quot;: {                                                                                 &quot;SIM&quot;: &quot;&quot;,                                                                                 &quot;SN&quot;: &quot;&quot;,                                                                                 &quot;model&quot;: &quot;&quot;,                                                                                 &quot;manufacturerName&quot;: &quot;&quot;                                                                 }                                                 }],                                                 &quot;DTH&quot;: [{                                                                 &quot;customerInfo&quot;: {                                                                                 &quot;contactInfo&quot;: {                                                                                                 &quot;primary&quot;: &quot;&quot;,                                                                                                 &quot;workPhone&quot;: &quot;&quot;,                                                                                                 &quot;faxNumber&quot;: &quot;&quot;,                                                                                                 &quot;email&quot;: &quot;&quot;,                                                                                                 &quot;cellPhone&quot;: &quot;&quot;,                                                                                                 &quot;mainPhone&quot;: &quot;&quot;,                                                                                                 &quot;lastName&quot;: &quot;&quot;,                                                                                                 &quot;firstName&quot;: &quot;&quot;                                                                                 },                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 },                                                                 &quot;serviceInfo&quot;: {                                                                                 &quot;serviceStatus&quot;: &quot;&quot;,                                                                                 &quot;footPrint&quot;: &quot;&quot;,                                                                                 &quot;iQualified&quot;: &quot;&quot;,                                                                                 &quot;TN&quot;: &quot;&quot;,                                                                                 &quot;address&quot;: {                                                                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                                                                 &quot;postalCode&quot;: &quot;&quot;,                                                                                                 &quot;country&quot;: &quot;&quot;,                                                                                                 &quot;province&quot;: &quot;&quot;,                                                                                                 &quot;city&quot;: &quot;&quot;,                                                                                                 &quot;streetName&quot;: &quot;&quot;,                                                                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                                                                 &quot;POBox&quot;: &quot;&quot;,                                                                                                 &quot;unit&quot;: &quot;&quot;                                                                                 }                                                                 }                                                 }]                                 }                 },                 &quot;customerInfo&quot;: {                                 &quot;contactInfo&quot;: {                                                 &quot;primary&quot;: &quot;&quot;,                                                 &quot;workPhone&quot;: &quot;&quot;,                                                 &quot;faxNumber&quot;: &quot;&quot;,                                                 &quot;email&quot;: &quot;&quot;,                                                 &quot;cellPhone&quot;: &quot;&quot;,                                                 &quot;mainPhone&quot;: &quot;&quot;,                                                 &quot;lastName&quot;: &quot;&quot;,                                                 &quot;firstName&quot;: &quot;&quot;                                 },                                 &quot;address&quot;: {                                                 &quot;aptNumber&quot;: &quot;&quot;,                                                 &quot;postalCode&quot;: &quot;&quot;,                                                 &quot;country&quot;: &quot;&quot;,                                                 &quot;province&quot;: &quot;&quot;,                                                 &quot;city&quot;: &quot;&quot;,                                                 &quot;streetName&quot;: &quot;&quot;,                                                 &quot;streetNumber&quot;: &quot;&quot;,                                                 &quot;POBox&quot;: &quot;&quot;,                                                 &quot;unit&quot;: &quot;&quot;                                 }                 } } , &quot;agent&quot;: { &quot;sessionEnd&quot;:null, &quot;employeeNumber&quot;:null, &quot;languagePref&quot;:&quot;EN&quot;, &quot;simMode&quot;:&quot;off&quot;, &quot;sessionStart&quot;:null, &quot;groups&quot;:[&quot;Admin&quot;], &quot;agentId&quot;:&quot;ihab_benyamin.hanna&quot;, &quot;agentInfo&quot;: { &quot;primary&quot;:null, &quot;workPhone&quot;:null, &quot;faxNumber&quot;:null, &quot;email&quot;:null, &quot;cellPhone&quot;:null, &quot;mainPhone&quot;:null, &quot;lastName&quot;:null, &quot;firstName&quot;:null } } } }</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">params</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+              <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+              <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+              <stringProp name="HTTPSampler.response_timeout"></stringProp>
+              <stringProp name="HTTPSampler.protocol">https</stringProp>
+              <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+              <stringProp name="HTTPSampler.path">${BPDPath}</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+              <boolProp name="HTTPSampler.monitor">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                <collectionProp name="Asserion.test_strings">
+                  <stringProp name="49586">200</stringProp>
+                </collectionProp>
+                <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                <intProp name="Assertion.test_type">8</intProp>
+                <boolProp name="Assertion.assume_success">false</boolProp>
+              </ResponseAssertion>
+              <hashTree/>
+              <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is it right page" enabled="true">
+                <collectionProp name="Asserion.test_strings">
+                  <stringProp name="542188422">&quot;status&quot;:&quot;200&quot;,</stringProp>
+                </collectionProp>
+                <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+                <intProp name="Assertion.test_type">2</intProp>
+                <boolProp name="Assertion.assume_success">false</boolProp>
+              </ResponseAssertion>
+              <hashTree/>
+              <BSFPostProcessor guiclass="TestBeanGUI" testclass="BSFPostProcessor" testname="JSON Parse for Instance ID" enabled="true">
+                <stringProp name="TestPlan.comments">Get the URL that will start a new process</stringProp>
+                <stringProp name="filename"></stringProp>
+                <stringProp name="parameters"></stringProp>
+                <stringProp name="script">// Turn the JSON into an object called &apos;SearchResponse&apos;
+eval(&apos;var SearchResponse = &apos; + prev.getResponseDataAsString());
+
+//vars.put(&quot;taskID&quot;,SearchResponse.data.tasks[0].tkiid);
+
+// Also get the process instance Id
+
+vars.put(&quot;instanceID&quot;,SearchResponse.data.piid);
+vars.put(&quot;taskCount&quot;,&apos;-1&apos;);
+vars.put(&quot;keepProcessing&quot;,&quot;TRUE&quot;);
+log.info(&quot;SearchResponse.data.piid : &quot; + SearchResponse.data.piid);</stringProp>
+                <stringProp name="scriptLanguage">javascript</stringProp>
+              </BSFPostProcessor>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
+          <WhileController guiclass="WhileControllerGui" testclass="WhileController" testname="Close All Tasks" enabled="true">
+            <stringProp name="WhileController.condition">${__javaScript(&quot;${keepProcessing}&quot; == &quot;TRUE&quot;)}</stringProp>
+          </WhileController>
+          <hashTree>
+            <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="Fetch Task" enabled="true"/>
+            <hashTree>
+              <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                <stringProp name="ConstantTimer.delay">500</stringProp>
+                <stringProp name="RandomTimer.range">0</stringProp>
+              </UniformRandomTimer>
+              <hashTree/>
+              <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get TaskID" enabled="true">
+                <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                  <collectionProp name="Arguments.arguments"/>
+                </elementProp>
+                <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                <stringProp name="HTTPSampler.protocol">https</stringProp>
+                <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                <stringProp name="HTTPSampler.path">${BPDPath}/${instanceID}?parts=header</stringProp>
+                <stringProp name="HTTPSampler.method">GET</stringProp>
+                <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                <boolProp name="HTTPSampler.monitor">false</boolProp>
+                <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                <stringProp name="TestPlan.comments">Just simulating some Portal activity</stringProp>
+              </HTTPSamplerProxy>
+              <hashTree>
+                <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                  <collectionProp name="Asserion.test_strings">
+                    <stringProp name="49586">200</stringProp>
+                  </collectionProp>
+                  <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                  <intProp name="Assertion.test_type">8</intProp>
+                  <boolProp name="Assertion.assume_success">false</boolProp>
+                </ResponseAssertion>
+                <hashTree/>
+                <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSON Parse for TaskID" enabled="true">
+                  <stringProp name="cacheKey"></stringProp>
+                  <stringProp name="filename"></stringProp>
+                  <stringProp name="parameters"></stringProp>
+                  <stringProp name="script">// Turn the JSON into an object called &apos;SearchResponse&apos;
+eval(&apos;var SearchResponse = &apos; + prev.getResponseDataAsString());
+
+vars.put(&quot;taskID&quot;,&quot;BAD&quot;);
+vars.put(&quot;keepProcessing&quot;,&quot;TRUE&quot;);
+vars.put(&quot;keepFetchingTask&quot;,&quot;TRUE&quot;);
+vars.put(&quot;getTaskID&quot;,0);
+
+var tasks = SearchResponse.data.tasks;
+vars.put(&quot;processState&quot;,SearchResponse.data.state);
+
+if(SearchResponse.status == 200) {
+	vars.put(&quot;getTaskID&quot;,SearchResponse.status);
+}
+
+log.info(&quot;processState : &quot; + SearchResponse.data.state);
+
+var j;
+j = 0;
+vars.put(&quot;taskCount&quot;,j);
+
+if(SearchResponse.data.state == &quot;STATE_RUNNING&quot;) {
+	for(var i=0; i &lt;tasks.length; i++) {
+		if (tasks[i].state == &quot;STATE_READY&quot; || tasks[i].state == &quot;STATE_CLAIMED&quot;) {
+			if(tasks[i].status == &quot;Received&quot; || tasks[i].status == &quot;New&quot;) {
+				if(tasks[i].data.variables.stepType == &quot;YESNO&quot; 
+					|| tasks[i].data.variables.stepType == &quot;MULTISELECT&quot; 
+					|| tasks[i].data.variables.stepType == &quot;INFO&quot;
+					|| tasks[i].data.variables.stepType == &quot;SYSTEM&quot;
+					|| tasks[i].data.variables.stepType == &quot;INPUT&quot;
+					|| tasks[i].data.variables.stepType == &quot;WRAPUP&quot;) {
+					vars.put(&quot;taskID&quot;,SearchResponse.data.tasks[i].tkiid);
+					vars.put(&quot;stepType&quot;,SearchResponse.data.tasks[i].data.variables.stepType);
+					vars.put(&quot;BPGUID&quot;,SearchResponse.data.tasks[i].data.variables.BPGUID);
+					j++;
+					vars.put(&quot;taskCount&quot;,j);
+					vars.put(&quot;keepFetchingTask&quot;,&quot;FALSE&quot;);
+
+					log.info(&quot;tasks.status : &quot; + SearchResponse.data.state);
+					log.info(&quot;taskID : &quot; + SearchResponse.data.tasks[i].tkiid);
+					log.info(&quot;stepType : &quot; + SearchResponse.data.tasks[i].data.variables.stepType);
+					log.info(&quot;BPGUID : &quot; + SearchResponse.data.tasks[i].data.variables.BPGUID);
+					log.info(&quot;taskCount : &quot; + j);
+					
+					break;
+				}
+			}
+		}
+	}
+} else {
+	vars.put(&quot;keepFetchingTask&quot;,&quot;FALSE&quot;);
+	vars.put(&quot;keepProcessing&quot;,&quot;FALSE&quot;);
+}
+
+var _taskID = vars.get(&quot;taskID&quot;);
+//if(_taskID == &quot;BAD&quot;) {
+//	vars.put(&quot;keepProcessing&quot;,&quot;FALSE&quot;);
+//}
+
+log.info(&quot;keepFetchingTask : &quot; + vars.get(&quot;keepFetchingTask&quot;));
+log.info(&quot;keepProcessing : &quot; + vars.get(&quot;keepProcessing&quot;));
+</stringProp>
+                  <stringProp name="scriptLanguage">javascript</stringProp>
+                </JSR223PostProcessor>
+                <hashTree/>
+              </hashTree>
+            </hashTree>
+            <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If getTaskID Response" enabled="true">
+              <stringProp name="IfController.condition">${__javaScript(&quot;${getTaskID}&quot; == 200)}</stringProp>
+              <boolProp name="IfController.evaluateAll">false</boolProp>
+            </IfController>
+            <hashTree>
+              <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Fetch Task Again" enabled="true">
+                <stringProp name="IfController.condition">${__javaScript(&quot;${keepFetchingTask}&quot; == &quot;TRUE&quot;)}</stringProp>
+                <boolProp name="IfController.evaluateAll">false</boolProp>
+              </IfController>
+              <hashTree>
+                <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Not keepProcessing" enabled="true">
+                  <stringProp name="IfController.condition">${__javaScript(&quot;${keepFetchingTask}&quot; == &quot;TRUE&quot;)}</stringProp>
+                  <boolProp name="IfController.evaluateAll">false</boolProp>
+                </IfController>
+                <hashTree>
+                  <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Go to Fetch Task" enabled="true">
+                    <collectionProp name="ModuleController.node_path">
+                      <stringProp name="-1227702913">WorkBench</stringProp>
+                      <stringProp name="1457322630">Blueprints BPM Performance Test Plan</stringProp>
+                      <stringProp name="-22291904">Comprehensive Flow BPD Bench</stringProp>
+                      <stringProp name="1693577387">Main Loop</stringProp>
+                      <stringProp name="-101949497">Close All Tasks</stringProp>
+                      <stringProp name="-2054646933">Fetch Task</stringProp>
+                    </collectionProp>
+                  </ModuleController>
+                  <hashTree/>
+                </hashTree>
+              </hashTree>
+            </hashTree>
+            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="true">
+              <stringProp name="ConstantTimer.delay">0</stringProp>
+              <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+            </UniformRandomTimer>
+            <hashTree/>
+            <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="Close Task" enabled="true"/>
+            <hashTree>
+              <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If getTaskID Response" enabled="true">
+                <stringProp name="IfController.condition">${__javaScript(&quot;${getTaskID}&quot; == 200)}</stringProp>
+                <boolProp name="IfController.evaluateAll">false</boolProp>
+              </IfController>
+              <hashTree>
+                <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Task Exists" enabled="true">
+                  <stringProp name="IfController.condition">${__javaScript(&quot;${taskCount}&quot; &gt; 0 &amp;&amp; &quot;${keepProcessing}&quot; == &quot;TRUE&quot;)}</stringProp>
+                  <boolProp name="IfController.evaluateAll">false</boolProp>
+                </IfController>
+                <hashTree>
+                  <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskID Not BAD" enabled="true">
+                    <stringProp name="IfController.condition">${__javaScript(&quot;${taskID}&quot; != &quot;BAD&quot;)}</stringProp>
+                    <boolProp name="IfController.evaluateAll">false</boolProp>
+                  </IfController>
+                  <hashTree>
+                    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start Task" enabled="true">
+                      <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                      <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                        <collectionProp name="Arguments.arguments">
+                          <elementProp name="" elementType="HTTPArgument">
+                            <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                            <stringProp name="Argument.value">action=start</stringProp>
+                            <stringProp name="Argument.metadata">=</stringProp>
+                          </elementProp>
+                        </collectionProp>
+                      </elementProp>
+                      <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                      <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                      <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                      <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                      <stringProp name="HTTPSampler.protocol">https</stringProp>
+                      <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                      <stringProp name="HTTPSampler.path">${TaskPath}/${taskID}</stringProp>
+                      <stringProp name="HTTPSampler.method">POST</stringProp>
+                      <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                      <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                      <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                      <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                      <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                      <boolProp name="HTTPSampler.monitor">false</boolProp>
+                      <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                    </HTTPSamplerProxy>
+                    <hashTree/>
+                    <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                      <collectionProp name="Asserion.test_strings">
+                        <stringProp name="49586">200</stringProp>
+                      </collectionProp>
+                      <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                      <intProp name="Assertion.test_type">8</intProp>
+                      <boolProp name="Assertion.assume_success">false</boolProp>
+                    </ResponseAssertion>
+                    <hashTree/>
+                    <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSON Parse of Status" enabled="true">
+                      <stringProp name="scriptLanguage">javascript</stringProp>
+                      <stringProp name="parameters"></stringProp>
+                      <stringProp name="filename"></stringProp>
+                      <stringProp name="cacheKey"></stringProp>
+                      <stringProp name="script">vars.put(&quot;taskStarted&quot;,0);
+
+// Turn the JSON into an object called &apos;SearchResponse&apos;
+eval(&apos;var SearchResponse = &apos; + prev.getResponseDataAsString());
+
+if(SearchResponse.status == 200) {
+	vars.put(&quot;taskStarted&quot;,SearchResponse.status);
+}
+
+var task_started;
+task_started = vars.get(&quot;taskStarted&quot;);
+
+log.info(&quot;taskStarted : &quot; + task_started);</stringProp>
+                    </JSR223PostProcessor>
+                    <hashTree/>
+                    <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If  stepType MULTISELECT" enabled="true">
+                      <stringProp name="IfController.condition">${__javaScript(&quot;${stepType}&quot; == &quot;MULTISELECT&quot;)}</stringProp>
+                      <boolProp name="IfController.evaluateAll">false</boolProp>
+                    </IfController>
+                    <hashTree>
+                      <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Right MultiSelect" enabled="true">
+                        <stringProp name="IfController.condition">${__javaScript(&quot;${BPGUID}&quot; == &quot;${MultiSelectBPDID}&quot;)}</stringProp>
+                        <boolProp name="IfController.evaluateAll">false</boolProp>
+                      </IfController>
+                      <hashTree>
+                        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskStarted" enabled="true">
+                          <stringProp name="IfController.condition">${__javaScript(&quot;${taskStarted}&quot; == 200)}</stringProp>
+                          <boolProp name="IfController.evaluateAll">false</boolProp>
+                        </IfController>
+                        <hashTree>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Set Task Data" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=setData&amp;params={&apos;signal1&apos;:&apos;${personName}&apos;}</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${TaskPath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Close Task" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=ButtonGroup0_Button0</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${ServicePath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                        </hashTree>
+                      </hashTree>
+                    </hashTree>
+                    <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If  stepType YESNO" enabled="true">
+                      <stringProp name="IfController.condition">${__javaScript(&quot;${stepType}&quot; == &quot;YESNO&quot;)}</stringProp>
+                      <boolProp name="IfController.evaluateAll">false</boolProp>
+                    </IfController>
+                    <hashTree>
+                      <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Right YesNo" enabled="true">
+                        <stringProp name="IfController.condition">${__javaScript(&quot;${BPGUID}&quot; == &quot;${YesNoBPDID}&quot;)}</stringProp>
+                        <boolProp name="IfController.evaluateAll">false</boolProp>
+                      </IfController>
+                      <hashTree>
+                        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskStarted" enabled="true">
+                          <stringProp name="IfController.condition">${__javaScript(&quot;${taskStarted}&quot; == 200)}</stringProp>
+                          <boolProp name="IfController.evaluateAll">false</boolProp>
+                        </IfController>
+                        <hashTree>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Set Task Data" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=setData&amp;params={&apos;answer&apos;:&apos;${yesNo}&apos;}</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${TaskPath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Close Task" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=ButtonGroup0_Button0</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${ServicePath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                        </hashTree>
+                      </hashTree>
+                    </hashTree>
+                    <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If  stepType INPUT" enabled="true">
+                      <stringProp name="IfController.condition">${__javaScript(&quot;${stepType}&quot; == &quot;INPUT&quot;)}</stringProp>
+                      <boolProp name="IfController.evaluateAll">false</boolProp>
+                    </IfController>
+                    <hashTree>
+                      <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Right Input" enabled="true">
+                        <stringProp name="IfController.condition">${__javaScript(&quot;${BPGUID}&quot; == &quot;${FinishBPDID}&quot;)}</stringProp>
+                        <boolProp name="IfController.evaluateAll">false</boolProp>
+                      </IfController>
+                      <hashTree>
+                        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskStarted" enabled="true">
+                          <stringProp name="IfController.condition">${__javaScript(&quot;${taskStarted}&quot; == 200)}</stringProp>
+                          <boolProp name="IfController.evaluateAll">false</boolProp>
+                        </IfController>
+                        <hashTree>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Set Task Data" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=setData&amp;params={&apos;answer&apos;:&apos;finish&apos;}</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${TaskPath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Close Task" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=ButtonGroup0_Button0</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${ServicePath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                        </hashTree>
+                      </hashTree>
+                    </hashTree>
+                    <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If stepType WRAPUP" enabled="true">
+                      <stringProp name="IfController.condition">${__javaScript(&quot;${stepType}&quot; == &quot;WRAPUP&quot;)}</stringProp>
+                      <boolProp name="IfController.evaluateAll">false</boolProp>
+                    </IfController>
+                    <hashTree>
+                      <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Right WrapUp" enabled="true">
+                        <stringProp name="IfController.condition">${__javaScript(&quot;${BPGUID}&quot; == &quot;${WrapUpBPDID}&quot;)}</stringProp>
+                        <boolProp name="IfController.evaluateAll">false</boolProp>
+                      </IfController>
+                      <hashTree>
+                        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskStarted" enabled="true">
+                          <stringProp name="IfController.condition">${__javaScript(&quot;${taskStarted}&quot; == 200)}</stringProp>
+                          <boolProp name="IfController.evaluateAll">false</boolProp>
+                        </IfController>
+                        <hashTree>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Set Task Data" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=setData&amp;params={&apos;signal1&apos;:&apos;endCustomerSession&apos;,&apos;signal2&apos;:&apos;endProcess&apos;}</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${TaskPath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Close Task" enabled="true">
+                            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                              <collectionProp name="Arguments.arguments">
+                                <elementProp name="" elementType="HTTPArgument">
+                                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                  <stringProp name="Argument.value">action=ButtonGroup0_Button0</stringProp>
+                                  <stringProp name="Argument.metadata">=</stringProp>
+                                </elementProp>
+                              </collectionProp>
+                            </elementProp>
+                            <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                            <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                            <stringProp name="HTTPSampler.protocol">https</stringProp>
+                            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                            <stringProp name="HTTPSampler.path">${ServicePath}/${taskID}</stringProp>
+                            <stringProp name="HTTPSampler.method">POST</stringProp>
+                            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                            <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                            <boolProp name="HTTPSampler.monitor">false</boolProp>
+                            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                          </HTTPSamplerProxy>
+                          <hashTree/>
+                          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                            <stringProp name="ConstantTimer.delay">100</stringProp>
+                            <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                          </UniformRandomTimer>
+                          <hashTree/>
+                          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                            <collectionProp name="Asserion.test_strings">
+                              <stringProp name="49586">200</stringProp>
+                            </collectionProp>
+                            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                            <intProp name="Assertion.test_type">8</intProp>
+                            <boolProp name="Assertion.assume_success">false</boolProp>
+                          </ResponseAssertion>
+                          <hashTree/>
+                        </hashTree>
+                      </hashTree>
+                    </hashTree>
+                    <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If stepType INFO" enabled="true">
+                      <stringProp name="IfController.condition">${__javaScript(&quot;${stepType}&quot; == &quot;INFO&quot;)}</stringProp>
+                      <boolProp name="IfController.evaluateAll">false</boolProp>
+                    </IfController>
+                    <hashTree>
+                      <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskStarted" enabled="true">
+                        <stringProp name="IfController.condition">${__javaScript(&quot;${taskStarted}&quot; == 200)}</stringProp>
+                        <boolProp name="IfController.evaluateAll">false</boolProp>
+                      </IfController>
+                      <hashTree>
+                        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Close Task" enabled="true">
+                          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                            <collectionProp name="Arguments.arguments">
+                              <elementProp name="" elementType="HTTPArgument">
+                                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                <stringProp name="Argument.value">action=ButtonGroup0_Button0</stringProp>
+                                <stringProp name="Argument.metadata">=</stringProp>
+                              </elementProp>
+                            </collectionProp>
+                          </elementProp>
+                          <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                          <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                          <stringProp name="HTTPSampler.protocol">https</stringProp>
+                          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                          <stringProp name="HTTPSampler.path">${ServicePath}/${taskID}</stringProp>
+                          <stringProp name="HTTPSampler.method">POST</stringProp>
+                          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                          <boolProp name="HTTPSampler.monitor">false</boolProp>
+                          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                        </HTTPSamplerProxy>
+                        <hashTree/>
+                        <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                          <stringProp name="ConstantTimer.delay">100</stringProp>
+                          <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                        </UniformRandomTimer>
+                        <hashTree/>
+                        <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                          <collectionProp name="Asserion.test_strings">
+                            <stringProp name="49586">200</stringProp>
+                          </collectionProp>
+                          <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                          <intProp name="Assertion.test_type">8</intProp>
+                          <boolProp name="Assertion.assume_success">false</boolProp>
+                        </ResponseAssertion>
+                        <hashTree/>
+                      </hashTree>
+                    </hashTree>
+                    <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If stepType SYSTEM" enabled="true">
+                      <stringProp name="IfController.condition">${__javaScript(&quot;${stepType}&quot; == &quot;SYSTEM&quot;)}</stringProp>
+                      <boolProp name="IfController.evaluateAll">false</boolProp>
+                    </IfController>
+                    <hashTree>
+                      <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If taskStarted" enabled="true">
+                        <stringProp name="IfController.condition">${__javaScript(&quot;${taskStarted}&quot; == 200)}</stringProp>
+                        <boolProp name="IfController.evaluateAll">false</boolProp>
+                      </IfController>
+                      <hashTree>
+                        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Close Task" enabled="true">
+                          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+                          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                            <collectionProp name="Arguments.arguments">
+                              <elementProp name="" elementType="HTTPArgument">
+                                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                                <stringProp name="Argument.value">action=ButtonGroup0_Button0</stringProp>
+                                <stringProp name="Argument.metadata">=</stringProp>
+                              </elementProp>
+                            </collectionProp>
+                          </elementProp>
+                          <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+                          <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+                          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+                          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+                          <stringProp name="HTTPSampler.protocol">https</stringProp>
+                          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                          <stringProp name="HTTPSampler.path">${ServicePath}/${taskID}</stringProp>
+                          <stringProp name="HTTPSampler.method">POST</stringProp>
+                          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+                          <boolProp name="HTTPSampler.monitor">false</boolProp>
+                          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                        </HTTPSamplerProxy>
+                        <hashTree/>
+                        <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Portal Think Time" enabled="false">
+                          <stringProp name="ConstantTimer.delay">100</stringProp>
+                          <stringProp name="RandomTimer.range">${ThinkTime}</stringProp>
+                        </UniformRandomTimer>
+                        <hashTree/>
+                        <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                          <collectionProp name="Asserion.test_strings">
+                            <stringProp name="49586">200</stringProp>
+                          </collectionProp>
+                          <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                          <intProp name="Assertion.test_type">8</intProp>
+                          <boolProp name="Assertion.assume_success">false</boolProp>
+                        </ResponseAssertion>
+                        <hashTree/>
+                      </hashTree>
+                    </hashTree>
+                  </hashTree>
+                </hashTree>
+              </hashTree>
+            </hashTree>
+          </hashTree>
+        </hashTree>
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Clean Up" enabled="false">
+          <stringProp name="TestPlan.comments">Make sure we don&apos; t leave any instances laying around</stringProp>
+        </OnceOnlyController>
+        <hashTree>
+          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="Query Active Instances" enabled="true"/>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Query Active" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="columns" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">instanceId,instanceStatus,bpdName</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">columns</stringProp>
+                  </elementProp>
+                  <elementProp name="condition" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">bpdName|${BPDName}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">condition</stringProp>
+                  </elementProp>
+                  <elementProp name="condition" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">instanceStatus|Active</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">condition</stringProp>
+                  </elementProp>
+                  <elementProp name="organization" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">byInstance</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">organization</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain">${ServerIP}</stringProp>
+              <stringProp name="HTTPSampler.port">${ServerPort}</stringProp>
+              <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+              <stringProp name="HTTPSampler.response_timeout"></stringProp>
+              <stringProp name="HTTPSampler.protocol">https</stringProp>
+              <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+              <stringProp name="HTTPSampler.path">/rest/bpm/wle/v1/search/query</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+              <boolProp name="HTTPSampler.monitor">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+              <stringProp name="TestPlan.comments">Get any active instances</stringProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is page available?" enabled="true">
+                <collectionProp name="Asserion.test_strings">
+                  <stringProp name="49586">200</stringProp>
+                </collectionProp>
+                <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                <intProp name="Assertion.test_type">8</intProp>
+                <boolProp name="Assertion.assume_success">false</boolProp>
+              </ResponseAssertion>
+              <hashTree/>
+              <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Is it right page" enabled="true">
+                <collectionProp name="Asserion.test_strings">
+                  <stringProp name="542188422">&quot;status&quot;:&quot;200&quot;,</stringProp>
+                </collectionProp>
+                <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+                <intProp name="Assertion.test_type">2</intProp>
+                <boolProp name="Assertion.assume_success">false</boolProp>
+              </ResponseAssertion>
+              <hashTree/>
+              <BSFPostProcessor guiclass="TestBeanGUI" testclass="BSFPostProcessor" testname="JSON Parse for Active" enabled="true">
+                <stringProp name="TestPlan.comments">Get the URL that will start a new process</stringProp>
+                <stringProp name="filename"></stringProp>
+                <stringProp name="parameters"></stringProp>
+                <stringProp name="script">// Turn the JSON into an object called &apos;SearchResponse&apos;
+eval(&apos;var SearchResponse = &apos; + prev.getResponseDataAsString());
+
+if (SearchResponse.data.data == null) {
+    vars.put(&apos;instanceActive&apos;,&apos;false&apos;);
+} else {
+    vars.put(&apos;instanceActive&apos;,&apos;true&apos;);
+   vars.put(&apos;instanceID&apos;,SearchResponse.data.data[0].instanceId);
+}
+
+
+</stringProp>
+                <stringProp name="scriptLanguage">javascript</stringProp>
+              </BSFPostProcessor>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
+          <WhileController guiclass="WhileControllerGui" testclass="WhileController" testname="While Controller" enabled="true">
+            <stringProp name="WhileController.condition">${instanceActive}</stringProp>
+          </WhileController>
+          <hashTree>
+            <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Execute Task" enabled="true">
+              <collectionProp name="ModuleController.node_path">
+                <stringProp name="-1227702913">WorkBench</stringProp>
+                <stringProp name="1457322630">Blueprints BPM Performance Test Plan</stringProp>
+                <stringProp name="-22291904">Comprehensive Flow BPD Bench</stringProp>
+                <stringProp name="1693577387">Main Loop</stringProp>
+                <stringProp name="-101949497">Close All Tasks</stringProp>
+                <stringProp name="-2054646933">Fetch Task</stringProp>
+              </collectionProp>
+            </ModuleController>
+            <hashTree/>
+            <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Query Active Instances" enabled="true">
+              <collectionProp name="ModuleController.node_path">
+                <stringProp name="-1227702913">WorkBench</stringProp>
+                <stringProp name="1457322630">Blueprints BPM Performance Test Plan</stringProp>
+                <stringProp name="-22291904">Comprehensive Flow BPD Bench</stringProp>
+                <stringProp name="854761490">Clean Up</stringProp>
+                <stringProp name="-944082340">Query Active Instances</stringProp>
+              </collectionProp>
+            </ModuleController>
+            <hashTree/>
+          </hashTree>
+          <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="Debug Sampler" enabled="false">
+            <boolProp name="displayJMeterProperties">false</boolProp>
+            <boolProp name="displayJMeterVariables">true</boolProp>
+            <boolProp name="displaySystemProperties">false</boolProp>
+          </DebugSampler>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree Error" enabled="true">
+          <boolProp name="ResultCollector.error_logging">true</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree Success" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <boolProp name="ResultCollector.success_only_logging">true</boolProp>
+        </ResultCollector>
+        <hashTree/>
+        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.ThreadsStateOverTimeGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Active Threads Over Time " enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <longProp name="interval_grouping">10000</longProp>
+          <boolProp name="graph_aggregated">false</boolProp>
+          <stringProp name="include_sample_labels"></stringProp>
+          <stringProp name="exclude_sample_labels"></stringProp>
+          <stringProp name="start_offset"></stringProp>
+          <stringProp name="end_offset"></stringProp>
+          <boolProp name="include_checkbox_state">false</boolProp>
+          <boolProp name="exclude_checkbox_state">false</boolProp>
+        </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
+        <hashTree/>
+        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.HitsPerSecondGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Hits per Second" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <longProp name="interval_grouping">5000</longProp>
+          <boolProp name="graph_aggregated">false</boolProp>
+          <stringProp name="include_sample_labels"></stringProp>
+          <stringProp name="exclude_sample_labels"></stringProp>
+          <stringProp name="start_offset"></stringProp>
+          <stringProp name="end_offset"></stringProp>
+          <boolProp name="include_checkbox_state">false</boolProp>
+          <boolProp name="exclude_checkbox_state">false</boolProp>
+        </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
+        <hashTree/>
+        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.ResponseTimesOverTimeGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Response Times Over Time" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <longProp name="interval_grouping">5000</longProp>
+          <boolProp name="graph_aggregated">false</boolProp>
+          <stringProp name="include_sample_labels"></stringProp>
+          <stringProp name="exclude_sample_labels"></stringProp>
+          <stringProp name="start_offset"></stringProp>
+          <stringProp name="end_offset"></stringProp>
+          <boolProp name="include_checkbox_state">false</boolProp>
+          <boolProp name="exclude_checkbox_state">false</boolProp>
+        </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
+        <hashTree/>
+        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.ResponseTimesPercentilesGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Response Times Percentiles" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <longProp name="interval_grouping">500</longProp>
+          <boolProp name="graph_aggregated">false</boolProp>
+          <stringProp name="include_sample_labels"></stringProp>
+          <stringProp name="exclude_sample_labels"></stringProp>
+          <stringProp name="start_offset"></stringProp>
+          <stringProp name="end_offset"></stringProp>
+          <boolProp name="include_checkbox_state">false</boolProp>
+          <boolProp name="exclude_checkbox_state">false</boolProp>
+        </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
+        <hashTree/>
+        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.TransactionsPerSecondGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="Transactions per Second" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <longProp name="interval_grouping">1000</longProp>
+          <boolProp name="graph_aggregated">false</boolProp>
+          <stringProp name="include_sample_labels"></stringProp>
+          <stringProp name="exclude_sample_labels"></stringProp>
+          <stringProp name="start_offset"></stringProp>
+          <stringProp name="end_offset"></stringProp>
+          <boolProp name="include_checkbox_state">false</boolProp>
+          <boolProp name="exclude_checkbox_state">false</boolProp>
+        </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="StatGraphVisualizer" testclass="ResultCollector" testname="Aggregate Graph" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <url>true</url>
+              <fileName>true</fileName>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+              <idleTime>true</idleTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <hostname>true</hostname>
+              <threadCounts>true</threadCounts>
+              <sampleCount>true</sampleCount>
+            </value>
+          </objProp>
+          <stringProp name="filename">C:\BPM\20150305\3000U_300Rampup_10ThinkTime.csv</stringProp>
+          <boolProp name="useGroupName">true</boolProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
